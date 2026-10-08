@@ -19,6 +19,7 @@ using UnityEngine.UI;
 /// - MainScene 额外生成 CanvasTip（Toast）与 CanvasReward（奖励弹窗）
 /// - MainScene 的 StagePanel 里生成关卡选择（见 StagePanelSetup，由 MainSceneUISetup 调用）
 /// - MainScene 的 ShopPanel 里生成商店和购买确认（见 ShopPanelSetup）
+/// - MainScene 的 BagPanel 里生成背包和详情（见 BagPanelSetup）
 /// - BattleScene：仅 Main Camera
 /// - Player Settings：横屏（Default Orientation = Landscape Left）
 /// - SampleScene 若为未修改的默认场景则删除
