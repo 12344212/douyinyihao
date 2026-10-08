@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
@@ -13,6 +13,7 @@ using UnityEngine.UI;
 /// 一键生成模板空场景骨架：LoadScene(0) / MainScene(1) / BattleScene(2)，并注册到 Build Settings。
 /// - LoadScene / MainScene：Main Camera(正交，作为 UI 相机) + Canvas(Screen Space - Camera, 1920x1080, Expand) + EventSystem(StandaloneInputModule)
 /// - LoadScene 额外挂 YooAssetRuntime(YooAssetManager，packageName 保持默认 DefaultPackage)
+/// - LoadScene 额外挂 LocalSaveRuntime(LocalSaveManager，本地存档)
 /// - BattleScene：仅 Main Camera
 /// - Player Settings：横屏（Default Orientation = Landscape Left）
 /// - SampleScene 若为未修改的默认场景则删除
@@ -120,6 +121,7 @@ public static class TemplateSceneSetup
 
                 GameObject manager = new GameObject(ManagerObjectName);
                 manager.AddComponent<YooAssetManager>(); // packageName 保持默认 DefaultPackage
+                LocalSaveSceneSetup.CreateRuntimeObject(); // LocalSaveRuntime(LocalSaveManager)
 
                 EndScene(scene, LoadScenePath);
             }
