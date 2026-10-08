@@ -316,6 +316,7 @@ public static class MainSceneUISetup
         so.FindProperty("battleSceneName").stringValue = MainUIController.BattleSceneName;
         so.ApplyModifiedPropertiesWithoutUndo();
         StagePanelSetup.BuildInto(stagePanel); // 关卡选择填进 StagePanel 的 Content
+        ShopPanelSetup.BuildInto(shopPanel); // 商店列表 + 购买确认
         return ctrl;
     }
 
