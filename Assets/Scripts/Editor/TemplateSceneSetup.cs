@@ -16,6 +16,7 @@ using UnityEngine.UI;
 /// - LoadScene 额外挂 LocalSaveRuntime(LocalSaveManager，本地存档)
 /// - LoadScene 的 Canvas 下生成 Loading UI 并挂 LoadSceneController（见 LoadSceneUISetup）
 /// - MainScene 生成主界面 / CanvasPanel 面板 / CanvasMax 顶栏并挂 MainUIController（见 MainSceneUISetup）
+/// - MainScene 额外生成 CanvasTip（Toast）与 CanvasReward（奖励弹窗）
 /// - BattleScene：仅 Main Camera
 /// - Player Settings：横屏（Default Orientation = Landscape Left）
 /// - SampleScene 若为未修改的默认场景则删除
@@ -135,7 +136,8 @@ public static class TemplateSceneSetup
                 Camera cam = CreateUICamera();
                 Canvas mainCanvas = CreateCanvas(cam);
                 CreateEventSystem();
-                MainSceneUISetup.BuildUI(mainCanvas); // 主界面 + CanvasPanel 面板 + CanvasMax 顶栏（TopBarPrefab）
+                MainSceneUISetup.BuildUI(mainCanvas);
+                ToastRewardUISetup.Build(mainCanvas); // Toast（CanvasTip）+ 奖励弹窗（CanvasReward）
                 EndScene(scene, MainScenePath);
             }
 

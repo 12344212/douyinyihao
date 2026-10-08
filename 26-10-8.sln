@@ -89,9 +89,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityEngine.Purchasing.Secu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Settings.Editor", "Unity.Settings.Editor.csproj", "{3DF983BB-83DE-5FD7-7499-293876EABA98}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Core.Registration", "Unity.Services.Core.Registration.csproj", "{AC81595F-1FE0-DFE3-6281-E34D17C1DBD1}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp-Editor", "Assembly-CSharp-Editor.csproj", "{D0003E98-BB3B-35E2-9DD1-36D3D4206C3A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Core.Registration", "Unity.Services.Core.Registration.csproj", "{AC81595F-1FE0-DFE3-6281-E34D17C1DBD1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Core.Telemetry", "Unity.Services.Core.Telemetry.csproj", "{735FE2D5-5FDE-4C06-C58F-BED800502B64}"
 EndProject
@@ -307,14 +307,14 @@ Global
 		{3DF983BB-83DE-5FD7-7499-293876EABA98}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3DF983BB-83DE-5FD7-7499-293876EABA98}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3DF983BB-83DE-5FD7-7499-293876EABA98}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AC81595F-1FE0-DFE3-6281-E34D17C1DBD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AC81595F-1FE0-DFE3-6281-E34D17C1DBD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AC81595F-1FE0-DFE3-6281-E34D17C1DBD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AC81595F-1FE0-DFE3-6281-E34D17C1DBD1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D0003E98-BB3B-35E2-9DD1-36D3D4206C3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D0003E98-BB3B-35E2-9DD1-36D3D4206C3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0003E98-BB3B-35E2-9DD1-36D3D4206C3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0003E98-BB3B-35E2-9DD1-36D3D4206C3A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC81595F-1FE0-DFE3-6281-E34D17C1DBD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC81595F-1FE0-DFE3-6281-E34D17C1DBD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC81595F-1FE0-DFE3-6281-E34D17C1DBD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC81595F-1FE0-DFE3-6281-E34D17C1DBD1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{735FE2D5-5FDE-4C06-C58F-BED800502B64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{735FE2D5-5FDE-4C06-C58F-BED800502B64}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{735FE2D5-5FDE-4C06-C58F-BED800502B64}.Release|Any CPU.ActiveCfg = Release|Any CPU
