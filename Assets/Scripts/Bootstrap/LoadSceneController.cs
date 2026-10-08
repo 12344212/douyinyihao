@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 /// <summary>
 /// LoadScene 控制器（与参考项目一致，挂在 LoadScene 的 Canvas 上）。
-/// 流程：YooAsset 初始化 → 本地存档就绪 → 分段预加载（图片 / 预制体 / 配置）→ IAP 初始化（预留）
+/// 流程：YooAsset 初始化 → 本地存档就绪 → 分段预加载（图片 / 预制体 / 配置）→ IAP 初始化 → 进度补满
 ///       → DOTween 进度条补满（至少 minLoadSeconds）→ Start 按钮淡入 + 循环呼吸 → 点击后异步加载 MainScene。
 /// YooAsset 初始化失败时显示英文错误面板 + Retry 按钮（重新走一遍流程）。
 /// 所有引用都通过 Inspector 序列化字段赋值（由编辑器脚本 LoadSceneUISetup 生成并绑定），不使用 Find / GetComponent 查找其它物体。
@@ -29,6 +29,7 @@ public class LoadSceneController : MonoBehaviour
     [Header("Managers")]
     [SerializeField] private YooAssetManager yooAssetManager;
     [SerializeField] private LocalSaveManager localSaveManager;
+    [SerializeField] private IapPurchaseManager iapPurchaseManager;
 
     [Header("Progress")]
     [SerializeField] private RectTransform progressBarRoot; // JDTBG
@@ -189,15 +190,20 @@ public class LoadSceneController : MonoBehaviour
     }
 
     /// <summary>
-    /// IAP 初始化预留位置（内购模块尚未实现，当前直接跳过）。
-    /// TODO(IAP): 内购模块完成后在这里初始化，例如：
-    ///     yield return iapPurchaseManager.InitializeAsync();
-    /// 建议 IapPurchaseManager 同样放在 LoadScene，并通过 Inspector 序列化字段拖引用；
-    /// 初始化失败不应阻止进入游戏，只记录日志，商店里再提示。
+    /// 初始化 Unity IAP。优先用 Inspector 上的 IapPurchaseManager，没有再退回单例。
+    /// 失败或超时不阻止进入游戏。
     /// </summary>
     private IEnumerator InitializeIap()
     {
-        yield break;
+        SetStatus("Initializing store...");
+        IapPurchaseManager iap = iapPurchaseManager != null ? iapPurchaseManager : IapPurchaseManager.Instance;
+        if (iap == null)
+        {
+            Debug.LogWarning("[LoadSceneController] IapPurchaseManager is not assigned.");
+            yield break;
+        }
+
+        yield return iap.InitializeAsync();
     }
 
     private IEnumerator RunPhase(List<string> locations, Type assetType, float sliceStart, float sliceEnd)

@@ -318,6 +318,7 @@ public static class MainSceneUISetup
         StagePanelSetup.BuildInto(stagePanel); // 关卡选择填进 StagePanel 的 Content
         ShopPanelSetup.BuildInto(shopPanel); // 商店列表（ShopPrefab）+ 购买确认
         BagPanelSetup.BuildInto(bagPanel); // 背包列表（BagPrefab）+ 详情
+        TopUpPanelSetup.BuildInto(topUpPanel); // 充值列表（TopPrefab）+ 购买提示
         return ctrl;
     }
 
