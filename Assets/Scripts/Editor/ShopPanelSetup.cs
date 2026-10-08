@@ -19,6 +19,7 @@ public static class ShopPanelSetup
 {
     private const string LogTag = "[ShopPanelSetup]";
     private const string MainScenePath = "Assets/Scenes/MainScene.unity";
+    public const string ShopPrefabPath = "Assets/Prefab/UI/ShopPrefab.prefab";
 
     private static readonly Color RowColor = new Color(1f, 1f, 1f, 0.72f);
     private static readonly Color IconColor = new Color(0.55f, 0.40f, 0.85f, 1f);
@@ -100,7 +101,7 @@ public static class ShopPanelSetup
         layout.childForceExpandWidth = true;
         layout.childForceExpandHeight = false;
 
-        ShopItemSlot template = CreateSlot(shopPanel.transform, font);
+        ShopItemSlot template = EnsureShopPrefab(font);
         BuyPanelController buy = CreateBuyPanel(shopPanel.transform, font);
 
         ShopPanelController ctrl = shopPanel.GetComponent<ShopPanelController>();
@@ -111,7 +112,7 @@ public static class ShopPanelSetup
 
         SerializedObject so = new SerializedObject(ctrl);
         SetRef(so, "listRoot", list);
-        SetRef(so, "slotTemplate", template);
+        SetRef(so, "slotPrefab", template);
         SetRef(so, "buyPanel", buy);
         so.ApplyModifiedPropertiesWithoutUndo();
     }
@@ -147,16 +148,17 @@ public static class ShopPanelSetup
                 return;
             }
 
-            if (panel.GetComponent<ShopPanelController>() != null)
+            ShopPanelController existing = panel.GetComponent<ShopPanelController>();
+            if (existing != null)
             {
-                if (!interactive)
+                if (!interactive && HasSlotPrefab(existing))
                 {
-                    Debug.Log($"{LogTag} Shop panel already built, auto-run skipped.");
+                    Debug.Log($"{LogTag} Shop panel already uses ShopPrefab, auto-run skipped.");
                     CloseIfOpened(scene, openedHere);
                     return;
                 }
 
-                if (!EditorUtility.DisplayDialog("Build Shop Panel", "Shop panel content already exists. Rebuild it?", "Rebuild", "Cancel"))
+                if (interactive && !EditorUtility.DisplayDialog("Build Shop Panel", "Shop panel content already exists. Rebuild it?", "Rebuild", "Cancel"))
                 {
                     return;
                 }
@@ -243,11 +245,56 @@ public static class ShopPanelSetup
         }
     }
 
-    private static ShopItemSlot CreateSlot(Transform parent, TMP_FontAsset font)
+    private static ShopItemSlot EnsureShopPrefab(TMP_FontAsset font)
     {
-        Image bg = CreateImage("ShopSlotTemplate", parent, RowColor, false);
+        GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(ShopPrefabPath);
+        if (existing != null && existing.GetComponent<ShopItemSlot>() != null)
+        {
+            return existing.GetComponent<ShopItemSlot>();
+        }
+
+        if (!AssetDatabase.IsValidFolder("Assets/Prefab"))
+        {
+            AssetDatabase.CreateFolder("Assets", "Prefab");
+        }
+
+        if (!AssetDatabase.IsValidFolder("Assets/Prefab/UI"))
+        {
+            AssetDatabase.CreateFolder("Assets/Prefab", "UI");
+        }
+
+        ShopItemSlot slot = CreateSlot(font);
+        bool ok;
+        PrefabUtility.SaveAsPrefabAsset(slot.gameObject, ShopPrefabPath, out ok);
+        UnityEngine.Object.DestroyImmediate(slot.gameObject);
+        if (!ok)
+        {
+            throw new Exception("Failed to save " + ShopPrefabPath);
+        }
+
+        Debug.Log($"{LogTag} Created {ShopPrefabPath}");
+        return AssetDatabase.LoadAssetAtPath<GameObject>(ShopPrefabPath).GetComponent<ShopItemSlot>();
+    }
+
+    private static bool HasSlotPrefab(ShopPanelController ctrl)
+    {
+        if (ctrl == null)
+        {
+            return false;
+        }
+
+        SerializedObject so = new SerializedObject(ctrl);
+        UnityEngine.Object value = so.FindProperty("slotPrefab").objectReferenceValue;
+        return value != null && PrefabUtility.IsPartOfPrefabAsset(value);
+    }
+
+    private static ShopItemSlot CreateSlot(TMP_FontAsset font)
+    {
+        Image bg = CreateImage("ShopPrefab", null, RowColor, false);
         RectTransform rt = bg.rectTransform;
-        rt.sizeDelta = new Vector2(0f, 150f);
+        rt.sizeDelta = new Vector2(900f, 150f);
+        LayoutElement layout = bg.gameObject.AddComponent<LayoutElement>();
+        layout.preferredHeight = 150f;
 
         Image icon = CreateImage("Icon", bg.transform, IconColor, false);
         SetRect(icon.rectTransform, new Vector2(0f, 0.5f), new Vector2(90f, 0f), new Vector2(110f, 110f));
@@ -269,7 +316,6 @@ public static class ShopPanelSetup
         SetRef(so, "priceLabel", price);
         SetRef(so, "buyButton", buy);
         so.ApplyModifiedPropertiesWithoutUndo();
-        bg.gameObject.SetActive(false);
         return slot;
     }
 

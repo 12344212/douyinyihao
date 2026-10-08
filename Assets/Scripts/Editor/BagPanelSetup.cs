@@ -18,6 +18,7 @@ public static class BagPanelSetup
 {
     private const string LogTag = "[BagPanelSetup]";
     private const string MainScenePath = "Assets/Scenes/MainScene.unity";
+    public const string BagPrefabPath = "Assets/Prefab/UI/BagPrefab.prefab";
 
     private static readonly Color RowColor = new Color(1f, 1f, 1f, 0.72f);
     private static readonly Color IconColor = new Color(0.55f, 0.40f, 0.85f, 1f);
@@ -101,7 +102,7 @@ public static class BagPanelSetup
         layout.childForceExpandWidth = true;
         layout.childForceExpandHeight = false;
 
-        BagItemSlot template = CreateSlot(bagPanel.transform, font);
+        BagItemSlot template = EnsureBagPrefab(font);
         BagDetailView detail = CreateDetail(bagPanel.transform, font);
 
         BagPanelController ctrl = bagPanel.GetComponent<BagPanelController>();
@@ -112,7 +113,7 @@ public static class BagPanelSetup
 
         SerializedObject so = new SerializedObject(ctrl);
         SetRef(so, "listRoot", list);
-        SetRef(so, "slotTemplate", template);
+        SetRef(so, "slotPrefab", template);
         SetRef(so, "emptyLabel", empty);
         SetRef(so, "detailView", detail);
         so.ApplyModifiedPropertiesWithoutUndo();
@@ -149,16 +150,17 @@ public static class BagPanelSetup
                 return;
             }
 
-            if (panel.GetComponent<BagPanelController>() != null)
+            BagPanelController existing = panel.GetComponent<BagPanelController>();
+            if (existing != null)
             {
-                if (!interactive)
+                if (!interactive && HasSlotPrefab(existing))
                 {
-                    Debug.Log($"{LogTag} Bag panel already built, auto-run skipped.");
+                    Debug.Log($"{LogTag} Bag panel already uses BagPrefab, auto-run skipped.");
                     CloseIfOpened(scene, openedHere);
                     return;
                 }
 
-                if (!EditorUtility.DisplayDialog("Build Bag Panel", "Bag panel content already exists. Rebuild it?", "Rebuild", "Cancel"))
+                if (interactive && !EditorUtility.DisplayDialog("Build Bag Panel", "Bag panel content already exists. Rebuild it?", "Rebuild", "Cancel"))
                 {
                     return;
                 }
@@ -246,10 +248,55 @@ public static class BagPanelSetup
         }
     }
 
-    private static BagItemSlot CreateSlot(Transform parent, TMP_FontAsset font)
+    private static BagItemSlot EnsureBagPrefab(TMP_FontAsset font)
     {
-        Image bg = CreateImage("BagSlotTemplate", parent, RowColor, true);
-        bg.rectTransform.sizeDelta = new Vector2(0f, 140f);
+        GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(BagPrefabPath);
+        if (existing != null && existing.GetComponent<BagItemSlot>() != null)
+        {
+            return existing.GetComponent<BagItemSlot>();
+        }
+
+        if (!AssetDatabase.IsValidFolder("Assets/Prefab"))
+        {
+            AssetDatabase.CreateFolder("Assets", "Prefab");
+        }
+
+        if (!AssetDatabase.IsValidFolder("Assets/Prefab/UI"))
+        {
+            AssetDatabase.CreateFolder("Assets/Prefab", "UI");
+        }
+
+        BagItemSlot slot = CreateSlot(font);
+        bool ok;
+        PrefabUtility.SaveAsPrefabAsset(slot.gameObject, BagPrefabPath, out ok);
+        UnityEngine.Object.DestroyImmediate(slot.gameObject);
+        if (!ok)
+        {
+            throw new Exception("Failed to save " + BagPrefabPath);
+        }
+
+        Debug.Log($"{LogTag} Created {BagPrefabPath}");
+        return AssetDatabase.LoadAssetAtPath<GameObject>(BagPrefabPath).GetComponent<BagItemSlot>();
+    }
+
+    private static bool HasSlotPrefab(BagPanelController ctrl)
+    {
+        if (ctrl == null)
+        {
+            return false;
+        }
+
+        SerializedObject so = new SerializedObject(ctrl);
+        UnityEngine.Object value = so.FindProperty("slotPrefab").objectReferenceValue;
+        return value != null && PrefabUtility.IsPartOfPrefabAsset(value);
+    }
+
+    private static BagItemSlot CreateSlot(TMP_FontAsset font)
+    {
+        Image bg = CreateImage("BagPrefab", null, RowColor, true);
+        bg.rectTransform.sizeDelta = new Vector2(900f, 140f);
+        LayoutElement layout = bg.gameObject.AddComponent<LayoutElement>();
+        layout.preferredHeight = 140f;
         Button button = bg.gameObject.AddComponent<Button>();
         button.targetGraphic = bg;
 
@@ -271,7 +318,6 @@ public static class BagPanelSetup
         SetRef(so, "countLabel", count);
         SetRef(so, "button", button);
         so.ApplyModifiedPropertiesWithoutUndo();
-        bg.gameObject.SetActive(false);
         return slot;
     }
 

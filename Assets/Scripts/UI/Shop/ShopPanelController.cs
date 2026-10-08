@@ -8,7 +8,7 @@ using UnityEngine;
 public class ShopPanelController : MonoBehaviour
 {
     [SerializeField] private RectTransform listRoot;
-    [SerializeField] private ShopItemSlot slotTemplate;
+    [SerializeField] private ShopItemSlot slotPrefab;
     [SerializeField] private BuyPanelController buyPanel;
 
     private readonly List<ShopItemSlot> _slots = new List<ShopItemSlot>(4);
@@ -26,16 +26,16 @@ public class ShopPanelController : MonoBehaviour
     public void Rebuild()
     {
         Clear();
-        if (listRoot == null || slotTemplate == null)
+        if (listRoot == null || slotPrefab == null)
         {
-            Debug.LogWarning("[ShopPanelController] List or slot template is not assigned.");
+            Debug.LogWarning("[ShopPanelController] List or slot prefab is not assigned.");
             return;
         }
 
         IReadOnlyList<GameItemDefs.Def> defs = GameItemDefs.All;
         for (int i = 0; i < defs.Count; i++)
         {
-            ShopItemSlot slot = Instantiate(slotTemplate, listRoot);
+            ShopItemSlot slot = Instantiate(slotPrefab, listRoot);
             slot.gameObject.SetActive(true);
             slot.Bind(defs[i], OpenBuy);
             _slots.Add(slot);

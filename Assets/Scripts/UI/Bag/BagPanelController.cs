@@ -9,7 +9,7 @@ using UnityEngine;
 public class BagPanelController : MonoBehaviour
 {
     [SerializeField] private RectTransform listRoot;
-    [SerializeField] private BagItemSlot slotTemplate;
+    [SerializeField] private BagItemSlot slotPrefab;
     [SerializeField] private TMP_Text emptyLabel;
     [SerializeField] private BagDetailView detailView;
 
@@ -54,9 +54,9 @@ public class BagPanelController : MonoBehaviour
         }
 
         List<ItemStackEntry> items = save.GetAllItems();
-        if (listRoot == null || slotTemplate == null)
+        if (listRoot == null || slotPrefab == null)
         {
-            Debug.LogWarning("[BagPanelController] List or slot template is not assigned.");
+            Debug.LogWarning("[BagPanelController] List or slot prefab is not assigned.");
             return;
         }
 
@@ -70,7 +70,7 @@ public class BagPanelController : MonoBehaviour
             }
 
             GameItemDefs.Def def = GameItemDefs.Get(stack.itemId);
-            BagItemSlot slot = Instantiate(slotTemplate, listRoot);
+            BagItemSlot slot = Instantiate(slotPrefab, listRoot);
             slot.gameObject.SetActive(true);
             slot.Bind(stack.itemId, def != null ? def.displayName : stack.itemId, stack.count, def != null ? def.iconLocation : null, OpenDetail);
             _slots.Add(slot);
