@@ -315,6 +315,7 @@ public static class MainSceneUISetup
         SetRef(so, "profilePanel", profilePanel);
         so.FindProperty("battleSceneName").stringValue = MainUIController.BattleSceneName;
         so.ApplyModifiedPropertiesWithoutUndo();
+        StagePanelSetup.BuildInto(stagePanel); // 关卡选择填进 StagePanel 的 Content
         return ctrl;
     }
 

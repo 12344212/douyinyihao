@@ -17,6 +17,7 @@ using UnityEngine.UI;
 /// - LoadScene 的 Canvas 下生成 Loading UI 并挂 LoadSceneController（见 LoadSceneUISetup）
 /// - MainScene 生成主界面 / CanvasPanel 面板 / CanvasMax 顶栏并挂 MainUIController（见 MainSceneUISetup）
 /// - MainScene 额外生成 CanvasTip（Toast）与 CanvasReward（奖励弹窗）
+/// - MainScene 的 StagePanel 里生成关卡选择（见 StagePanelSetup，由 MainSceneUISetup 调用）
 /// - BattleScene：仅 Main Camera
 /// - Player Settings：横屏（Default Orientation = Landscape Left）
 /// - SampleScene 若为未修改的默认场景则删除
