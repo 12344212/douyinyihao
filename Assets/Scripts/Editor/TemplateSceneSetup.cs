@@ -14,6 +14,7 @@ using UnityEngine.UI;
 /// - LoadScene / MainScene：Main Camera(正交，作为 UI 相机) + Canvas(Screen Space - Camera, 1920x1080, Expand) + EventSystem(StandaloneInputModule)
 /// - LoadScene 额外挂 YooAssetRuntime(YooAssetManager，packageName 保持默认 DefaultPackage)
 /// - LoadScene 额外挂 LocalSaveRuntime(LocalSaveManager，本地存档)
+/// - LoadScene 的 Canvas 下生成 Loading UI 并挂 LoadSceneController（见 LoadSceneUISetup）
 /// - BattleScene：仅 Main Camera
 /// - Player Settings：横屏（Default Orientation = Landscape Left）
 /// - SampleScene 若为未修改的默认场景则删除
@@ -116,12 +117,13 @@ public static class TemplateSceneSetup
             {
                 Scene scene = BeginScene();
                 Camera cam = CreateUICamera();
-                CreateCanvas(cam);
+                Canvas loadCanvas = CreateCanvas(cam);
                 CreateEventSystem();
 
                 GameObject manager = new GameObject(ManagerObjectName);
-                manager.AddComponent<YooAssetManager>(); // packageName 保持默认 DefaultPackage
-                LocalSaveSceneSetup.CreateRuntimeObject(); // LocalSaveRuntime(LocalSaveManager)
+                YooAssetManager yoo = manager.AddComponent<YooAssetManager>(); // packageName 保持默认 DefaultPackage
+                GameObject saveGo = LocalSaveSceneSetup.CreateRuntimeObject(); // LocalSaveRuntime(LocalSaveManager)
+                LoadSceneUISetup.BuildUI(loadCanvas, yoo, saveGo.GetComponent<LocalSaveManager>()); // Loading UI + LoadSceneController（挂在 Canvas 上）
 
                 EndScene(scene, LoadScenePath);
             }
@@ -191,7 +193,7 @@ public static class TemplateSceneSetup
         return cam;
     }
 
-    private static void CreateCanvas(Camera uiCamera)
+    private static Canvas CreateCanvas(Camera uiCamera)
     {
         GameObject go = new GameObject("Canvas", typeof(RectTransform));
         go.layer = LayerMask.NameToLayer("UI");
@@ -208,6 +210,7 @@ public static class TemplateSceneSetup
         scaler.referencePixelsPerUnit = 100f;
 
         go.AddComponent<GraphicRaycaster>();
+        return canvas;
     }
 
     private static void CreateEventSystem()
