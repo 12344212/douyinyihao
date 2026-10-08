@@ -319,6 +319,10 @@ public static class MainSceneUISetup
         ShopPanelSetup.BuildInto(shopPanel); // 商店列表（ShopPrefab）+ 购买确认
         BagPanelSetup.BuildInto(bagPanel); // 背包列表（BagPrefab）+ 详情
         TopUpPanelSetup.BuildInto(topUpPanel); // 充值列表（TopPrefab）+ 购买提示
+        ConfigAssetSetup.AssignPanels(
+            shopPanel.GetComponent<ShopPanelController>(),
+            bagPanel.GetComponent<BagPanelController>(),
+            topUpPanel.GetComponent<TopUpPanelController>());
         return ctrl;
     }
 

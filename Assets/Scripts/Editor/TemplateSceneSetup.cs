@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
@@ -20,7 +20,7 @@ using UnityEngine.UI;
 /// - MainScene 的 StagePanel 里生成关卡选择（见 StagePanelSetup，由 MainSceneUISetup 调用）
 /// - MainScene 的 ShopPanel 里生成商店和购买确认（见 ShopPanelSetup）
 /// - MainScene 的 BagPanel 里生成背包和详情（见 BagPanelSetup）
-/// - BattleScene：仅 Main Camera
+/// - BattleScene: orthographic Main Camera + BattleRoot with Water, 2x2 planks, Character and HUD prefab instances
 /// - Player Settings：横屏（Default Orientation = Landscape Left）
 /// - SampleScene 若为未修改的默认场景则删除
 /// 菜单：Tools/Template/Create Template Scenes
@@ -144,10 +144,14 @@ public static class TemplateSceneSetup
                 EndScene(scene, MainScenePath);
             }
 
-            // 3. BattleScene：仅 Main Camera
+            // 3. BattleScene: camera + BattleRoot with water, 2x2 planks, character, HUD
             {
                 Scene scene = BeginScene();
-                CreateMainCamera();
+                CreateBattleCamera();
+                GameObject yooGo = new GameObject(ManagerObjectName);
+                YooAssetManager yoo = yooGo.AddComponent<YooAssetManager>();
+                CreateBattleRoot(yoo);
+                CreateEventSystem();
                 EndScene(scene, BattleScenePath);
             }
 
@@ -178,6 +182,122 @@ public static class TemplateSceneSetup
         }
     }
 
+    private static Camera CreateBattleCamera()
+    {
+        Camera cam = CreateMainCamera();
+        cam.orthographic = true;
+        cam.orthographicSize = 8f;
+        cam.clearFlags = CameraClearFlags.SolidColor;
+        cam.backgroundColor = new Color(0.08f, 0.25f, 0.38f, 1f);
+        cam.nearClipPlane = 0.3f;
+        cam.farClipPlane = 1000f;
+        return cam;
+    }
+
+    private static void CreateBattleRoot(YooAssetManager yoo)
+    {
+        GameObject root = new GameObject("BattleRoot");
+        BattleBootstrap bootstrap = root.AddComponent<BattleBootstrap>();
+        BattleDirector director = root.AddComponent<BattleDirector>();
+
+        GameObject entities = new GameObject("Entities");
+        entities.transform.SetParent(root.transform, false);
+
+        const float cell = 1.8f;
+        Transform water = PlaceBattlePrefab("Assets/Prefab/Battle/BattleWater.prefab", root.transform, "Water", Vector3.zero);
+        PlankView plank00 = PlacePlank(root.transform, 0, 0, cell);
+        PlankView plank10 = PlacePlank(root.transform, 1, 0, cell);
+        PlankView plank01 = PlacePlank(root.transform, 0, 1, cell);
+        PlankView plank11 = PlacePlank(root.transform, 1, 1, cell);
+        Vector3 origin = new Vector3(-0.5f * cell, -0.5f * cell, 0f);
+        Transform character = PlaceBattlePrefab("Assets/Prefab/Battle/BattleCharacter.prefab", root.transform, "Character", origin);
+        BattleHudView hud = PlaceHud(root.transform, director);
+
+        SerializedObject so = new SerializedObject(director);
+        so.FindProperty("hud").objectReferenceValue = hud;
+        so.FindProperty("water").objectReferenceValue = water;
+        so.FindProperty("character").objectReferenceValue = character;
+        so.FindProperty("spawnRoot").objectReferenceValue = entities.transform;
+        SerializedProperty planks = so.FindProperty("startingPlanks");
+        planks.arraySize = 4;
+        planks.GetArrayElementAtIndex(0).objectReferenceValue = plank00;
+        planks.GetArrayElementAtIndex(1).objectReferenceValue = plank10;
+        planks.GetArrayElementAtIndex(2).objectReferenceValue = plank01;
+        planks.GetArrayElementAtIndex(3).objectReferenceValue = plank11;
+        so.FindProperty("plankPrefab").objectReferenceValue = LoadPrefabComponent<PlankView>("Assets/Prefab/Battle/BattlePlank.prefab");
+        so.FindProperty("resourcePrefab").objectReferenceValue = LoadPrefabComponent<BattleResource>("Assets/Prefab/Battle/BattleResource.prefab");
+        so.FindProperty("crabPrefab").objectReferenceValue = LoadPrefabComponent<BattleCrab>("Assets/Prefab/Battle/BattleCrab.prefab");
+        so.FindProperty("netPrefab").objectReferenceValue = LoadPrefabComponent<BattleNet>("Assets/Prefab/Battle/BattleNet.prefab");
+        so.FindProperty("spearPrefab").objectReferenceValue = LoadPrefabComponent<BattleSpear>("Assets/Prefab/Battle/BattleSpear.prefab");
+        so.FindProperty("captureTowerPrefab").objectReferenceValue = LoadPrefabComponent<BattleTower>("Assets/Prefab/Battle/BattleCaptureTower.prefab");
+        so.FindProperty("attackTowerPrefab").objectReferenceValue = LoadPrefabComponent<BattleTower>("Assets/Prefab/Battle/BattleAttackTower.prefab");
+        so.ApplyModifiedPropertiesWithoutUndo();
+
+        SerializedObject boot = new SerializedObject(bootstrap);
+        boot.FindProperty("director").objectReferenceValue = director;
+        boot.FindProperty("yooAssetManager").objectReferenceValue = yoo;
+        boot.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static T LoadPrefabComponent<T>(string path) where T : Component
+    {
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+        if (prefab == null)
+        {
+            Debug.LogError($"{LogTag} Missing prefab {path}");
+            return null;
+        }
+
+        return prefab.GetComponent<T>();
+    }
+
+    private static Transform PlaceBattlePrefab(string path, Transform parent, string objectName, Vector3 localPosition)
+    {
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+        if (prefab == null)
+        {
+            Debug.LogError($"{LogTag} Missing prefab {path}");
+            return null;
+        }
+
+        GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+        instance.name = objectName;
+        instance.transform.SetParent(parent, false);
+        instance.transform.localPosition = localPosition;
+        return instance.transform;
+    }
+
+    private static PlankView PlacePlank(Transform parent, int x, int y, float cell)
+    {
+        Vector3 pos = new Vector3((x - 0.5f) * cell, (y - 0.5f) * cell, 0f);
+        Transform placed = PlaceBattlePrefab("Assets/Prefab/Battle/BattlePlank.prefab", parent, "Plank_" + x + "_" + y, pos);
+        if (placed == null)
+        {
+            return null;
+        }
+
+        PlankView view = placed.GetComponent<PlankView>();
+        SerializedObject so = new SerializedObject(view);
+        so.FindProperty("cellX").intValue = x;
+        so.FindProperty("cellY").intValue = y;
+        so.ApplyModifiedPropertiesWithoutUndo();
+        return view;
+    }
+
+    private static BattleHudView PlaceHud(Transform parent, BattleDirector director)
+    {
+        Transform placed = PlaceBattlePrefab("Assets/Prefab/Battle/BattleHud.prefab", parent, "BattleHud", Vector3.zero);
+        if (placed == null)
+        {
+            return null;
+        }
+
+        BattleHudView hud = placed.GetComponent<BattleHudView>();
+        SerializedObject so = new SerializedObject(hud);
+        so.FindProperty("director").objectReferenceValue = director;
+        so.ApplyModifiedPropertiesWithoutUndo();
+        return hud;
+    }
     private static Camera CreateMainCamera()
     {
         GameObject go = new GameObject("Main Camera");

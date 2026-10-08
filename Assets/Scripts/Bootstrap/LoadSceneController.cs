@@ -30,6 +30,8 @@ public class LoadSceneController : MonoBehaviour
     [SerializeField] private YooAssetManager yooAssetManager;
     [SerializeField] private LocalSaveManager localSaveManager;
     [SerializeField] private IapPurchaseManager iapPurchaseManager;
+    [SerializeField] private ItemConfig itemConfig;
+    [SerializeField] private GemPackConfig gemPackConfig;
 
     [Header("Progress")]
     [SerializeField] private RectTransform progressBarRoot; // JDTBG
@@ -173,8 +175,9 @@ public class LoadSceneController : MonoBehaviour
 
         SetStatus("Loading configs...");
         yield return RunPhase(ResolveLocations(configLocations, typeof(TextAsset), typeof(ScriptableObject)), null, PrefabsEnd, ConfigsEnd);
+        yield return BindGameConfigs();
 
-        // 4. IAP 初始化（预留）
+        // 4. IAP 初始化（商品 id 来自 GemPackConfig）
         yield return InitializeIap();
 
         // 5. 收尾：补满进度，保证至少显示 minLoadSeconds
@@ -193,6 +196,49 @@ public class LoadSceneController : MonoBehaviour
     /// 初始化 Unity IAP。优先用 Inspector 上的 IapPurchaseManager，没有再退回单例。
     /// 失败或超时不阻止进入游戏。
     /// </summary>
+    /// <summary>
+    /// 按文件名地址加载 ItemConfig / GemPackConfig。YooAsset 成功就用加载结果，否则用 Inspector 上的引用。
+    /// </summary>
+    private IEnumerator BindGameConfigs()
+    {
+        if (itemConfig != null)
+        {
+            GameItemDefs.Bind(itemConfig);
+        }
+
+        if (gemPackConfig != null)
+        {
+            GemPackDefs.Bind(gemPackConfig);
+        }
+
+        if (_yoo != null && _yoo.IsReady)
+        {
+            ItemConfig loadedItems = null;
+            yield return _yoo.LoadConfigAsync<ItemConfig>(GameItemDefs.ConfigAddress, c => loadedItems = c);
+            if (loadedItems != null)
+            {
+                GameItemDefs.Bind(loadedItems);
+            }
+
+            GemPackConfig loadedPacks = null;
+            yield return _yoo.LoadConfigAsync<GemPackConfig>(GemPackDefs.ConfigAddress, c => loadedPacks = c);
+            if (loadedPacks != null)
+            {
+                GemPackDefs.Bind(loadedPacks);
+            }
+        }
+
+        if (GameItemDefs.Current == null)
+        {
+            Debug.LogWarning("[LoadSceneController] ItemConfig is not loaded.");
+        }
+
+        if (GemPackDefs.Current == null)
+        {
+            Debug.LogWarning("[LoadSceneController] GemPackConfig is not loaded.");
+        }
+    }
+
     private IEnumerator InitializeIap()
     {
         SetStatus("Initializing store...");

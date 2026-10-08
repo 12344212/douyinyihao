@@ -800,6 +800,8 @@ MonoBehaviour:
   yooAssetManager: {fileID: 636846680}
   localSaveManager: {fileID: 783882625}
   iapPurchaseManager: {fileID: 851067379}
+  itemConfig: {fileID: 11400000, guid: 14dd171ecc29298429ded2f62fc1a87f, type: 2}
+  gemPackConfig: {fileID: 11400000, guid: 5eb898f70a56bbe47a6887b9b3f50a62, type: 2}
   progressBarRoot: {fileID: 1195522107}
   progressFillImage: {fileID: 825152320}
   progressText: {fileID: 1790538112}

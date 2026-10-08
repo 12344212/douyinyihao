@@ -11,6 +11,7 @@ public class TopUpPanelController : MonoBehaviour
     [SerializeField] private TopUpItemSlot topPrefab;
     [SerializeField] private PurchaseLoadingUI loading;
     [SerializeField] private PurchaseTipUI purchaseTip;
+    [SerializeField] private GemPackConfig gemPackConfig;
 
     private Coroutine _rebuild;
     private Coroutine _flow;
@@ -49,10 +50,16 @@ public class TopUpPanelController : MonoBehaviour
             yield break;
         }
 
-        ClearList();
-        for (int i = 0; i < GemPackDefs.Packs.Length; i++)
+        if (GemPackDefs.Current == null && gemPackConfig != null)
         {
-            GemPackDefs.Pack pack = GemPackDefs.Packs[i];
+            GemPackDefs.Bind(gemPackConfig);
+        }
+
+        ClearList();
+        GemPackDefs.Pack[] packs = GemPackDefs.Packs;
+        for (int i = 0; i < packs.Length; i++)
+        {
+            GemPackDefs.Pack pack = packs[i];
             TopUpItemSlot slot = Instantiate(topPrefab, listRoot);
             slot.gameObject.name = "TopPrefab_" + pack.index;
             slot.gameObject.SetActive(true);

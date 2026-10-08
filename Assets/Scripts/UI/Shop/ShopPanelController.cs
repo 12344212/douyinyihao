@@ -10,6 +10,7 @@ public class ShopPanelController : MonoBehaviour
     [SerializeField] private RectTransform listRoot;
     [SerializeField] private ShopItemSlot slotPrefab;
     [SerializeField] private BuyPanelController buyPanel;
+    [SerializeField] private ItemConfig itemConfig;
 
     private readonly List<ShopItemSlot> _slots = new List<ShopItemSlot>(4);
 
@@ -30,6 +31,11 @@ public class ShopPanelController : MonoBehaviour
         {
             Debug.LogWarning("[ShopPanelController] List or slot prefab is not assigned.");
             return;
+        }
+
+        if (GameItemDefs.Current == null && itemConfig != null)
+        {
+            GameItemDefs.Bind(itemConfig);
         }
 
         IReadOnlyList<GameItemDefs.Def> defs = GameItemDefs.All;

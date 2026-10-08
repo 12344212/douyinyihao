@@ -321,6 +321,7 @@ public static class LoadSceneUISetup
         so.FindProperty("nextSceneName").stringValue = LoadSceneController.MainSceneName;
         so.ApplyModifiedPropertiesWithoutUndo();
         TopUpPanelSetup.EnsureIap(ctrl); // LoadScene 上挂 IapPurchaseManager 并写回引用
+        ConfigAssetSetup.AssignLoadScene(ctrl);
         return ctrl;
     }
 

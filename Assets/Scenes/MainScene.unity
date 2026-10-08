@@ -927,6 +927,7 @@ MonoBehaviour:
   listRoot: {fileID: 109595619}
   slotPrefab: {fileID: 2637587999727446002, guid: 9227dbf1176dd5e4e9fbc72dfde3e76f, type: 3}
   buyPanel: {fileID: 1662409735}
+  itemConfig: {fileID: 11400000, guid: 14dd171ecc29298429ded2f62fc1a87f, type: 2}
 --- !u!1 &76420075
 GameObject:
   m_ObjectHideFlags: 0
@@ -8325,6 +8326,7 @@ MonoBehaviour:
   slotPrefab: {fileID: 1872292008579847104, guid: a0eb8008c2f12fe4888857168e1a46c3, type: 3}
   emptyLabel: {fileID: 595963290}
   detailView: {fileID: 593614977}
+  itemConfig: {fileID: 11400000, guid: 14dd171ecc29298429ded2f62fc1a87f, type: 2}
 --- !u!1 &1061120235
 GameObject:
   m_ObjectHideFlags: 0
@@ -12956,6 +12958,7 @@ MonoBehaviour:
   topPrefab: {fileID: 4067736244600270498, guid: 4f0ed154cee97594292ded1ba79b8717, type: 3}
   loading: {fileID: 1693774389}
   purchaseTip: {fileID: 332479960}
+  gemPackConfig: {fileID: 11400000, guid: 5eb898f70a56bbe47a6887b9b3f50a62, type: 2}
 --- !u!1 &1602246898
 GameObject:
   m_ObjectHideFlags: 0

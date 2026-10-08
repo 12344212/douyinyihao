@@ -1,8 +1,13 @@
+using UnityEngine;
+
 /// <summary>
-/// 充值钻石档。与参考项目相同的 6 档：展示名 Package 1~6，价格美元，图标地址 HB1~HB6。
+/// 充值档查询。数据在 GemPackConfig 资源里。
+/// LoadScene 用 YooAsset 地址 GemPackConfig 加载后 Bind；IAP 注册商品 id 也读这份表。
 /// </summary>
 public static class GemPackDefs
 {
+    public const string ConfigAddress = "GemPackConfig";
+
     public struct Pack
     {
         public int index;
@@ -23,26 +28,77 @@ public static class GemPackDefs
         }
     }
 
-    public static readonly Pack[] Packs =
+    private static GemPackConfig _config;
+
+    public static GemPackConfig Current => _config;
+
+    public static void Bind(GemPackConfig config)
     {
-        new Pack { index = 1, displayName = "Package 1", productId = "com.demontw.id2254.pay30", gems = 30, priceUsd = 0.49f, iconLocation = "HB1" },
-        new Pack { index = 2, displayName = "Package 2", productId = "com.demontw.id2254.pay120", gems = 120, priceUsd = 1.99f, iconLocation = "HB2" },
-        new Pack { index = 3, displayName = "Package 3", productId = "com.demontw.id2254.pay300", gems = 300, priceUsd = 4.99f, iconLocation = "HB3" },
-        new Pack { index = 4, displayName = "Package 4", productId = "com.demontw.id2254.pay1200", gems = 1280, priceUsd = 19.99f, iconLocation = "HB4" },
-        new Pack { index = 5, displayName = "Package 5", productId = "com.demontw.id2254.pay3000", gems = 3280, priceUsd = 49.99f, iconLocation = "HB5" },
-        new Pack { index = 6, displayName = "Package 6", productId = "com.demontw.id2254.pay6000", gems = 6480, priceUsd = 99.99f, iconLocation = "HB6" }
-    };
+        if (config != null)
+        {
+            _config = config;
+        }
+    }
+
+    public static Pack[] Packs
+    {
+        get
+        {
+            GemPackConfig.PackEntry[] entries = Entries();
+            Pack[] packs = new Pack[entries.Length];
+            for (int i = 0; i < entries.Length; i++)
+            {
+                packs[i] = ToPack(entries[i], i);
+            }
+
+            return packs;
+        }
+    }
 
     public static Pack GetByProductId(string productId)
     {
-        for (int i = 0; i < Packs.Length; i++)
+        if (string.IsNullOrEmpty(productId))
         {
-            if (Packs[i].productId == productId)
+            return default;
+        }
+
+        Pack[] packs = Packs;
+        for (int i = 0; i < packs.Length; i++)
+        {
+            if (packs[i].productId == productId)
             {
-                return Packs[i];
+                return packs[i];
             }
         }
 
         return default;
+    }
+
+    private static GemPackConfig.PackEntry[] Entries()
+    {
+        if (_config == null)
+        {
+            return new GemPackConfig.PackEntry[0];
+        }
+
+        return _config.Packs;
+    }
+
+    private static Pack ToPack(GemPackConfig.PackEntry entry, int fallbackIndex)
+    {
+        if (entry == null)
+        {
+            return new Pack { index = fallbackIndex + 1 };
+        }
+
+        return new Pack
+        {
+            index = entry.index > 0 ? entry.index : fallbackIndex + 1,
+            displayName = entry.displayName,
+            productId = entry.productId,
+            gems = entry.gems,
+            priceUsd = entry.priceUsd,
+            iconLocation = entry.iconLocation
+        };
     }
 }

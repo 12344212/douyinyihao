@@ -12,6 +12,7 @@ public class BagPanelController : MonoBehaviour
     [SerializeField] private BagItemSlot slotPrefab;
     [SerializeField] private TMP_Text emptyLabel;
     [SerializeField] private BagDetailView detailView;
+    [SerializeField] private ItemConfig itemConfig;
 
     private readonly List<BagItemSlot> _slots = new List<BagItemSlot>(8);
     private bool _warnedMissingSave;
@@ -51,6 +52,11 @@ public class BagPanelController : MonoBehaviour
 
             SetEmpty(true);
             return;
+        }
+
+        if (GameItemDefs.Current == null && itemConfig != null)
+        {
+            GameItemDefs.Bind(itemConfig);
         }
 
         List<ItemStackEntry> items = save.GetAllItems();

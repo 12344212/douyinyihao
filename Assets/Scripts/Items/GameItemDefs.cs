@@ -1,17 +1,16 @@
-using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 /// <summary>
-/// 道具定义静态表（以后商店 / 背包共用）。当前只有一个道具：治疗药水。
-/// 新增道具：加一个 id 常量，并在 Defs 数组里加一条 Def。
-/// 图标走 YooAsset（收集规则 AddressByFileName：地址 = 图片文件名，不带扩展名），
-/// 用 YooAssetManager.Instance.LoadSpriteAsync(def.iconLocation, ...) 加载，不要写死资源路径。
+/// 道具查询。数据在 ItemConfig 资源里，不在代码里写死。
+/// LoadScene 用 YooAsset 地址 ItemConfig 加载后 Bind；没加载到时用场景上的序列化引用。
 /// </summary>
 public static class GameItemDefs
 {
+    public const string ConfigAddress = "ItemConfig";
     public const string HealPotionId = "heal_potion";
 
-    /// <summary>单个道具的定义（只读）。displayName / description 为玩家可见英文文案。</summary>
+    /// <summary>单个道具（从配置条目拷出来，给商店 / 背包用）。</summary>
     public sealed class Def
     {
         public readonly string id;
@@ -32,17 +31,34 @@ public static class GameItemDefs
         }
     }
 
-    private static readonly Def[] Defs =
+    private static ItemConfig _config;
+
+    public static ItemConfig Current => _config;
+
+    public static void Bind(ItemConfig config)
     {
-        new Def(HealPotionId, "Healing Potion", "Restores 30% of max HP.", 150, CurrencyType.Gold, "Item_HealPotion"),
-    };
+        if (config != null)
+        {
+            _config = config;
+        }
+    }
 
-    private static Dictionary<string, Def> _byId;
+    public static IReadOnlyList<Def> All
+    {
+        get
+        {
+            ItemConfig.ItemEntry[] entries = Entries();
+            Def[] defs = new Def[entries.Length];
+            for (int i = 0; i < entries.Length; i++)
+            {
+                defs[i] = ToDef(entries[i]);
+            }
 
-    /// <summary>全部道具（按表中顺序，供商店 / 背包列表使用）。</summary>
-    public static IReadOnlyList<Def> All => Defs;
+            return defs;
+        }
+    }
 
-    public static int Count => Defs.Length;
+    public static int Count => Entries().Length;
 
     public static bool Exists(string id)
     {
@@ -55,7 +71,6 @@ public static class GameItemDefs
         return def != null;
     }
 
-    /// <summary>按 id 查找，找不到返回 null。</summary>
     public static Def Get(string id)
     {
         if (string.IsNullOrEmpty(id))
@@ -63,24 +78,42 @@ public static class GameItemDefs
             return null;
         }
 
-        if (_byId == null)
+        ItemConfig.ItemEntry[] entries = Entries();
+        for (int i = 0; i < entries.Length; i++)
         {
-            Dictionary<string, Def> map = new Dictionary<string, Def>(StringComparer.Ordinal);
-            for (int i = 0; i < Defs.Length; i++)
+            ItemConfig.ItemEntry entry = entries[i];
+            if (entry != null && entry.id == id)
             {
-                map[Defs[i].id] = Defs[i];
+                return ToDef(entry);
             }
-
-            _byId = map;
         }
 
-        Def def;
-        return _byId.TryGetValue(id, out def) ? def : null;
+        return null;
     }
 
-    /// <summary>货币图标的 YooAsset 地址（图片放进收集目录后按文件名寻址）。</summary>
+    /// <summary>货币图标地址。这不是道具表里的条目。</summary>
     public static string CurrencyIconLocation(CurrencyType currency)
     {
         return currency == CurrencyType.Gems ? "Icon_Gems" : "Icon_Gold";
+    }
+
+    private static ItemConfig.ItemEntry[] Entries()
+    {
+        if (_config == null)
+        {
+            return new ItemConfig.ItemEntry[0];
+        }
+
+        return _config.Items;
+    }
+
+    private static Def ToDef(ItemConfig.ItemEntry entry)
+    {
+        if (entry == null)
+        {
+            return new Def(string.Empty, string.Empty, string.Empty, 0, CurrencyType.Gold, string.Empty);
+        }
+
+        return new Def(entry.id, entry.displayName, entry.description, entry.price, entry.currency, entry.iconLocation);
     }
 }
