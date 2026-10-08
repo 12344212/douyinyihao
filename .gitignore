@@ -1,0 +1,25 @@
+# Unity 核心缓存文件夹（必须过滤）
+/[Ll]ibrary/
+/[Tt]emp/
+/[Bb]uild/
+/[Bb]uilds/
+/[Oo]bj/
+/[Bb]in/
+
+# Visual Studio 和 Copilot 缓存（就是你报错的那些文件）
+.vs/
+*.vsidx
+*.suo
+*.user
+.vscode/
+
+# Unity 日志和临时文件
+*.log
+*.tmp
+crashlytics/
+
+# 自动生成的项目文件（避免提交）
+*.csproj
+*.pidb
+*.meta~
+ios1
