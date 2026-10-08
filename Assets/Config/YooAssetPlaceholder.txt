@@ -1,0 +1,2 @@
+Placeholder asset so the YooAsset editor simulate build has at least one collected asset.
+Safe to delete once real configs/images/prefabs exist in Assets/UI, Assets/Config or Assets/Prefab.
