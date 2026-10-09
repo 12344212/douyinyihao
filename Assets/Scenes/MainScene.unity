@@ -15801,7 +15801,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 816, y: -355}
+  m_AnchoredPosition: {x: 875, y: -355}
   m_SizeDelta: {x: 1341, y: 870}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1785755325
@@ -15855,11 +15855,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 1785755324}
-  surgeDistance: 60
-  surgeTowardNegativeX: 1
+  xMin: 725
+  xMax: 875
+  restAtMax: 1
   surgeDurationRange: {x: 0.6, y: 1.2}
   retreatDurationRange: {x: 1.5, y: 3}
-  surgeEase: 6
+  surgeEase: 9
   retreatEase: 4
 --- !u!1 &1836574877
 GameObject:

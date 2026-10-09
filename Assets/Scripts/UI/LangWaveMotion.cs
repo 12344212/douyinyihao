@@ -4,30 +4,49 @@ using UnityEngine;
 
 /// <summary>
 /// 主界面右侧浪花 Lang：只沿 X 轴，不绕 Z 转。
-/// 每轮先「扑过来」（朝屏幕中心，X 减小），再慢慢退回原位，循环；冲刺/回退时长每轮随机。
+/// X 始终夹在 [xMin, xMax]：从右侧休息点扑向左侧（快启慢停），再慢退回右侧，循环。
 /// </summary>
 public class LangWaveMotion : MonoBehaviour
 {
     [SerializeField] private RectTransform target;
 
-    [Header("Distance")]
-    [Tooltip("扑过来的水平距离（像素）。右侧 Lang 默认向左（负 X）")]
-    [SerializeField] private float surgeDistance = 60f;
-    [Tooltip("勾选：扑过来时 X 减小（右侧浪朝中心）；取消则反向")]
-    [SerializeField] private bool surgeTowardNegativeX = true;
+    [Header("X Range (anchoredPosition.x)")]
+    [SerializeField] private float xMin = 725f;
+    [SerializeField] private float xMax = 875f;
+    [Tooltip("勾选：休息在 xMax（右），扑向 xMin（左，朝中心）；取消则对调")]
+    [SerializeField] private bool restAtMax = true;
 
     [Header("Duration (random each cycle)")]
     [SerializeField] private Vector2 surgeDurationRange = new Vector2(0.6f, 1.2f);
     [SerializeField] private Vector2 retreatDurationRange = new Vector2(1.5f, 3.0f);
 
     [Header("Ease")]
-    [SerializeField] private Ease surgeEase = Ease.OutQuad;
+    [Tooltip("扑过来：初速快、逐渐减速")]
+    [SerializeField] private Ease surgeEase = Ease.OutCubic;
     [SerializeField] private Ease retreatEase = Ease.InOutSine;
 
     private Coroutine _loop;
     private Tween _tween;
-    private float _baseX;
-    private bool _hasBase;
+
+    private float RestX
+    {
+        get { return restAtMax ? XMaxClamped : XMinClamped; }
+    }
+
+    private float SurgeX
+    {
+        get { return restAtMax ? XMinClamped : XMaxClamped; }
+    }
+
+    private float XMinClamped
+    {
+        get { return Mathf.Min(xMin, xMax); }
+    }
+
+    private float XMaxClamped
+    {
+        get { return Mathf.Max(xMin, xMax); }
+    }
 
     private void Awake()
     {
@@ -50,21 +69,9 @@ public class LangWaveMotion : MonoBehaviour
             return;
         }
 
-        // 不改 Z 旋转；若之前被 BeachWaveBob 带过倾角，复位
         Vector3 e = target.localEulerAngles;
         target.localEulerAngles = new Vector3(e.x, e.y, 0f);
-
-        if (!_hasBase)
-        {
-            _baseX = target.anchoredPosition.x;
-            _hasBase = true;
-        }
-        else
-        {
-            Vector2 p = target.anchoredPosition;
-            p.x = _baseX;
-            target.anchoredPosition = p;
-        }
+        SetX(RestX);
 
         if (_loop != null)
         {
@@ -83,11 +90,9 @@ public class LangWaveMotion : MonoBehaviour
         }
 
         KillTween();
-        if (target != null && _hasBase)
+        if (target != null)
         {
-            Vector2 p = target.anchoredPosition;
-            p.x = _baseX;
-            target.anchoredPosition = p;
+            SetX(RestX);
         }
     }
 
@@ -95,40 +100,66 @@ public class LangWaveMotion : MonoBehaviour
     {
         while (enabled && target != null)
         {
-            float sign = surgeTowardNegativeX ? -1f : 1f;
-            float surgeX = _baseX + sign * Mathf.Max(0f, surgeDistance);
-            float surgeDur = Random.Range(surgeDurationRange.x, surgeDurationRange.y);
-            surgeDur = Mathf.Max(0.05f, surgeDur);
-
+            float surgeDur = Mathf.Max(0.05f, Random.Range(surgeDurationRange.x, surgeDurationRange.y));
             bool surged = false;
             KillTween();
-            _tween = target.DOAnchorPosX(surgeX, surgeDur)
+            SetX(Mathf.Clamp(target.anchoredPosition.x, XMinClamped, XMaxClamped));
+            _tween = target.DOAnchorPosX(SurgeX, surgeDur)
                 .SetEase(surgeEase)
                 .SetUpdate(true)
                 .SetTarget(target)
-                .OnComplete(() => { surged = true; });
+                .OnUpdate(ClampX)
+                .OnComplete(() =>
+                {
+                    SetX(SurgeX);
+                    surged = true;
+                });
 
             while (!surged)
             {
                 yield return null;
             }
 
-            float retreatDur = Random.Range(retreatDurationRange.x, retreatDurationRange.y);
-            retreatDur = Mathf.Max(0.05f, retreatDur);
-
+            float retreatDur = Mathf.Max(0.05f, Random.Range(retreatDurationRange.x, retreatDurationRange.y));
             bool retreated = false;
             KillTween();
-            _tween = target.DOAnchorPosX(_baseX, retreatDur)
+            _tween = target.DOAnchorPosX(RestX, retreatDur)
                 .SetEase(retreatEase)
                 .SetUpdate(true)
                 .SetTarget(target)
-                .OnComplete(() => { retreated = true; });
+                .OnUpdate(ClampX)
+                .OnComplete(() =>
+                {
+                    SetX(RestX);
+                    retreated = true;
+                });
 
             while (!retreated)
             {
                 yield return null;
             }
         }
+    }
+
+    private void ClampX()
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        float x = Mathf.Clamp(target.anchoredPosition.x, XMinClamped, XMaxClamped);
+        if (!Mathf.Approximately(x, target.anchoredPosition.x))
+        {
+            SetX(x);
+        }
+    }
+
+    private void SetX(float x)
+    {
+        Vector2 p = target.anchoredPosition;
+        p.x = Mathf.Clamp(x, XMinClamped, XMaxClamped);
+        target.anchoredPosition = p;
     }
 
     private void KillTween()

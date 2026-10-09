@@ -176,11 +176,29 @@ public static class CollectionAndWaveSetup
 
         SerializedObject so = new SerializedObject(wave);
         SetRef(so, "target", langRt);
-        so.FindProperty("surgeDistance").floatValue = 60f;
-        so.FindProperty("surgeTowardNegativeX").boolValue = true;
+        so.FindProperty("xMin").floatValue = 725f;
+        so.FindProperty("xMax").floatValue = 875f;
+        so.FindProperty("restAtMax").boolValue = true;
         so.FindProperty("surgeDurationRange").vector2Value = new Vector2(0.6f, 1.2f);
         so.FindProperty("retreatDurationRange").vector2Value = new Vector2(1.5f, 3.0f);
+        SerializedProperty surgeEase = so.FindProperty("surgeEase");
+        if (surgeEase != null)
+        {
+            surgeEase.intValue = (int)DG.Tweening.Ease.OutCubic;
+        }
+
+        SerializedProperty retreatEase = so.FindProperty("retreatEase");
+        if (retreatEase != null)
+        {
+            retreatEase.intValue = (int)DG.Tweening.Ease.InOutSine;
+        }
+
         so.ApplyModifiedPropertiesWithoutUndo();
+
+        // 把 Lang 的初始 X 放到休息端，避免超出区间
+        Vector2 ap = langRt.anchoredPosition;
+        ap.x = 875f;
+        langRt.anchoredPosition = ap;
     }
 
     private static void Run(bool interactive)
