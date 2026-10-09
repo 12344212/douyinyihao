@@ -323,6 +323,7 @@ public static class MainSceneUISetup
             shopPanel.GetComponent<ShopPanelController>(),
             bagPanel.GetComponent<BagPanelController>(),
             topUpPanel.GetComponent<TopUpPanelController>());
+        MainCloudDriftSetup.BuildInto(mainCanvas); // 主界面云层（不覆盖用户其它手改；仅补 CloudLayer）
         return ctrl;
     }
 
