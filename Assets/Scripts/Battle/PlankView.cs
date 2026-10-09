@@ -90,4 +90,81 @@ public class PlankView : MonoBehaviour
         pos.x = _fillBasePos.x + _fillBaseScale.x * (ratio - 1f) * 0.5f;
         barFill.transform.localPosition = pos;
     }
+
+    /// <summary>建造模式幽灵木板：半透明、隐藏血条、提高排序。</summary>
+    public void ApplyGhostLook()
+    {
+        EnsureSprites();
+        for (int i = 0; i < _sprites.Length; i++)
+        {
+            SpriteRenderer sr = _sprites[i];
+            if (sr == null)
+            {
+                continue;
+            }
+
+            if (sr == body)
+            {
+                Color c = _baseColor;
+                c.a = 0.4f;
+                sr.color = c;
+                sr.sortingOrder = 45;
+            }
+            else
+            {
+                sr.enabled = false;
+            }
+        }
+    }
+
+    /// <summary>建造模式抬高空木板排序，使其压在遮罩之上。</summary>
+    public void BoostSorting(int baseOrder)
+    {
+        EnsureSprites();
+        if (_savedOrders == null || _savedOrders.Length != _sprites.Length)
+        {
+            _savedOrders = new int[_sprites.Length];
+            for (int i = 0; i < _sprites.Length; i++)
+            {
+                _savedOrders[i] = _sprites[i] != null ? _sprites[i].sortingOrder : 0;
+            }
+        }
+
+        for (int i = 0; i < _sprites.Length; i++)
+        {
+            if (_sprites[i] != null)
+            {
+                _sprites[i].sortingOrder = baseOrder + i;
+            }
+        }
+    }
+
+    public void RestoreSorting()
+    {
+        if (_sprites == null || _savedOrders == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < _sprites.Length && i < _savedOrders.Length; i++)
+        {
+            if (_sprites[i] != null)
+            {
+                _sprites[i].sortingOrder = _savedOrders[i];
+            }
+        }
+
+        _savedOrders = null;
+    }
+
+    private void EnsureSprites()
+    {
+        if (_sprites == null || _sprites.Length == 0)
+        {
+            _sprites = GetComponentsInChildren<SpriteRenderer>(true);
+        }
+    }
+
+    private SpriteRenderer[] _sprites;
+    private int[] _savedOrders;
 }

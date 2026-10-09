@@ -46,8 +46,9 @@ MonoBehaviour:
   reelHoldSpeedTier3: 1.2
   reelStepTier4: 0.35
   reelHoldSpeedTier4: 0.7
-  driftInterval: 1.2
+  driftInterval: 0.6
   driftSpeed: 2.4
+  driftPrefillCount: 10
   crabInterval: 1.5
   waveGap: 30
   waveCap: 6

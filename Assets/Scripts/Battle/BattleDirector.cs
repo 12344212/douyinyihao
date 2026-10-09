@@ -13,8 +13,17 @@ public class BattleDirector : MonoBehaviour
     {
         Fight,
         LevelUp,
+        Build,
         Victory,
         Defeat
+    }
+
+    private enum BuildKind
+    {
+        None,
+        Plank,
+        Capture,
+        Attack
     }
 
     private enum PressKind
@@ -143,12 +152,18 @@ public class BattleDirector : MonoBehaviour
     private int _walkY;
     private CanvasGroup _modalGroup;
     private NetShot _playerNet;
+    private BuildKind _buildKind;
+    private SpriteRenderer _buildMask;
+    private static Sprite _buildMaskSprite;
 
     private readonly List<PlankNode> _planks = new List<PlankNode>();
     private readonly List<ResNode> _resources = new List<ResNode>();
     private readonly List<EnemyNode> _enemies = new List<EnemyNode>();
     private readonly List<SpearShot> _spears = new List<SpearShot>();
     private readonly List<RaycastResult> _hits = new List<RaycastResult>();
+    private readonly List<Vector2Int> _expandCells = new List<Vector2Int>();
+    private readonly List<PlankView> _ghostPlanks = new List<PlankView>();
+    private readonly List<PlankNode> _raisedPlanks = new List<PlankNode>();
 
     /// <summary>运行时才出现的预制体，由 YooAsset 按地址加载后塞进来。</summary>
     public void SetSpawnPrefabs(PlankView plank, BattleResource resource, BattleCrab crab, BattleNet net, BattleSpear spear, BattleTower capture, BattleTower attack)
@@ -212,6 +227,7 @@ public class BattleDirector : MonoBehaviour
         }
 
         _driftTimer = _config.DriftInterval;
+        PrefillDriftResources();
         _waveTimer = _config.CrabInterval;
         _ready = true;
         hud.SetWeapon(_weapon);
@@ -227,7 +243,18 @@ public class BattleDirector : MonoBehaviour
         }
 
         TickModalArm();
-        if (_phase != Phase.Fight || _leaving)
+        if (_leaving)
+        {
+            return;
+        }
+
+        if (_phase == Phase.Build)
+        {
+            HandleBuildInput();
+            return;
+        }
+
+        if (_phase != Phase.Fight)
         {
             return;
         }
@@ -305,16 +332,14 @@ public class BattleDirector : MonoBehaviour
             return;
         }
 
-        int x;
-        int y;
-        if (!FindExpansionCell(out x, out y))
+        CollectExpansionCells(_expandCells);
+        if (_expandCells.Count == 0)
         {
             hud.ShowLevelUp(false, FindEmptyPlank() != null);
             return;
         }
 
-        SpawnPlank(x, y);
-        CommitLevelUp();
+        EnterBuildMode(BuildKind.Plank);
     }
 
     public void ChooseCapture()
@@ -324,8 +349,7 @@ public class BattleDirector : MonoBehaviour
             return;
         }
 
-        PlankNode spot = FindEmptyPlank();
-        if (spot == null)
+        if (FindEmptyPlank() == null)
         {
             int dumpX;
             int dumpY;
@@ -333,8 +357,7 @@ public class BattleDirector : MonoBehaviour
             return;
         }
 
-        BuildTower(spot, BattleBuildingKind.Capture);
-        CommitLevelUp();
+        EnterBuildMode(BuildKind.Capture);
     }
 
     public void ChooseAttack()
@@ -344,8 +367,7 @@ public class BattleDirector : MonoBehaviour
             return;
         }
 
-        PlankNode spot = FindEmptyPlank();
-        if (spot == null)
+        if (FindEmptyPlank() == null)
         {
             int dumpX;
             int dumpY;
@@ -353,8 +375,7 @@ public class BattleDirector : MonoBehaviour
             return;
         }
 
-        BuildTower(spot, BattleBuildingKind.Attack);
-        CommitLevelUp();
+        EnterBuildMode(BuildKind.Attack);
     }
 
     public void ChooseRange()
@@ -458,24 +479,29 @@ public class BattleDirector : MonoBehaviour
                 }
                 else if (_weapon == BattleWeapon.Net)
                 {
-                    if (InsideCharacterRange(point))
+                    Vector3 land = point;
+                    if (!InsideCharacterRange(point))
                     {
-                        LaunchPlayerNet(point);
-                        _press = PressKind.Launch;
+                        Vector3 offset = point - _characterPos;
+                        offset.z = 0f;
+                        land = _characterPos + offset.normalized * _characterRange;
                     }
-                    else
-                    {
-                        _press = PressKind.None;
-                    }
-                }
-                else if (InsideCharacterRange(point))
-                {
-                    ThrowPlayerSpear(point);
-                    _press = PressKind.Spear;
+
+                    LaunchPlayerNet(land);
+                    _press = PressKind.Launch;
                 }
                 else
                 {
-                    _press = PressKind.None;
+                    Vector3 land = point;
+                    if (!InsideCharacterRange(point))
+                    {
+                        Vector3 offset = point - _characterPos;
+                        offset.z = 0f;
+                        land = _characterPos + offset.normalized * _characterRange;
+                    }
+
+                    ThrowPlayerSpear(land);
+                    _press = PressKind.Spear;
                 }
             }
         }
@@ -584,9 +610,36 @@ public class BattleDirector : MonoBehaviour
         SpawnResource();
     }
 
+    private void PrefillDriftResources()
+    {
+        int count = _config.DriftPrefillCount;
+        if (count <= 0)
+        {
+            return;
+        }
+
+        ViewBounds view = GetView();
+        float travel = (view.HalfW + view.HalfH) * 1.55f;
+        for (int i = 0; i < count; i++)
+        {
+            Vector3 origin = PickDriftSpawnOrigin(view);
+            Vector3 dir = PickDriftDirection();
+            float u = (i + Random.Range(0.2f, 0.8f)) / count;
+            float t = Mathf.Lerp(0.06f, 0.88f, u);
+            CreateDriftResource(origin + dir * (travel * t), dir * _config.DriftSpeed);
+        }
+    }
+
     private void SpawnResource()
     {
         ViewBounds view = GetView();
+        Vector3 origin = PickDriftSpawnOrigin(view);
+        Vector3 dir = PickDriftDirection();
+        CreateDriftResource(origin, dir * _config.DriftSpeed);
+    }
+
+    private static Vector3 PickDriftSpawnOrigin(ViewBounds view)
+    {
         float x;
         float y;
         if (Random.value < 0.5f)
@@ -600,13 +653,22 @@ public class BattleDirector : MonoBehaviour
             y = Random.Range(view.Cy + view.HalfH * 0.05f, view.Cy + view.HalfH + 2.2f);
         }
 
-        ResNode res = new ResNode();
-        res.Kind = Random.value < 0.5f ? BattleResourceKind.Wood : BattleResourceKind.Leaf;
-        res.Pos = new Vector3(x, y, 0f);
+        return new Vector3(x, y, 0f);
+    }
+
+    private static Vector3 PickDriftDirection()
+    {
         Vector3 dir = new Vector3(-1f, -1f, 0f).normalized;
         float jitter = Random.Range(-0.22f, 0.22f);
-        dir = new Vector3(dir.x + jitter, dir.y, 0f).normalized;
-        res.Velocity = dir * _config.DriftSpeed;
+        return new Vector3(dir.x + jitter, dir.y, 0f).normalized;
+    }
+
+    private void CreateDriftResource(Vector3 pos, Vector3 velocity)
+    {
+        ResNode res = new ResNode();
+        res.Kind = Random.value < 0.5f ? BattleResourceKind.Wood : BattleResourceKind.Leaf;
+        res.Pos = pos;
+        res.Velocity = velocity;
         res.View = Instantiate(resourcePrefab, spawnRoot);
         res.View.SetKind(res.Kind);
         res.View.SetSortingOrder(12);
@@ -622,7 +684,7 @@ public class BattleDirector : MonoBehaviour
         Vector3 dir = new Vector3(-1f, -1f, 0f).normalized;
         float jitter = Random.Range(-0.22f, 0.22f);
         dir = new Vector3(dir.x + jitter, dir.y, 0f).normalized;
-        res.Velocity = dir * (_config.DriftSpeed / 3f);
+        res.Velocity = dir * (_config.DriftSpeed / 6f);
         res.View = Instantiate(resourcePrefab, spawnRoot);
         res.View.SetKind(res.Kind);
         res.View.SetSortingOrder(12);
@@ -1076,8 +1138,22 @@ public class BattleDirector : MonoBehaviour
 
     private bool FindExpansionCell(out int x, out int y)
     {
-        x = 0;
-        y = 0;
+        CollectExpansionCells(_expandCells);
+        if (_expandCells.Count == 0)
+        {
+            x = 0;
+            y = 0;
+            return false;
+        }
+
+        x = _expandCells[0].x;
+        y = _expandCells[0].y;
+        return true;
+    }
+
+    private void CollectExpansionCells(List<Vector2Int> cells)
+    {
+        cells.Clear();
         var occupied = new HashSet<Vector2Int>();
         var anchors = new List<Vector2Int>();
         for (int i = 0; i < _planks.Count; i++)
@@ -1099,22 +1175,232 @@ public class BattleDirector : MonoBehaviour
 
         int[] dx = { 1, 0, -1, 0 };
         int[] dy = { 0, 1, 0, -1 };
-        for (int d = 0; d < 4; d++)
+        var seen = new HashSet<Vector2Int>();
+        for (int a = 0; a < anchors.Count; a++)
         {
-            for (int a = 0; a < anchors.Count; a++)
+            for (int d = 0; d < 4; d++)
             {
-                int nx = anchors[a].x + dx[d];
-                int ny = anchors[a].y + dy[d];
-                if (!occupied.Contains(new Vector2Int(nx, ny)))
+                Vector2Int next = new Vector2Int(anchors[a].x + dx[d], anchors[a].y + dy[d]);
+                if (!occupied.Contains(next) && seen.Add(next))
                 {
-                    x = nx;
-                    y = ny;
-                    return true;
+                    cells.Add(next);
                 }
+            }
+        }
+    }
+
+    private void EnterBuildMode(BuildKind kind)
+    {
+        _buildKind = kind;
+        _phase = Phase.Build;
+        _modalArm = 0;
+        _modalGroup = null;
+        _press = PressKind.None;
+        hud.HideLevelUp();
+        ClearBuildVisuals();
+
+        if (kind == BuildKind.Plank)
+        {
+            ShowPlankGhosts();
+        }
+        else
+        {
+            ShowTowerBuildTargets();
+        }
+    }
+
+    private void HandleBuildInput()
+    {
+        if (!Input.GetMouseButtonDown(0))
+        {
+            return;
+        }
+
+        if (PointerOverUi())
+        {
+            return;
+        }
+
+        Vector3 point = MouseWorld();
+        if (_buildKind == BuildKind.Plank)
+        {
+            Vector2Int cell;
+            if (!TryGhostCellUnder(point, out cell))
+            {
+                return;
+            }
+
+            SpawnPlank(cell.x, cell.y);
+            FinishBuildMode();
+            return;
+        }
+
+        if (_buildKind == BuildKind.Capture || _buildKind == BuildKind.Attack)
+        {
+            PlankNode plank = EmptyPlankUnder(point);
+            if (plank == null)
+            {
+                return;
+            }
+
+            BattleBuildingKind towerKind = _buildKind == BuildKind.Capture
+                ? BattleBuildingKind.Capture
+                : BattleBuildingKind.Attack;
+            BuildTower(plank, towerKind);
+            FinishBuildMode();
+        }
+    }
+
+    private void FinishBuildMode()
+    {
+        ClearBuildVisuals();
+        _buildKind = BuildKind.None;
+        CommitLevelUp();
+    }
+
+    private void ClearBuildVisuals()
+    {
+        for (int i = 0; i < _ghostPlanks.Count; i++)
+        {
+            if (_ghostPlanks[i] != null)
+            {
+                Destroy(_ghostPlanks[i].gameObject);
+            }
+        }
+
+        _ghostPlanks.Clear();
+
+        for (int i = 0; i < _raisedPlanks.Count; i++)
+        {
+            PlankNode plank = _raisedPlanks[i];
+            if (plank != null && plank.View != null)
+            {
+                plank.View.RestoreSorting();
+            }
+        }
+
+        _raisedPlanks.Clear();
+
+        if (_buildMask != null)
+        {
+            Destroy(_buildMask.gameObject);
+            _buildMask = null;
+        }
+    }
+
+    private void ShowPlankGhosts()
+    {
+        CollectExpansionCells(_expandCells);
+        for (int i = 0; i < _expandCells.Count; i++)
+        {
+            Vector2Int cell = _expandCells[i];
+            PlankView ghost = Instantiate(plankPrefab, spawnRoot);
+            ghost.SetCell(cell.x, cell.y);
+            ghost.transform.position = CellCenter(cell.x, cell.y);
+            ghost.SetBodyScale(_config.CellSize * 0.9f);
+            ghost.Paint(_config.WoodPlankColor);
+            ghost.ApplyGhostLook();
+            _ghostPlanks.Add(ghost);
+        }
+    }
+
+    private bool TryGhostCellUnder(Vector3 point, out Vector2Int cell)
+    {
+        cell = default(Vector2Int);
+        float limit = TouchSqr();
+        for (int i = 0; i < _ghostPlanks.Count; i++)
+        {
+            PlankView ghost = _ghostPlanks[i];
+            if (ghost == null)
+            {
+                continue;
+            }
+
+            Vector3 logic = CellCenter(ghost.CellX, ghost.CellY);
+            if (Sqr2(logic, point) <= limit)
+            {
+                cell = new Vector2Int(ghost.CellX, ghost.CellY);
+                return true;
             }
         }
 
         return false;
+    }
+
+    private void ShowTowerBuildTargets()
+    {
+        // 运行时遮罩：压暗场景，空木板抬高 sorting 后仍可点选
+        EnsureBuildMask();
+        _raisedPlanks.Clear();
+        for (int i = 0; i < _planks.Count; i++)
+        {
+            PlankNode plank = _planks[i];
+            if (plank == null || plank.Dead || plank.Building != BattleBuildingKind.None || plank.View == null)
+            {
+                continue;
+            }
+
+            plank.View.BoostSorting(55);
+            _raisedPlanks.Add(plank);
+        }
+    }
+
+    private PlankNode EmptyPlankUnder(Vector3 pos)
+    {
+        float limit = TouchSqr();
+        for (int i = 0; i < _raisedPlanks.Count; i++)
+        {
+            PlankNode plank = _raisedPlanks[i];
+            if (plank == null || plank.Dead || plank.Building != BattleBuildingKind.None)
+            {
+                continue;
+            }
+
+            if (Sqr2(plank.Logic, pos) <= limit)
+            {
+                return plank;
+            }
+        }
+
+        return null;
+    }
+
+    private void EnsureBuildMask()
+    {
+        if (_buildMask != null)
+        {
+            return;
+        }
+
+        ViewBounds view = GetView();
+        GameObject go = new GameObject("BuildMask");
+        go.transform.SetParent(spawnRoot != null ? spawnRoot : transform, false);
+        go.transform.position = new Vector3(view.Cx, view.Cy, 0f);
+        float w = Mathf.Max(2f, view.HalfW * 2.6f);
+        float h = Mathf.Max(2f, view.HalfH * 2.6f);
+        go.transform.localScale = new Vector3(w, h, 1f);
+
+        SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
+        sr.sprite = GetBuildMaskSprite();
+        sr.color = new Color(0f, 0f, 0f, 0.55f);
+        sr.sortingOrder = 40;
+        _buildMask = sr;
+    }
+
+    private static Sprite GetBuildMaskSprite()
+    {
+        if (_buildMaskSprite != null)
+        {
+            return _buildMaskSprite;
+        }
+
+        Texture2D tex = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+        tex.SetPixel(0, 0, Color.white);
+        tex.Apply();
+        tex.hideFlags = HideFlags.HideAndDontSave;
+        _buildMaskSprite = Sprite.Create(tex, new Rect(0f, 0f, 1f, 1f), new Vector2(0.5f, 0.5f), 1f);
+        _buildMaskSprite.hideFlags = HideFlags.HideAndDontSave;
+        return _buildMaskSprite;
     }
 
     private PlankNode FindEmptyPlank()

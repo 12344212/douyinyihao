@@ -43,8 +43,9 @@ public class BattleTuningConfig : ScriptableObject
     [SerializeField] private float reelHoldSpeedTier3 = 1.2f;
     [SerializeField] private float reelStepTier4 = 0.35f;
     [SerializeField] private float reelHoldSpeedTier4 = 0.7f;
-    [SerializeField] private float driftInterval = 1.2f;
+    [SerializeField] private float driftInterval = 0.6f;
     [SerializeField] private float driftSpeed = 2.4f;
+    [SerializeField] private int driftPrefillCount = 10;
     [SerializeField] private float crabInterval = 1.5f;
     [SerializeField] private float waveGap = 30f;
     [SerializeField] private int waveCap = 6;
@@ -125,6 +126,7 @@ public class BattleTuningConfig : ScriptableObject
     }
     public float DriftInterval => driftInterval;
     public float DriftSpeed => driftSpeed;
+    public int DriftPrefillCount => driftPrefillCount;
     public float CrabInterval => crabInterval;
     public float WaveGap => waveGap;
     public int WaveCap => waveCap;

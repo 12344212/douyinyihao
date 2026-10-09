@@ -142,10 +142,13 @@ public static class BattleTuning
     }
 
     // 可调
-    public const float DriftInterval = 1.2f;
+    public const float DriftInterval = 0.6f;
 
     // 可调：资源从右上往左下漂的速度
     public const float DriftSpeed = 2.4f;
+
+    // 开战时水面预填的漂流木叶数量
+    public const int DriftPrefillCount = 10;
 
     // 可调：同一波里螃蟹的出生间隔
     public const float CrabInterval = 1.5f;
