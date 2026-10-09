@@ -7,7 +7,7 @@ using UnityEngine.UI;
 /// MainScene 主界面控制器（挂在 MainScene 的 Canvas 上，与参考项目一致）。
 /// - 主界面按钮打开对应功能面板（CanvasPanel 下的 UIPanel），同一时间只开一个；面板 Close / Esc / Android 返回键关闭。
 /// - 顶栏（CanvasMax 下的 TopBarPrefab 实例）：头像 → Profile 弹窗，金币 "+" → Shop，钻石 "+" → Top Up。
-/// - Play 按钮异步加载 BattleScene。
+/// - Collection（原 playButton）打开 CollectionPanel；进战斗仍由关卡格子调用 StartBattle。
 /// 货币显示与 OnCurrencyChanged 订阅由 TopBarUI 负责，这里只提供 RefreshCurrency 转发。
 /// 所有引用通过 Inspector 序列化字段赋值（MainSceneUISetup 生成并绑定）。
 /// </summary>
@@ -32,6 +32,7 @@ public class MainUIController : MonoBehaviour
     [SerializeField] private UIPanel topUpPanel;
     [SerializeField] private UIPanel upgradePanel;
     [SerializeField] private UIPanel profilePanel;
+    [SerializeField] private UIPanel collectionPanel;
 
     [Header("Flow")]
     [SerializeField] private string battleSceneName = BattleSceneName;
@@ -45,7 +46,7 @@ public class MainUIController : MonoBehaviour
 
     private void Awake()
     {
-        _panels = new[] { stagePanel, shopPanel, bagPanel, topUpPanel, upgradePanel, profilePanel };
+        _panels = new[] { stagePanel, shopPanel, bagPanel, topUpPanel, upgradePanel, profilePanel, collectionPanel };
         for (int i = 0; i < _panels.Length; i++)
         {
             if (_panels[i] != null)
@@ -55,7 +56,7 @@ public class MainUIController : MonoBehaviour
             }
         }
 
-        Bind(playButton, StartBattle);
+        Bind(playButton, OpenCollection);
         Bind(stagesButton, OpenStages);
         Bind(shopButton, OpenShop);
         Bind(bagButton, OpenBag);
@@ -90,7 +91,7 @@ public class MainUIController : MonoBehaviour
             }
         }
 
-        Unbind(playButton, StartBattle);
+        Unbind(playButton, OpenCollection);
         Unbind(stagesButton, OpenStages);
         Unbind(shopButton, OpenShop);
         Unbind(bagButton, OpenBag);
@@ -121,6 +122,7 @@ public class MainUIController : MonoBehaviour
     public void OpenTopUp() => OpenPanel(topUpPanel);
     public void OpenUpgrade() => OpenPanel(upgradePanel);
     public void OpenProfile() => OpenPanel(profilePanel);
+    public void OpenCollection() => OpenPanel(collectionPanel);
 
     /// <summary>打开指定面板；已有其它面板时先立即关闭它（同一时间只开一个）。</summary>
     public void OpenPanel(UIPanel panel)

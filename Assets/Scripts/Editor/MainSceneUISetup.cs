@@ -324,6 +324,14 @@ public static class MainSceneUISetup
             bagPanel.GetComponent<BagPanelController>(),
             topUpPanel.GetComponent<TopUpPanelController>());
         MainCloudDriftSetup.BuildInto(mainCanvas); // 主界面云层（不覆盖用户其它手改；仅补 CloudLayer）
+        // CollectionPanel 若已在场景中（用户手建），挂上引用；海滩浪花绑 Stage + Lang
+        Transform collectionTf = panelCanvas.transform.Find("CollectionPanel");
+        if (collectionTf != null)
+        {
+            CollectionAndWaveSetup.WireCollection(ctrl, collectionTf.GetComponent<UIPanel>());
+        }
+
+        CollectionAndWaveSetup.BuildBeachWave(mainCanvas);
         return ctrl;
     }
 
