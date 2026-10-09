@@ -160,8 +160,6 @@ public static class CollectionAndWaveSetup
 
         so.FindProperty("bobAmplitude").floatValue = 10f;
         so.FindProperty("bobPeriod").floatValue = 2.4f;
-        so.FindProperty("swayAmplitude").floatValue = 6f;
-        so.FindProperty("swayPeriod").floatValue = 3.2f;
         so.FindProperty("tiltAngle").floatValue = 1.2f;
         so.FindProperty("tiltPeriod").floatValue = 2.8f;
         so.ApplyModifiedPropertiesWithoutUndo();
