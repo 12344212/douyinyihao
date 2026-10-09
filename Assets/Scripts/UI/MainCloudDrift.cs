@@ -5,7 +5,8 @@ using UnityEngine.UI;
 
 /// <summary>
 /// 主场景云朵：统一风向，远/中/近三层；池 10 朵。
-/// 初次进入场景时先在屏内随机出现，再沿风向飞出并循环。
+/// 远/中挂 CloudLayerBack（bg 后）；大朵近景挂 CloudLayerFront（Lang 后、按钮前）。
+/// Z 倾角幅度刻意收小，避免近景云拧得太狠。raycastTarget=false，不挡按钮。
 /// </summary>
 public class MainCloudDrift : MonoBehaviour
 {
@@ -27,12 +28,16 @@ public class MainCloudDrift : MonoBehaviour
         public Vector2 speedRange = new Vector2(80f, 140f);
         public Vector2 bobAmplitudeRange = new Vector2(8f, 20f);
         public Vector2 bobPeriodRange = new Vector2(2.5f, 4.5f);
-        public Vector2 tiltAngleRange = new Vector2(1.5f, 5f);
+        [Tooltip("绕 Z 轴轻倾角度（度），幅度宜小")]
+        public Vector2 tiltAngleRange = new Vector2(0.5f, 1.5f);
         public Vector2 tiltPeriodRange = new Vector2(2.8f, 5f);
     }
 
     [Header("Refs")]
-    [SerializeField] private RectTransform cloudRoot;
+    [Tooltip("远/中云根：Tiankong 与 bg 之间")]
+    [SerializeField] private RectTransform cloudRootBack;
+    [Tooltip("近景大云根：Lang 之后、主按钮之前")]
+    [SerializeField] private RectTransform cloudRootFront;
     [SerializeField] private Image[] cloudPool;
     [SerializeField] private Sprite[] cloudSprites;
 
@@ -63,7 +68,7 @@ public class MainCloudDrift : MonoBehaviour
         speedRange = new Vector2(28f, 48f),
         bobAmplitudeRange = new Vector2(1f, 4f),
         bobPeriodRange = new Vector2(4f, 7f),
-        tiltAngleRange = new Vector2(0.4f, 1.5f),
+        tiltAngleRange = new Vector2(0.2f, 0.6f),
         tiltPeriodRange = new Vector2(4.5f, 7.5f)
     };
 
@@ -76,7 +81,7 @@ public class MainCloudDrift : MonoBehaviour
         speedRange = new Vector2(70f, 110f),
         bobAmplitudeRange = new Vector2(6f, 14f),
         bobPeriodRange = new Vector2(2.6f, 4.2f),
-        tiltAngleRange = new Vector2(1.5f, 4f),
+        tiltAngleRange = new Vector2(0.5f, 1.2f),
         tiltPeriodRange = new Vector2(2.8f, 4.8f)
     };
 
@@ -84,12 +89,12 @@ public class MainCloudDrift : MonoBehaviour
     {
         kind = CloudLayerKind.Near,
         spawnWeight = 0.9f,
-        scaleRange = new Vector2(1.0f, 1.25f),
+        scaleRange = new Vector2(0.95f, 1.12f),
         alphaRange = new Vector2(0.78f, 0.95f),
         speedRange = new Vector2(120f, 170f),
-        bobAmplitudeRange = new Vector2(14f, 28f),
+        bobAmplitudeRange = new Vector2(6f, 12f),
         bobPeriodRange = new Vector2(2.0f, 3.4f),
-        tiltAngleRange = new Vector2(3f, 7f),
+        tiltAngleRange = new Vector2(0.8f, 2.0f),
         tiltPeriodRange = new Vector2(2.2f, 3.8f)
     };
 
@@ -97,6 +102,11 @@ public class MainCloudDrift : MonoBehaviour
     private bool[] _flying;
     private bool[] _useOnScreenStart;
     private int _flyingCount;
+
+    private RectTransform MeasureRoot
+    {
+        get { return cloudRootBack != null ? cloudRootBack : cloudRootFront; }
+    }
 
     private void OnEnable()
     {
@@ -151,15 +161,31 @@ public class MainCloudDrift : MonoBehaviour
 
     private bool Validate()
     {
-        if (cloudRoot == null || cloudPool == null || cloudPool.Length == 0)
+        if (cloudRootBack == null && cloudRootFront == null)
         {
-            Debug.LogError("[MainCloudDrift] Assign cloudRoot and cloudPool in Inspector.");
+            Debug.LogError("[MainCloudDrift] Assign cloudRootBack / cloudRootFront.");
+            return false;
+        }
+
+        if (cloudRootFront == null)
+        {
+            cloudRootFront = cloudRootBack;
+        }
+
+        if (cloudRootBack == null)
+        {
+            cloudRootBack = cloudRootFront;
+        }
+
+        if (cloudPool == null || cloudPool.Length == 0)
+        {
+            Debug.LogError("[MainCloudDrift] Assign cloudPool in Inspector.");
             return false;
         }
 
         if (cloudSprites == null || cloudSprites.Length == 0)
         {
-            Debug.LogError("[MainCloudDrift] Assign cloudSprites (zjm-y1~y3).");
+            Debug.LogError("[MainCloudDrift] Assign cloudSprites (yun1/yun2).");
             return false;
         }
 
@@ -182,6 +208,10 @@ public class MainCloudDrift : MonoBehaviour
             img.raycastTarget = false;
             img.preserveAspect = true;
             img.gameObject.SetActive(false);
+            if (cloudRootBack != null)
+            {
+                img.rectTransform.SetParent(cloudRootBack, false);
+            }
         }
     }
 
@@ -205,6 +235,30 @@ public class MainCloudDrift : MonoBehaviour
         return nearLayer;
     }
 
+    private RectTransform RootFor(LayerSettings layer)
+    {
+        return layer.kind == CloudLayerKind.Near ? cloudRootFront : cloudRootBack;
+    }
+
+    private void PlaceInLayerRoot(RectTransform rt, LayerSettings layer)
+    {
+        RectTransform parent = RootFor(layer);
+        if (parent == null || rt == null)
+        {
+            return;
+        }
+
+        if (rt.parent != parent)
+        {
+            rt.SetParent(parent, false);
+        }
+
+        int sibling = layer.kind == CloudLayerKind.Far ? 0
+            : layer.kind == CloudLayerKind.Mid ? parent.childCount / 2
+            : parent.childCount - 1;
+        rt.SetSiblingIndex(Mathf.Clamp(sibling, 0, Mathf.Max(0, parent.childCount - 1)));
+    }
+
     private IEnumerator CloudLoop(int index, float initialDelay)
     {
         if (initialDelay > 0f)
@@ -214,11 +268,12 @@ public class MainCloudDrift : MonoBehaviour
 
         Image img = cloudPool[index];
         RectTransform rt = img.rectTransform;
+        RectTransform measure = MeasureRoot;
 
-        // 等 Canvas 算出 CloudLayer 尺寸，避免半宽为 0 时云飞出屏外立刻结束。
-        while (enabled && cloudRoot != null && cloudRoot.rect.width < 8f)
+        while (enabled && measure != null && measure.rect.width < 8f)
         {
             yield return null;
+            measure = MeasureRoot;
         }
 
         while (enabled)
@@ -249,6 +304,7 @@ public class MainCloudDrift : MonoBehaviour
             }
 
             LayerSettings layer = PickLayer();
+            PlaceInLayerRoot(rt, layer);
 
             Sprite sprite = cloudSprites[Random.Range(0, cloudSprites.Length)];
             img.sprite = sprite;
@@ -262,13 +318,9 @@ public class MainCloudDrift : MonoBehaviour
             color.a = alpha;
             img.color = color;
 
-            int sibling = layer.kind == CloudLayerKind.Far ? 0
-                : layer.kind == CloudLayerKind.Mid ? cloudRoot.childCount / 2
-                : cloudRoot.childCount - 1;
-            rt.SetSiblingIndex(Mathf.Clamp(sibling, 0, cloudRoot.childCount - 1));
-
-            float halfW = cloudRoot.rect.width * 0.5f;
-            float halfH = cloudRoot.rect.height * 0.5f;
+            measure = MeasureRoot;
+            float halfW = measure != null ? measure.rect.width * 0.5f : 960f;
+            float halfH = measure != null ? measure.rect.height * 0.5f : 540f;
             float cloudHalfW = rt.rect.width * scale * 0.5f;
             float cloudHalfH = rt.rect.height * scale * 0.5f;
 
@@ -285,7 +337,6 @@ public class MainCloudDrift : MonoBehaviour
             float startX;
             if (onScreenStart)
             {
-                // 初次进入：直接出现在屏幕内随机位置
                 float xMin = -halfW + cloudHalfW + edgePadding * 0.25f;
                 float xMax = halfW - cloudHalfW - edgePadding * 0.25f;
                 if (xMax < xMin)

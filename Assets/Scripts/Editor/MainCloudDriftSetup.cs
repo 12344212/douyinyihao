@@ -8,8 +8,8 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
-/// 在 MainScene 的主 Canvas 下建 CloudLayer，把 yun1/yun2 收进对象池，挂上 MainCloudDrift。
-/// 层级：Tiankong(天) → CloudLayer(云) → bg(海/角色) → 按钮，云不挡点击。
+/// 在 MainScene 的主 Canvas 下建 CloudLayerBack / CloudLayerFront，把 yun 收进对象池，挂上 MainCloudDrift。
+/// 层级：Tiankong → CloudLayerBack(远/中) → bg → Lang → CloudLayerFront(近景大云) → 按钮。云 raycast 关闭。
 /// 菜单：Tools/Template/Build Main Cloud Drift
 /// 自动执行：项目根目录存在 MainCloudDriftSetup.run 时执行一次。
 /// </summary>
@@ -18,7 +18,9 @@ public static class MainCloudDriftSetup
 {
     private const string LogTag = "[MainCloudDriftSetup]";
     private const string MainScenePath = "Assets/Scenes/MainScene.unity";
-    private const string CloudLayerName = "CloudLayer";
+    private const string CloudLayerBackName = "CloudLayerBack";
+    private const string CloudLayerFrontName = "CloudLayerFront";
+    private const string CloudLayerLegacyName = "CloudLayer";
     private const int PoolSize = 10;
     private const string Yun1Guid = "8c7245e0227399a47868d4d07d95a487";
     private const string Yun2Guid = "4348a8ef261287e4fb2084cebcbc0705";
@@ -94,28 +96,44 @@ public static class MainCloudDriftSetup
             sprites = MergeSprites(sprites, fromYun);
         }
 
-        // 已有且引用齐全则跳过重建（菜单交互除外由 Run 决定）
         MainCloudDrift existing = mainCanvas.GetComponentInChildren<MainCloudDrift>(true);
-        RectTransform cloudRoot = EnsureCloudLayer(canvasRt);
-        Image[] pool = EnsurePool(cloudRoot, PoolSize, sprites, existingYun);
+        RectTransform back = EnsureCloudLayer(canvasRt, CloudLayerBackName);
+        RectTransform front = EnsureCloudLayer(canvasRt, CloudLayerFrontName);
+        // 旧名 CloudLayer 迁到 Back
+        Transform legacy = canvasRt.Find(CloudLayerLegacyName);
+        if (legacy != null && legacy != back)
+        {
+            for (int i = legacy.childCount - 1; i >= 0; i--)
+            {
+                legacy.GetChild(i).SetParent(back, false);
+            }
 
-        // 去掉 Canvas 下残留的独立 yun（已并入池或禁用）
-        DestroyStandaloneYun(canvasRt, cloudRoot);
+            if (existing != null && existing.transform == legacy)
+            {
+                UnityEngine.Object.DestroyImmediate(existing);
+                existing = null;
+            }
 
-        PlaceCloudLayer(canvasRt, cloudRoot);
+            UnityEngine.Object.DestroyImmediate(legacy.gameObject);
+        }
+
+        Image[] pool = EnsurePool(back, front, PoolSize, sprites, existingYun);
+        DestroyStandaloneYun(canvasRt, back, front);
+        PlaceCloudLayers(canvasRt, back, front);
 
         if (existing == null)
         {
-            existing = cloudRoot.gameObject.AddComponent<MainCloudDrift>();
+            existing = back.gameObject.AddComponent<MainCloudDrift>();
         }
-        else if (existing.transform != cloudRoot)
+        else if (existing.transform != back && existing.transform != front)
         {
             UnityEngine.Object.DestroyImmediate(existing);
-            existing = cloudRoot.gameObject.AddComponent<MainCloudDrift>();
+            existing = back.gameObject.AddComponent<MainCloudDrift>();
         }
 
         SerializedObject so = new SerializedObject(existing);
-        SetRef(so, "cloudRoot", cloudRoot);
+        SetRef(so, "cloudRootBack", back);
+        SetRef(so, "cloudRootFront", front);
         SerializedProperty poolProp = so.FindProperty("cloudPool");
         poolProp.arraySize = pool.Length;
         for (int i = 0; i < pool.Length; i++)
@@ -135,6 +153,27 @@ public static class MainCloudDriftSetup
         so.FindProperty("flyLeftToRight").boolValue = true;
         so.FindProperty("spawnOnScreenFirstEnter").boolValue = true;
         so.FindProperty("firstEnterCount").intValue = Mathf.Min(10, pool.Length);
+        // 写入收小后的近景 Z 倾角（避免场景里残留旧默认）
+        SerializedProperty near = so.FindProperty("nearLayer");
+        if (near != null)
+        {
+            near.FindPropertyRelative("tiltAngleRange").vector2Value = new Vector2(0.8f, 2.0f);
+            near.FindPropertyRelative("scaleRange").vector2Value = new Vector2(0.95f, 1.12f);
+            near.FindPropertyRelative("bobAmplitudeRange").vector2Value = new Vector2(6f, 12f);
+        }
+
+        SerializedProperty mid = so.FindProperty("midLayer");
+        if (mid != null)
+        {
+            mid.FindPropertyRelative("tiltAngleRange").vector2Value = new Vector2(0.5f, 1.2f);
+        }
+
+        SerializedProperty far = so.FindProperty("farLayer");
+        if (far != null)
+        {
+            far.FindPropertyRelative("tiltAngleRange").vector2Value = new Vector2(0.2f, 0.6f);
+        }
+
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 
@@ -157,8 +196,7 @@ public static class MainCloudDriftSetup
             }
             else if (scene.isDirty && !interactive)
             {
-                Debug.LogWarning($"{LogTag} MainScene has unsaved changes, auto-run skipped.");
-                return;
+                Debug.LogWarning($"{LogTag} MainScene has unsaved changes; auto-run will apply cloud layers and save.");
             }
 
             Canvas canvas = FindMainCanvas(scene);
@@ -174,12 +212,16 @@ public static class MainCloudDriftSetup
             {
                 if (!interactive)
                 {
-                    Debug.Log($"{LogTag} MainCloudDrift already wired, auto-run skipped.");
-                    CloseIfOpened(scene, openedHere);
-                    return;
+                    // 缺 Front 根时强制升级接线
+                    SerializedObject chk = new SerializedObject(already);
+                    if (chk.FindProperty("cloudRootFront").objectReferenceValue != null)
+                    {
+                        Debug.Log($"{LogTag} MainCloudDrift already wired, auto-run skipped.");
+                        CloseIfOpened(scene, openedHere);
+                        return;
+                    }
                 }
-
-                if (!EditorUtility.DisplayDialog("Build Main Cloud Drift", "Cloud drift already exists. Rebuild it?", "Rebuild", "Cancel"))
+                else if (!EditorUtility.DisplayDialog("Build Main Cloud Drift", "Cloud drift already exists. Rebuild it?", "Rebuild", "Cancel"))
                 {
                     return;
                 }
@@ -193,7 +235,7 @@ public static class MainCloudDriftSetup
                 EditorSceneManager.MarkSceneDirty(scene);
                 if (EditorSceneManager.SaveScene(scene))
                 {
-                    Debug.Log($"{LogTag} CloudLayer + MainCloudDrift built. Pool={PoolSize}, sprites=yun1+yun2.");
+                    Debug.Log($"{LogTag} CloudLayerBack/Front + MainCloudDrift built. Pool={PoolSize}.");
                 }
                 else
                 {
@@ -236,9 +278,9 @@ public static class MainCloudDriftSetup
         return null;
     }
 
-    private static RectTransform EnsureCloudLayer(RectTransform canvasRt)
+    private static RectTransform EnsureCloudLayer(RectTransform canvasRt, string name)
     {
-        Transform t = canvasRt.Find(CloudLayerName);
+        Transform t = canvasRt.Find(name);
         RectTransform rt;
         if (t != null)
         {
@@ -246,7 +288,7 @@ public static class MainCloudDriftSetup
         }
         else
         {
-            GameObject go = new GameObject(CloudLayerName, typeof(RectTransform));
+            GameObject go = new GameObject(name, typeof(RectTransform));
             go.layer = LayerMask.NameToLayer("UI");
             go.transform.SetParent(canvasRt, false);
             rt = go.GetComponent<RectTransform>();
@@ -260,7 +302,6 @@ public static class MainCloudDriftSetup
         rt.localScale = Vector3.one;
         rt.localRotation = Quaternion.identity;
 
-        // 不挡点击：根节点不要挂 Image；若有则关掉 raycast
         Image rootImg = rt.GetComponent<Image>();
         if (rootImg != null)
         {
@@ -270,15 +311,12 @@ public static class MainCloudDriftSetup
         return rt;
     }
 
-    private static Image[] EnsurePool(RectTransform cloudRoot, int count, Sprite[] sprites, List<Image> reuse)
+    private static Image[] EnsurePool(RectTransform back, RectTransform front, int count, Sprite[] sprites, List<Image> reuse)
     {
         List<Image> pool = new List<Image>(count);
 
-        // 先清掉 CloudLayer 里旧的云图（重建）
-        for (int i = cloudRoot.childCount - 1; i >= 0; i--)
-        {
-            UnityEngine.Object.DestroyImmediate(cloudRoot.GetChild(i).gameObject);
-        }
+        ClearChildren(back);
+        ClearChildren(front);
 
         for (int i = 0; i < count; i++)
         {
@@ -286,14 +324,14 @@ public static class MainCloudDriftSetup
             if (reuse != null && i < reuse.Count && reuse[i] != null)
             {
                 img = reuse[i];
-                img.transform.SetParent(cloudRoot, false);
+                img.transform.SetParent(back, false);
                 img.gameObject.name = "Cloud_" + i;
             }
             else
             {
                 GameObject go = new GameObject("Cloud_" + i, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
                 go.layer = LayerMask.NameToLayer("UI");
-                go.transform.SetParent(cloudRoot, false);
+                go.transform.SetParent(back, false);
                 img = go.GetComponent<Image>();
             }
 
@@ -322,6 +360,19 @@ public static class MainCloudDriftSetup
         return pool.ToArray();
     }
 
+    private static void ClearChildren(RectTransform root)
+    {
+        if (root == null)
+        {
+            return;
+        }
+
+        for (int i = root.childCount - 1; i >= 0; i--)
+        {
+            UnityEngine.Object.DestroyImmediate(root.GetChild(i).gameObject);
+        }
+    }
+
     private static void CollectExistingYun(RectTransform canvasRt, out List<Image> images, out List<Sprite> sprites)
     {
         images = new List<Image>(4);
@@ -348,19 +399,18 @@ public static class MainCloudDriftSetup
         }
     }
 
-    private static void DestroyStandaloneYun(RectTransform canvasRt, RectTransform cloudRoot)
+    private static void DestroyStandaloneYun(RectTransform canvasRt, RectTransform back, RectTransform front)
     {
         for (int i = canvasRt.childCount - 1; i >= 0; i--)
         {
             Transform child = canvasRt.GetChild(i);
-            if (child == cloudRoot)
+            if (child == back || child == front)
             {
                 continue;
             }
 
             if (child.name == "yun1" || child.name == "yun2" || child.name.StartsWith("yun", StringComparison.OrdinalIgnoreCase))
             {
-                // 若已被挪进 CloudLayer，不会再走到这里；残留的独立 yun 删掉
                 if (child.parent == canvasRt)
                 {
                     UnityEngine.Object.DestroyImmediate(child.gameObject);
@@ -369,23 +419,49 @@ public static class MainCloudDriftSetup
         }
     }
 
-    /// <summary>Tiankong → CloudLayer → bg → 按钮。云在天空上、在海/角色下面。</summary>
-    private static void PlaceCloudLayer(RectTransform canvasRt, RectTransform cloudRoot)
+    /// <summary>
+    /// Tiankong → CloudLayerBack → bg → Lang → CloudLayerFront → Collection/Bag/Stage/Shop…  
+    /// 近景大云盖住海/浪，但不挡主按钮。
+    /// </summary>
+    private static void PlaceCloudLayers(RectTransform canvasRt, RectTransform back, RectTransform front)
     {
-        int insertAt = 0;
         Transform tiankong = canvasRt.Find("Tiankong");
         Transform bg = canvasRt.Find("bg");
+        Transform lang = canvasRt.Find("Lang");
+
+        int backAt = 0;
         if (tiankong != null)
         {
-            insertAt = tiankong.GetSiblingIndex() + 1;
+            backAt = tiankong.GetSiblingIndex() + 1;
         }
         else if (bg != null)
         {
-            // 没有天空时插到 bg 之前，避免被整屏海图挡住
-            insertAt = bg.GetSiblingIndex();
+            backAt = bg.GetSiblingIndex();
         }
 
-        cloudRoot.SetSiblingIndex(insertAt);
+        back.SetSiblingIndex(backAt);
+
+        int frontAt;
+        if (lang != null)
+        {
+            frontAt = lang.GetSiblingIndex() + 1;
+        }
+        else if (bg != null)
+        {
+            frontAt = bg.GetSiblingIndex() + 1;
+        }
+        else
+        {
+            frontAt = back.GetSiblingIndex() + 1;
+        }
+
+        // 若 back 插在 lang 之前导致 index 偏移，重新取一次
+        if (lang != null)
+        {
+            frontAt = lang.GetSiblingIndex() + 1;
+        }
+
+        front.SetSiblingIndex(frontAt);
     }
 
     private static Sprite[] LoadCloudSprites()
@@ -428,10 +504,13 @@ public static class MainCloudDriftSetup
     private static bool HasWiredPool(MainCloudDrift drift)
     {
         SerializedObject so = new SerializedObject(drift);
-        SerializedProperty root = so.FindProperty("cloudRoot");
+        SerializedProperty back = so.FindProperty("cloudRootBack");
+        SerializedProperty front = so.FindProperty("cloudRootFront");
         SerializedProperty pool = so.FindProperty("cloudPool");
         SerializedProperty sprites = so.FindProperty("cloudSprites");
-        return root.objectReferenceValue != null
+        bool hasBack = back != null && back.objectReferenceValue != null;
+        bool hasFront = front != null && front.objectReferenceValue != null;
+        return hasBack && hasFront
                && pool != null && pool.arraySize >= 4
                && sprites != null && sprites.arraySize >= 1;
     }
