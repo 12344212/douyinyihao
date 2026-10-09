@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 /// <summary>
 /// 1) 把 MainUIController.collectionPanel 指到 CollectionPanel，Collection 按钮走 OpenCollection。
-/// 2) 挂 BeachWaveBob：Stage 按钮 + Lang 浪花轻微浮动。
+/// 2) BeachWaveBob 只绑 Stage；Lang 单独挂 LangWaveMotion（扑过来再慢退）。
 /// 菜单：Tools/Template/Build Collection And Beach Wave
 /// 自动执行：项目根目录存在 CollectionAndWaveSetup.run 时执行一次。
 /// </summary>
@@ -144,26 +144,43 @@ public static class CollectionAndWaveSetup
             }
         }
 
+        // Stage 仍用 BeachWaveBob（X 轻晃 + 倾角）；Lang 从池里拿掉
         SerializedObject so = new SerializedObject(bob);
         SerializedProperty targets = so.FindProperty("targets");
-        targets.arraySize = 2;
-
+        targets.arraySize = 1;
         SerializedProperty t0 = targets.GetArrayElementAtIndex(0);
         t0.FindPropertyRelative("rect").objectReferenceValue = stageRt;
         t0.FindPropertyRelative("phaseOffset").floatValue = 0f;
         t0.FindPropertyRelative("amplitudeScale").floatValue = 0.7f;
-
-        SerializedProperty t1 = targets.GetArrayElementAtIndex(1);
-        t1.FindPropertyRelative("rect").objectReferenceValue = langRt;
-        t1.FindPropertyRelative("phaseOffset").floatValue = 0.37f;
-        t1.FindPropertyRelative("amplitudeScale").floatValue = 1f;
-
         so.FindProperty("bobAmplitude").floatValue = 10f;
         so.FindProperty("bobPeriod").floatValue = 2.4f;
         so.FindProperty("tiltAngle").floatValue = 1.2f;
         so.FindProperty("tiltPeriod").floatValue = 2.8f;
         so.ApplyModifiedPropertiesWithoutUndo();
+
+        EnsureLangWave(langRt);
         EditorSceneManager.MarkSceneDirty(mainCanvas.gameObject.scene);
+    }
+
+    private static void EnsureLangWave(RectTransform langRt)
+    {
+        LangWaveMotion wave = langRt.GetComponent<LangWaveMotion>();
+        if (wave == null)
+        {
+            wave = langRt.gameObject.AddComponent<LangWaveMotion>();
+        }
+
+        // 清掉可能残留的倾角
+        Vector3 e = langRt.localEulerAngles;
+        langRt.localEulerAngles = new Vector3(e.x, e.y, 0f);
+
+        SerializedObject so = new SerializedObject(wave);
+        SetRef(so, "target", langRt);
+        so.FindProperty("surgeDistance").floatValue = 60f;
+        so.FindProperty("surgeTowardNegativeX").boolValue = true;
+        so.FindProperty("surgeDurationRange").vector2Value = new Vector2(0.6f, 1.2f);
+        so.FindProperty("retreatDurationRange").vector2Value = new Vector2(1.5f, 3.0f);
+        so.ApplyModifiedPropertiesWithoutUndo();
     }
 
     private static void Run(bool interactive)
@@ -193,7 +210,7 @@ public static class CollectionAndWaveSetup
                 BuildBeachWave(canvas);
                 if (EditorSceneManager.SaveScene(scene))
                 {
-                    Debug.Log($"{LogTag} CollectionPanel wired; BeachWaveBob on Stage + Lang.");
+                    Debug.Log($"{LogTag} CollectionPanel wired; BeachWaveBob=Stage, LangWaveMotion=Lang.");
                 }
                 else
                 {
@@ -233,7 +250,7 @@ public static class CollectionAndWaveSetup
                 Canvas canvas = FindMainCanvas(scene);
                 BuildBeachWave(canvas);
                 EditorSceneManager.SaveScene(scene);
-                Debug.Log($"{LogTag} BeachWaveBob rebuilt.");
+                Debug.Log($"{LogTag} BeachWaveBob(Stage) + LangWaveMotion rebuilt.");
             }
             finally
             {
@@ -268,8 +285,7 @@ public static class CollectionAndWaveSetup
         }
         else if (scene.isDirty && !interactive)
         {
-            Debug.LogWarning($"{LogTag} MainScene has unsaved changes, auto-run skipped.");
-            return default;
+            Debug.LogWarning($"{LogTag} MainScene has unsaved changes; auto-run will apply wave wiring and save.");
         }
 
         return scene;
