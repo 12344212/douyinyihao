@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 /// <summary>
 /// 1) 把 MainUIController.collectionPanel 指到 CollectionPanel，Collection 按钮走 OpenCollection。
-/// 2) BeachWaveBob 只绑 Stage；Lang 单独挂 LangWaveMotion（扑过来再慢退）。
+/// 2) Lang 挂 LangWaveMotion；Stage 作为 follower 跟着浪漂（较小幅度）。停用 BeachWaveBob。
 /// 菜单：Tools/Template/Build Collection And Beach Wave
 /// 自动执行：项目根目录存在 CollectionAndWaveSetup.run 时执行一次。
 /// </summary>
@@ -144,25 +144,25 @@ public static class CollectionAndWaveSetup
             }
         }
 
-        // Stage 仍用 BeachWaveBob（X 轻晃 + 倾角）；Lang 从池里拿掉
-        SerializedObject so = new SerializedObject(bob);
-        SerializedProperty targets = so.FindProperty("targets");
-        targets.arraySize = 1;
-        SerializedProperty t0 = targets.GetArrayElementAtIndex(0);
-        t0.FindPropertyRelative("rect").objectReferenceValue = stageRt;
-        t0.FindPropertyRelative("phaseOffset").floatValue = 0f;
-        t0.FindPropertyRelative("amplitudeScale").floatValue = 0.7f;
-        so.FindProperty("bobAmplitude").floatValue = 10f;
-        so.FindProperty("bobPeriod").floatValue = 2.4f;
-        so.FindProperty("tiltAngle").floatValue = 1.2f;
-        so.FindProperty("tiltPeriod").floatValue = 2.8f;
-        so.ApplyModifiedPropertiesWithoutUndo();
+        // 木筏改跟浪：清空 / 禁用 BeachWaveBob，避免和 LangWaveMotion 抢 Stage
+        if (bob != null)
+        {
+            SerializedObject bobSo = new SerializedObject(bob);
+            SerializedProperty targets = bobSo.FindProperty("targets");
+            if (targets != null)
+            {
+                targets.arraySize = 0;
+            }
 
-        EnsureLangWave(langRt);
+            bobSo.ApplyModifiedPropertiesWithoutUndo();
+            bob.enabled = false;
+        }
+
+        EnsureLangWave(langRt, stageRt);
         EditorSceneManager.MarkSceneDirty(mainCanvas.gameObject.scene);
     }
 
-    private static void EnsureLangWave(RectTransform langRt)
+    private static void EnsureLangWave(RectTransform langRt, RectTransform stageRt)
     {
         LangWaveMotion wave = langRt.GetComponent<LangWaveMotion>();
         if (wave == null)
@@ -170,9 +170,13 @@ public static class CollectionAndWaveSetup
             wave = langRt.gameObject.AddComponent<LangWaveMotion>();
         }
 
-        // 清掉可能残留的倾角
         Vector3 e = langRt.localEulerAngles;
         langRt.localEulerAngles = new Vector3(e.x, e.y, 0f);
+        if (stageRt != null)
+        {
+            Vector3 se = stageRt.localEulerAngles;
+            stageRt.localEulerAngles = new Vector3(se.x, se.y, 0f);
+        }
 
         SerializedObject so = new SerializedObject(wave);
         SetRef(so, "target", langRt);
@@ -193,9 +197,17 @@ public static class CollectionAndWaveSetup
             retreatEase.intValue = (int)DG.Tweening.Ease.InOutSine;
         }
 
+        SerializedProperty followers = so.FindProperty("followers");
+        followers.arraySize = stageRt != null ? 1 : 0;
+        if (stageRt != null)
+        {
+            SerializedProperty f0 = followers.GetArrayElementAtIndex(0);
+            f0.FindPropertyRelative("rect").objectReferenceValue = stageRt;
+            f0.FindPropertyRelative("followScale").floatValue = 0.4f;
+        }
+
         so.ApplyModifiedPropertiesWithoutUndo();
 
-        // 把 Lang 的初始 X 放到休息端，避免超出区间
         Vector2 ap = langRt.anchoredPosition;
         ap.x = 875f;
         langRt.anchoredPosition = ap;
@@ -228,7 +240,7 @@ public static class CollectionAndWaveSetup
                 BuildBeachWave(canvas);
                 if (EditorSceneManager.SaveScene(scene))
                 {
-                    Debug.Log($"{LogTag} CollectionPanel wired; BeachWaveBob=Stage, LangWaveMotion=Lang.");
+                    Debug.Log($"{LogTag} CollectionPanel wired; LangWaveMotion + Stage follower.");
                 }
                 else
                 {
@@ -268,7 +280,7 @@ public static class CollectionAndWaveSetup
                 Canvas canvas = FindMainCanvas(scene);
                 BuildBeachWave(canvas);
                 EditorSceneManager.SaveScene(scene);
-                Debug.Log($"{LogTag} BeachWaveBob(Stage) + LangWaveMotion rebuilt.");
+                Debug.Log($"{LogTag} LangWaveMotion + Stage follower rebuilt.");
             }
             finally
             {

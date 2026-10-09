@@ -8844,15 +8844,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1002818193}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2386d1997b2a96e4e82f8d5664579152, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targets:
-  - rect: {fileID: 951528344}
-    phaseOffset: 0
-    amplitudeScale: 0.7
+  targets: []
   bobAmplitude: 10
   bobPeriod: 2.4
   tiltAngle: 1.2
@@ -15801,7 +15798,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 875, y: -355}
+  m_AnchoredPosition: {x: 866, y: -355}
   m_SizeDelta: {x: 1341, y: 870}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1785755325
@@ -15858,6 +15855,9 @@ MonoBehaviour:
   xMin: 725
   xMax: 875
   restAtMax: 1
+  followers:
+  - rect: {fileID: 951528344}
+    followScale: 0.4
   surgeDurationRange: {x: 0.6, y: 1.2}
   retreatDurationRange: {x: 1.5, y: 3}
   surgeEase: 9

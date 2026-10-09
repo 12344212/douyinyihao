@@ -4,10 +4,19 @@ using UnityEngine;
 
 /// <summary>
 /// 主界面右侧浪花 Lang：只沿 X 轴，不绕 Z 转。
-/// X 始终夹在 [xMin, xMax]：从右侧休息点扑向左侧（快启慢停），再慢退回右侧，循环。
+/// X 夹在 [xMin, xMax]：从右侧休息点扑向左侧（快启慢停），再慢退回右侧。
+/// 可挂跟随者（如 Stage 木筏）：按 Lang 的位移差 * followScale 同步飘，幅度更小，时间/缓动与浪一致。
 /// </summary>
 public class LangWaveMotion : MonoBehaviour
 {
+    [System.Serializable]
+    public class Follower
+    {
+        public RectTransform rect;
+        [Tooltip("相对浪花位移的倍率，越小木筏晃得越轻")]
+        [Range(0.05f, 1f)] public float followScale = 0.4f;
+    }
+
     [SerializeField] private RectTransform target;
 
     [Header("X Range (anchoredPosition.x)")]
@@ -15,6 +24,9 @@ public class LangWaveMotion : MonoBehaviour
     [SerializeField] private float xMax = 875f;
     [Tooltip("勾选：休息在 xMax（右），扑向 xMin（左，朝中心）；取消则对调")]
     [SerializeField] private bool restAtMax = true;
+
+    [Header("Followers (e.g. Stage raft)")]
+    [SerializeField] private Follower[] followers;
 
     [Header("Duration (random each cycle)")]
     [SerializeField] private Vector2 surgeDurationRange = new Vector2(0.6f, 1.2f);
@@ -27,6 +39,8 @@ public class LangWaveMotion : MonoBehaviour
 
     private Coroutine _loop;
     private Tween _tween;
+    private float[] _followerBaseX;
+    private bool _followerBasesReady;
 
     private float RestX
     {
@@ -71,7 +85,9 @@ public class LangWaveMotion : MonoBehaviour
 
         Vector3 e = target.localEulerAngles;
         target.localEulerAngles = new Vector3(e.x, e.y, 0f);
-        SetX(RestX);
+        CaptureFollowerBases();
+        SetLangX(RestX);
+        SyncFollowers();
 
         if (_loop != null)
         {
@@ -92,7 +108,8 @@ public class LangWaveMotion : MonoBehaviour
         KillTween();
         if (target != null)
         {
-            SetX(RestX);
+            SetLangX(RestX);
+            SyncFollowers();
         }
     }
 
@@ -103,15 +120,17 @@ public class LangWaveMotion : MonoBehaviour
             float surgeDur = Mathf.Max(0.05f, Random.Range(surgeDurationRange.x, surgeDurationRange.y));
             bool surged = false;
             KillTween();
-            SetX(Mathf.Clamp(target.anchoredPosition.x, XMinClamped, XMaxClamped));
+            SetLangX(Mathf.Clamp(target.anchoredPosition.x, XMinClamped, XMaxClamped));
+            SyncFollowers();
             _tween = target.DOAnchorPosX(SurgeX, surgeDur)
                 .SetEase(surgeEase)
                 .SetUpdate(true)
                 .SetTarget(target)
-                .OnUpdate(ClampX)
+                .OnUpdate(OnWaveUpdate)
                 .OnComplete(() =>
                 {
-                    SetX(SurgeX);
+                    SetLangX(SurgeX);
+                    SyncFollowers();
                     surged = true;
                 });
 
@@ -127,10 +146,11 @@ public class LangWaveMotion : MonoBehaviour
                 .SetEase(retreatEase)
                 .SetUpdate(true)
                 .SetTarget(target)
-                .OnUpdate(ClampX)
+                .OnUpdate(OnWaveUpdate)
                 .OnComplete(() =>
                 {
-                    SetX(RestX);
+                    SetLangX(RestX);
+                    SyncFollowers();
                     retreated = true;
                 });
 
@@ -141,7 +161,56 @@ public class LangWaveMotion : MonoBehaviour
         }
     }
 
-    private void ClampX()
+    private void OnWaveUpdate()
+    {
+        ClampLangX();
+        SyncFollowers();
+    }
+
+    private void CaptureFollowerBases()
+    {
+        if (followers == null || followers.Length == 0)
+        {
+            _followerBaseX = null;
+            _followerBasesReady = true;
+            return;
+        }
+
+        _followerBaseX = new float[followers.Length];
+        for (int i = 0; i < followers.Length; i++)
+        {
+            if (followers[i] != null && followers[i].rect != null)
+            {
+                _followerBaseX[i] = followers[i].rect.anchoredPosition.x;
+            }
+        }
+
+        _followerBasesReady = true;
+    }
+
+    private void SyncFollowers()
+    {
+        if (!_followerBasesReady || followers == null || _followerBaseX == null || target == null)
+        {
+            return;
+        }
+
+        float delta = target.anchoredPosition.x - RestX;
+        for (int i = 0; i < followers.Length; i++)
+        {
+            Follower f = followers[i];
+            if (f == null || f.rect == null || i >= _followerBaseX.Length)
+            {
+                continue;
+            }
+
+            Vector2 p = f.rect.anchoredPosition;
+            p.x = _followerBaseX[i] + delta * Mathf.Clamp(f.followScale, 0.05f, 1f);
+            f.rect.anchoredPosition = p;
+        }
+    }
+
+    private void ClampLangX()
     {
         if (target == null)
         {
@@ -151,11 +220,11 @@ public class LangWaveMotion : MonoBehaviour
         float x = Mathf.Clamp(target.anchoredPosition.x, XMinClamped, XMaxClamped);
         if (!Mathf.Approximately(x, target.anchoredPosition.x))
         {
-            SetX(x);
+            SetLangX(x);
         }
     }
 
-    private void SetX(float x)
+    private void SetLangX(float x)
     {
         Vector2 p = target.anchoredPosition;
         p.x = Mathf.Clamp(x, XMinClamped, XMaxClamped);
