@@ -314,7 +314,7 @@ public static class ShopPanelSetup
         SetRef(so, "iconImage", icon);
         SetRef(so, "nameLabel", name);
         SetRef(so, "priceLabel", price);
-        SetRef(so, "buyButton", buy);
+        SetRef(so, "clickButton", buy);
         so.ApplyModifiedPropertiesWithoutUndo();
         return slot;
     }

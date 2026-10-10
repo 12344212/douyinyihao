@@ -5,40 +5,45 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 商店里的一件商品：图标、英文名、价格（如 150 Gold）、Buy 按钮。
-/// 图标按 GameItemDefs 的地址走 YooAsset，没有资源时保留色块。
+/// 商店列表行：图标、英文名、价格。整行点击回调（选中），不含直接购买。
+/// 图标按 GameItemDefs 地址走 YooAsset。
 /// </summary>
 public class ShopItemSlot : MonoBehaviour
 {
     [SerializeField] private Image iconImage;
     [SerializeField] private TMP_Text nameLabel;
     [SerializeField] private TMP_Text priceLabel;
-    [SerializeField] private Button buyButton;
+    [SerializeField] private Button clickButton;
+    [SerializeField] private Image selectedHighlight;
     [SerializeField] private Color placeholderColor = new Color(0.55f, 0.40f, 0.85f, 1f);
+    [SerializeField] private Color normalColor = Color.white;
+    [SerializeField] private Color selectedColor = new Color(1f, 0.95f, 0.75f, 1f);
 
     private GameItemDefs.Def _def;
-    private Action<GameItemDefs.Def> _onBuy;
+    private Action<GameItemDefs.Def> _onClick;
+    private Image _bg;
 
     private void Awake()
     {
-        if (buyButton != null)
+        _bg = GetComponent<Image>();
+        if (clickButton != null)
         {
-            buyButton.onClick.AddListener(OnBuy);
+            clickButton.onClick.AddListener(OnClick);
         }
     }
 
     private void OnDestroy()
     {
-        if (buyButton != null)
+        if (clickButton != null)
         {
-            buyButton.onClick.RemoveListener(OnBuy);
+            clickButton.onClick.RemoveListener(OnClick);
         }
     }
 
-    public void Bind(GameItemDefs.Def def, Action<GameItemDefs.Def> onBuy)
+    public void Bind(GameItemDefs.Def def, Action<GameItemDefs.Def> onClick)
     {
         _def = def;
-        _onBuy = onBuy;
+        _onClick = onClick;
         if (nameLabel != null)
         {
             nameLabel.text = def != null ? def.displayName : string.Empty;
@@ -55,11 +60,27 @@ public class ShopItemSlot : MonoBehaviour
             iconImage.color = placeholderColor;
         }
 
+        SetSelected(false);
         if (isActiveAndEnabled && def != null)
         {
             StartCoroutine(LoadIcon(def.iconLocation));
         }
     }
+
+    public void SetSelected(bool selected)
+    {
+        if (_bg != null)
+        {
+            _bg.color = selected ? selectedColor : normalColor;
+        }
+
+        if (selectedHighlight != null)
+        {
+            selectedHighlight.enabled = selected;
+        }
+    }
+
+    public GameItemDefs.Def Def => _def;
 
     public static string FormatPrice(int price, CurrencyType currency)
     {
@@ -83,11 +104,11 @@ public class ShopItemSlot : MonoBehaviour
         }
     }
 
-    private void OnBuy()
+    private void OnClick()
     {
         if (_def != null)
         {
-            _onBuy?.Invoke(_def);
+            _onClick?.Invoke(_def);
         }
     }
 }
