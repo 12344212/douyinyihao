@@ -5,8 +5,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 商店主面板：列表选中 → ItemData 展示描述与购买按钮 → 打开 BuyPanel。
-/// 左侧宝箱 / 进度 / 刷新计时仅为占位展示。
+/// 商店：列表选中 → ItemData（价格=数量×单价）→ BuyPanel。
+/// 累计购买件数驱动进度条 0..5；宝箱在 1/3/5 件可领 50/150/300 金币。
 /// </summary>
 public class ShopPanelController : MonoBehaviour
 {
@@ -24,14 +24,24 @@ public class ShopPanelController : MonoBehaviour
     [SerializeField] private Button itemBuyButton;
     [SerializeField] private Color placeholderColor = new Color(0.55f, 0.40f, 0.85f, 1f);
 
-    [Header("Left placeholders")]
+    [Header("Progress")]
     [SerializeField] private Image progressFill;
     [SerializeField] private TMP_Text progressLabel;
     [SerializeField] private TMP_Text refreshTimerLabel;
 
+    [Header("Chests")]
+    [SerializeField] private Button[] chestButtons;
+    [SerializeField] private Image[] chestImages;
+
     private readonly List<ShopItemSlot> _slots = new List<ShopItemSlot>(8);
     private GameItemDefs.Def _selected;
     private Coroutine _iconLoad;
+    private int _previewQty = 1;
+    private bool _buyEventsBound;
+
+    private static readonly Color ChestReady = Color.white;
+    private static readonly Color ChestLocked = new Color(0.65f, 0.65f, 0.65f, 0.85f);
+    private static readonly Color ChestClaimed = new Color(0.45f, 0.45f, 0.45f, 0.5f);
 
     private void Awake()
     {
@@ -47,25 +57,19 @@ public class ShopPanelController : MonoBehaviour
         {
             itemBuyButton.onClick.RemoveListener(OnItemBuyClicked);
         }
+
+        UnbindBuyPanelEvents();
+        UnbindChestButtons();
     }
 
     private void OnEnable()
     {
+        UnbindChestButtons();
+        BindChestButtons();
+        BindBuyPanelEvents();
         if (buyPanel != null)
         {
             buyPanel.Hide();
-        }
-
-        if (progressFill != null)
-        {
-            progressFill.type = Image.Type.Filled;
-            progressFill.fillMethod = Image.FillMethod.Horizontal;
-            progressFill.fillAmount = 1f;
-        }
-
-        if (progressLabel != null)
-        {
-            progressLabel.text = "5/5";
         }
 
         if (refreshTimerLabel != null)
@@ -73,7 +77,74 @@ public class ShopPanelController : MonoBehaviour
             refreshTimerLabel.text = "Refresh in 24:00:00";
         }
 
+        _previewQty = 1;
         Rebuild();
+        RefreshProgressAndChests();
+    }
+
+    private void OnDisable()
+    {
+        UnbindBuyPanelEvents();
+        UnbindChestButtons();
+    }
+
+    private void BindBuyPanelEvents()
+    {
+        if (buyPanel == null || _buyEventsBound)
+        {
+            return;
+        }
+
+        buyPanel.QtyChanged += OnBuyQtyChanged;
+        buyPanel.PurchaseSucceeded += OnPurchaseSucceeded;
+        buyPanel.Closed += OnBuyClosed;
+        _buyEventsBound = true;
+    }
+
+    private void UnbindBuyPanelEvents()
+    {
+        if (buyPanel == null || !_buyEventsBound)
+        {
+            return;
+        }
+
+        buyPanel.QtyChanged -= OnBuyQtyChanged;
+        buyPanel.PurchaseSucceeded -= OnPurchaseSucceeded;
+        buyPanel.Closed -= OnBuyClosed;
+        _buyEventsBound = false;
+    }
+
+    private void BindChestButtons()
+    {
+        if (chestButtons == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < chestButtons.Length; i++)
+        {
+            int index = i;
+            if (chestButtons[i] != null)
+            {
+                chestButtons[i].onClick.AddListener(() => OnChestClicked(index));
+            }
+        }
+    }
+
+    private void UnbindChestButtons()
+    {
+        if (chestButtons == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < chestButtons.Length; i++)
+        {
+            if (chestButtons[i] != null)
+            {
+                chestButtons[i].onClick.RemoveAllListeners();
+            }
+        }
     }
 
     public void Rebuild()
@@ -112,6 +183,7 @@ public class ShopPanelController : MonoBehaviour
     public void SelectItem(GameItemDefs.Def def)
     {
         _selected = def;
+        _previewQty = 1;
         for (int i = 0; i < _slots.Count; i++)
         {
             if (_slots[i] != null)
@@ -142,6 +214,120 @@ public class ShopPanelController : MonoBehaviour
         }
     }
 
+    private void OnBuyQtyChanged(int qty)
+    {
+        _previewQty = Mathf.Max(1, qty);
+        RefreshItemPrice();
+    }
+
+    private void OnBuyClosed()
+    {
+        _previewQty = 1;
+        RefreshItemPrice();
+    }
+
+    private void OnPurchaseSucceeded(int qty)
+    {
+        LocalSaveManager save = LocalSaveManager.Instance;
+        if (save != null)
+        {
+            save.AddShopPurchaseCount(qty);
+        }
+
+        RefreshProgressAndChests();
+    }
+
+    private void OnChestClicked(int index)
+    {
+        LocalSaveManager save = LocalSaveManager.Instance;
+        if (save == null)
+        {
+            TipPanelUI.ShowTip("Not ready.");
+            return;
+        }
+
+        if (save.IsShopChestClaimed(index))
+        {
+            TipPanelUI.ShowTip("Claimed!");
+            return;
+        }
+
+        if (!save.IsShopChestReady(index))
+        {
+            TipPanelUI.ShowTip("Not ready.");
+            return;
+        }
+
+        int gold;
+        if (!save.TryClaimShopChest(index, out gold))
+        {
+            TipPanelUI.ShowTip("Not ready.");
+            return;
+        }
+
+        GetPanelController.Show(new GetPanelController.Reward
+        {
+            useCurrency = true,
+            currency = CurrencyType.Gold,
+            displayName = "Gold",
+            count = gold
+        });
+        TipPanelUI.ShowTip("Claimed!");
+        RefreshProgressAndChests();
+    }
+
+    private void RefreshProgressAndChests()
+    {
+        LocalSaveManager save = LocalSaveManager.Instance;
+        int count = save != null ? save.GetShopPurchaseCount() : 0;
+        int shown = Mathf.Clamp(count, 0, LocalSaveManager.ShopProgressMax);
+
+        if (progressFill != null)
+        {
+            progressFill.type = Image.Type.Filled;
+            progressFill.fillMethod = Image.FillMethod.Horizontal;
+            progressFill.fillOrigin = (int)Image.OriginHorizontal.Left;
+            progressFill.fillAmount = (float)shown / LocalSaveManager.ShopProgressMax;
+        }
+
+        if (progressLabel != null)
+        {
+            progressLabel.text = shown + "/" + LocalSaveManager.ShopProgressMax;
+        }
+
+        for (int i = 0; i < 3; i++)
+        {
+            RefreshChestVisual(i, save);
+        }
+    }
+
+    private void RefreshChestVisual(int index, LocalSaveManager save)
+    {
+        bool claimed = save != null && save.IsShopChestClaimed(index);
+        bool ready = save != null && save.IsShopChestReady(index);
+
+        if (chestImages != null && index < chestImages.Length && chestImages[index] != null)
+        {
+            if (claimed)
+            {
+                chestImages[index].color = ChestClaimed;
+            }
+            else if (ready)
+            {
+                chestImages[index].color = ChestReady;
+            }
+            else
+            {
+                chestImages[index].color = ChestLocked;
+            }
+        }
+
+        if (chestButtons != null && index < chestButtons.Length && chestButtons[index] != null)
+        {
+            chestButtons[index].interactable = ready;
+        }
+    }
+
     private void RefreshItemData()
     {
         if (_selected == null)
@@ -161,10 +347,7 @@ public class ShopPanelController : MonoBehaviour
             itemDescription.enableWordWrapping = true;
         }
 
-        if (itemPrice != null)
-        {
-            itemPrice.text = ShopItemSlot.FormatPrice(_selected.price, _selected.currency);
-        }
+        RefreshItemPrice();
 
         if (itemBuyButton != null)
         {
@@ -182,6 +365,22 @@ public class ShopPanelController : MonoBehaviour
 
             _iconLoad = StartCoroutine(LoadItemIcon(_selected.iconLocation));
         }
+    }
+
+    private void RefreshItemPrice()
+    {
+        if (itemPrice == null || _selected == null)
+        {
+            return;
+        }
+
+        int qty = _previewQty;
+        if (buyPanel != null && buyPanel.IsOpen)
+        {
+            qty = buyPanel.CurrentQty;
+        }
+
+        itemPrice.text = ShopItemSlot.FormatPrice(_selected.price * Mathf.Max(1, qty), _selected.currency);
     }
 
     private void ClearItemData()

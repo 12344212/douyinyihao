@@ -1,11 +1,12 @@
+using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 购买确认（SD-CK2）：图标、描述、单价、数量加减、Cancel / Buy。
-/// 确认时 TrySpend + AddItem + 奖励弹窗；钱不够只提示。
+/// 购买确认：数量最多为当前货币可买件数（且不超过 99）；总价 = 数量×单价。
+/// 成功购买后通知 ShopPanel 累加进度。
 /// </summary>
 public class BuyPanelController : MonoBehaviour
 {
@@ -24,9 +25,20 @@ public class BuyPanelController : MonoBehaviour
     [SerializeField] private Button cancelButton;
     [SerializeField] private Color placeholderColor = new Color(0.55f, 0.40f, 0.85f, 1f);
 
+    /// <summary>数量变化（含打开时 qty=1）。</summary>
+    public event Action<int> QtyChanged;
+    /// <summary>购买成功，参数为本次购买件数。</summary>
+    public event Action<int> PurchaseSucceeded;
+    /// <summary>面板关闭（取消或买完）。</summary>
+    public event Action Closed;
+
     private GameItemDefs.Def _def;
     private int _qty = 1;
     private Coroutine _iconLoad;
+    private bool _open;
+
+    public int CurrentQty => _qty;
+    public bool IsOpen => _open;
 
     private void Awake()
     {
@@ -34,6 +46,10 @@ public class BuyPanelController : MonoBehaviour
         if (plusButton != null) plusButton.onClick.AddListener(OnPlus);
         if (confirmButton != null) confirmButton.onClick.AddListener(OnConfirm);
         if (cancelButton != null) cancelButton.onClick.AddListener(Hide);
+        if (panel != null)
+        {
+            panel.Hidden += OnPanelHidden;
+        }
     }
 
     private void OnDestroy()
@@ -42,6 +58,22 @@ public class BuyPanelController : MonoBehaviour
         if (plusButton != null) plusButton.onClick.RemoveListener(OnPlus);
         if (confirmButton != null) confirmButton.onClick.RemoveListener(OnConfirm);
         if (cancelButton != null) cancelButton.onClick.RemoveListener(Hide);
+        if (panel != null)
+        {
+            panel.Hidden -= OnPanelHidden;
+        }
+
+        LocalSaveManager.OnCurrencyChanged -= OnCurrencyChanged;
+    }
+
+    private void OnEnable()
+    {
+        LocalSaveManager.OnCurrencyChanged += OnCurrencyChanged;
+    }
+
+    private void OnDisable()
+    {
+        LocalSaveManager.OnCurrencyChanged -= OnCurrencyChanged;
     }
 
     public void Open(GameItemDefs.Def def)
@@ -53,6 +85,7 @@ public class BuyPanelController : MonoBehaviour
 
         _def = def;
         _qty = 1;
+        _open = true;
         if (panel != null)
         {
             panel.Show();
@@ -98,6 +131,31 @@ public class BuyPanelController : MonoBehaviour
         else if (gameObject.activeSelf)
         {
             gameObject.SetActive(false);
+            FinishClose();
+        }
+    }
+
+    private void OnPanelHidden(UIPanel _)
+    {
+        FinishClose();
+    }
+
+    private void FinishClose()
+    {
+        if (!_open)
+        {
+            return;
+        }
+
+        _open = false;
+        Closed?.Invoke();
+    }
+
+    private void OnCurrencyChanged()
+    {
+        if (_open)
+        {
+            ApplyQty();
         }
     }
 
@@ -112,7 +170,8 @@ public class BuyPanelController : MonoBehaviour
 
     private void OnPlus()
     {
-        if (_qty < MaxAllowed())
+        int max = MaxAllowed();
+        if (_qty < max)
         {
             _qty++;
             ApplyQty();
@@ -135,7 +194,8 @@ public class BuyPanelController : MonoBehaviour
             return;
         }
 
-        if (!save.AddItem(_def.id, _qty))
+        int bought = _qty;
+        if (!save.AddItem(_def.id, bought))
         {
             save.AddCurrency(_def.currency, total);
             Debug.LogWarning("[BuyPanelController] AddItem failed, currency refunded.");
@@ -146,8 +206,9 @@ public class BuyPanelController : MonoBehaviour
         {
             iconLocation = _def.iconLocation,
             displayName = _def.displayName,
-            count = _qty
+            count = bought
         });
+        PurchaseSucceeded?.Invoke(bought);
         Hide();
     }
 
@@ -158,10 +219,15 @@ public class BuyPanelController : MonoBehaviour
         if (save != null && _def != null && _def.price > 0)
         {
             int afford = save.GetCurrency(_def.currency) / _def.price;
-            cap = Mathf.Min(AbsoluteMax, Mathf.Max(1, afford));
+            if (afford <= 0)
+            {
+                return 1;
+            }
+
+            cap = Mathf.Min(AbsoluteMax, afford);
         }
 
-        return cap;
+        return Mathf.Max(1, cap);
     }
 
     private void ApplyQty()
@@ -180,6 +246,8 @@ public class BuyPanelController : MonoBehaviour
 
         if (minusButton != null) minusButton.interactable = _qty > 1;
         if (plusButton != null) plusButton.interactable = _qty < max;
+
+        QtyChanged?.Invoke(_qty);
     }
 
     private IEnumerator LoadIcon(string location)

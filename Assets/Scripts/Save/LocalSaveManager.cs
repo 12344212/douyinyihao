@@ -424,6 +424,77 @@ public class LocalSaveManager : MonoBehaviour
         _data.characterLevel = clamped;
         Save();
     }
+
+    // ---------- 商店进度 / 宝箱 ----------
+
+    public const int ShopProgressMax = 5;
+    public static readonly int[] ShopChestThresholds = { 1, 3, 5 };
+    public static readonly int[] ShopChestGoldRewards = { 50, 150, 300 };
+
+    public int GetShopPurchaseCount()
+    {
+        EnsureData();
+        return Mathf.Max(0, _data.shopPurchaseCount);
+    }
+
+    /// <summary>成功购买后累加件数（写入存档）。</summary>
+    public void AddShopPurchaseCount(int qty)
+    {
+        if (qty <= 0)
+        {
+            return;
+        }
+
+        EnsureData();
+        long sum = (long)_data.shopPurchaseCount + qty;
+        _data.shopPurchaseCount = (int)Math.Min(sum, int.MaxValue);
+        Save();
+    }
+
+    public bool IsShopChestClaimed(int chestIndex)
+    {
+        EnsureData();
+        if (chestIndex == 0) return _data.shopChest1Claimed;
+        if (chestIndex == 1) return _data.shopChest2Claimed;
+        if (chestIndex == 2) return _data.shopChest3Claimed;
+        return true;
+    }
+
+    public bool IsShopChestReady(int chestIndex)
+    {
+        if (chestIndex < 0 || chestIndex >= ShopChestThresholds.Length)
+        {
+            return false;
+        }
+
+        return GetShopPurchaseCount() >= ShopChestThresholds[chestIndex] && !IsShopChestClaimed(chestIndex);
+    }
+
+    /// <summary>领取宝箱金币；未解锁或已领返回 false。</summary>
+    public bool TryClaimShopChest(int chestIndex, out int goldReward)
+    {
+        goldReward = 0;
+        if (chestIndex < 0 || chestIndex >= ShopChestGoldRewards.Length)
+        {
+            return false;
+        }
+
+        EnsureData();
+        if (!IsShopChestReady(chestIndex))
+        {
+            return false;
+        }
+
+        goldReward = ShopChestGoldRewards[chestIndex];
+        if (chestIndex == 0) _data.shopChest1Claimed = true;
+        else if (chestIndex == 1) _data.shopChest2Claimed = true;
+        else _data.shopChest3Claimed = true;
+
+        // AddGold 会再 Save；此处先标记再加金币
+        Save();
+        AddGold(goldReward);
+        return true;
+    }
     // ---------- 背包道具 ----------
 
     public int GetItemCount(string itemId)
@@ -625,6 +696,8 @@ public class LocalSaveManager : MonoBehaviour
         if (_data.tutorialStep < 0) { _data.tutorialStep = 0; changed = true; }
 
         // 旧档缺少 characterLevel 时 JsonUtility 读成 0 → 升到 1；并钳到 MaxLevel
+        if (_data.shopPurchaseCount < 0) { _data.shopPurchaseCount = 0; changed = true; }
+
         int charLevel = CharacterUpgradeDefs.ClampLevel(_data.characterLevel <= 0 ? CharacterUpgradeDefs.MinLevel : _data.characterLevel);
         if (charLevel != _data.characterLevel)
         {

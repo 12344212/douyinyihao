@@ -116,11 +116,11 @@ public static class ShopPanelSdSetup
         Image tp = CreateSprite("Merchant", content, merchant, false);
         SetRect(tp.rectTransform, new Vector2(-520f, 80f), new Vector2(700f, 450f));
 
-        Image c1 = CreateSprite("Chest1", content, chest, false);
+        Image c1 = CreateSprite("Chest1", content, chest, true);
         SetRect(c1.rectTransform, new Vector2(-700f, -220f), new Vector2(130f, 130f));
-        Image c2 = CreateSprite("Chest2", content, chest, false);
+        Image c2 = CreateSprite("Chest2", content, chest, true);
         SetRect(c2.rectTransform, new Vector2(-520f, -220f), new Vector2(130f, 130f));
-        Image c3 = CreateSprite("Chest3", content, chestAlt, false);
+        Image c3 = CreateSprite("Chest3", content, chestAlt, true);
         SetRect(c3.rectTransform, new Vector2(-340f, -220f), new Vector2(130f, 130f));
 
         Image pBg = CreateSprite("ProgressBg", content, barBg, false);
