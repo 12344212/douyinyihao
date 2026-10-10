@@ -181,7 +181,7 @@ public static class ShopPanelSdSetup
         TMP_Text itemPrice = CreateText("ItemPrice", itemData, "150 Gold", 30f, LabelDark, font, TextAlignmentOptions.Left);
         SetRect(itemPrice.rectTransform, new Vector2(80f, -90f), new Vector2(280f, 50f));
 
-        Image buyImg = CreateSprite("ItemBuyButton", itemData, buySp, true);
+        Image buyImg = CreateSprite("ItemBUY", itemData, buySp, true);
         SetRect(buyImg.rectTransform, new Vector2(280f, -95f), new Vector2(320f, 110f));
         Button itemBuy = buyImg.gameObject.AddComponent<Button>();
         itemBuy.targetGraphic = buyImg;

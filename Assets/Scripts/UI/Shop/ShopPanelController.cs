@@ -5,8 +5,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 商店：列表选中 → ItemData（价格=数量×单价）→ BuyPanel。
-/// 累计购买件数驱动进度条 0..5；宝箱在 1/3/5 件可领 50/150/300 金币。
+/// Shop: list select fills ItemData (name/desc/icon/price). ItemBUY opens BuyPanel (qty + CANCEL/BUY).
+/// Purchase count drives progress 0..5; chests at 1/3/5 claim 50/150/300 gold.
 /// </summary>
 public class ShopPanelController : MonoBehaviour
 {
@@ -21,8 +21,10 @@ public class ShopPanelController : MonoBehaviour
     [SerializeField] private TMP_Text itemName;
     [SerializeField] private TMP_Text itemDescription;
     [SerializeField] private TMP_Text itemPrice;
-    [SerializeField] private Button itemBuyButton;
     [SerializeField] private Color placeholderColor = new Color(0.55f, 0.40f, 0.85f, 1f);
+
+    [Header("ItemBUY")]
+    [SerializeField] private Button itemBuyButton;
 
     [Header("Progress")]
     [SerializeField] private Image progressFill;
