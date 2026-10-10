@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// UpgradePanel 逻辑：按存档等级刷新三维属性 / 进度条 / 升级花费，点击 Upgrade 扣金币升级。
+/// UpgradePanel 逻辑：按存档等级刷新 Attack / Range / Net Speed、进度条与升级花费。
 /// 装备槽仅装饰，不在此处理。
 /// </summary>
 [DisallowMultipleComponent]
@@ -16,14 +16,17 @@ public class UpgradePanelController : MonoBehaviour
     [Header("Attack")]
     [SerializeField] private Image attackFill;
     [SerializeField] private TMP_Text attackValue;
+    [SerializeField] private TMP_Text attackName;
 
     [Header("Range")]
     [SerializeField] private Image rangeFill;
     [SerializeField] private TMP_Text rangeValue;
+    [SerializeField] private TMP_Text rangeName;
 
-    [Header("Defense")]
-    [SerializeField] private Image defenseFill;
-    [SerializeField] private TMP_Text defenseValue;
+    [Header("Net Speed")]
+    [SerializeField] private Image netSpeedFill;
+    [SerializeField] private TMP_Text netSpeedValue;
+    [SerializeField] private TMP_Text netSpeedName;
 
     [Header("Cost")]
     [SerializeField] private TMP_Text costText;
@@ -79,19 +82,30 @@ public class UpgradePanelController : MonoBehaviour
         }
     }
 
-    /// <summary>按当前存档等级刷新属性文字、进度条、花费与按钮可点状态。</summary>
+    /// <summary>按当前存档等级刷新三维属性、进度条、花费与按钮。</summary>
     public void Refresh()
     {
         LocalSaveManager save = LocalSaveManager.Instance;
         int level = save != null ? save.GetCharacterLevel() : CharacterUpgradeDefs.MinLevel;
-        int stat = CharacterUpgradeDefs.StatAtLevel(level);
-        int maxStat = CharacterUpgradeDefs.MaxStat;
-        float fill = CharacterUpgradeDefs.FillAmount(level);
-        string valueText = stat + "/" + maxStat;
 
-        SetStat(attackFill, attackValue, fill, valueText);
-        SetStat(rangeFill, rangeValue, fill, valueText);
-        SetStat(defenseFill, defenseValue, fill, valueText);
+        if (attackName != null)
+        {
+            attackName.text = "Attack";
+        }
+
+        if (rangeName != null)
+        {
+            rangeName.text = "Range";
+        }
+
+        if (netSpeedName != null)
+        {
+            netSpeedName.text = "Net Speed";
+        }
+
+        SetStat(attackFill, attackValue, CharacterUpgradeDefs.AttackFill(level), CharacterUpgradeDefs.FormatAttack(level));
+        SetStat(rangeFill, rangeValue, CharacterUpgradeDefs.RangeFill(level), CharacterUpgradeDefs.FormatRange(level));
+        SetStat(netSpeedFill, netSpeedValue, CharacterUpgradeDefs.NetSpeedFill(level), CharacterUpgradeDefs.FormatNetSpeed(level));
 
         bool atMax = level >= CharacterUpgradeDefs.MaxLevel;
         if (costText != null)

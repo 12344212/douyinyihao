@@ -181,11 +181,11 @@ public static class UpgradePanelSetup
         CreateEquipSlot("EquipSlot4", content, slot4, new Vector2(-88f, -137f));
 
         CreateStatRow("StatAttack", content, font, iconAtk, barBg, barAtk,
-            "Attack", "99/99", new Vector2(223f, 315f), new Vector2(587f, 286f));
+            "Attack", "10/108", new Vector2(223f, 315f), new Vector2(587f, 286f));
         CreateStatRow("StatRange", content, font, iconRange, barBg, barRange,
-            "Range", "99/99", new Vector2(217f, 111f), new Vector2(587f, 94f));
-        CreateStatRow("StatDefense", content, font, iconDef, barBg, barDef,
-            "Defense", "99/99", new Vector2(223f, -87f), new Vector2(587f, -111f));
+            "Range", "2.0/6.9", new Vector2(217f, 111f), new Vector2(587f, 94f));
+        CreateStatRow("StatNetSpeed", content, font, iconDef, barBg, barDef,
+            "Net Speed", "1.0/S/10.8/S", new Vector2(223f, -87f), new Vector2(587f, -111f));
 
         RectTransform cost = CreateUIObject("CostRow", content).GetComponent<RectTransform>();
         SetRect(cost, new Vector2(480f, -250f), new Vector2(360f, 80f));
@@ -228,10 +228,15 @@ public static class UpgradePanelSetup
         EnsureWindowAndContent(panel);
         Transform root = panel.transform;
 
-        // 视觉可能在 Content 或 Parchment 下；Defense 节点可能叫 StatDefense / StatDEF
+        // Visual may sit under Content or Parchment; net-speed row: StatNetSpeed / StatDefense / StatDEF
         Transform atk = FindDeep(root, "StatAttack");
         Transform range = FindDeep(root, "StatRange");
-        Transform def = FindDeep(root, "StatDefense");
+        Transform def = FindDeep(root, "StatNetSpeed");
+        if (def == null)
+        {
+            def = FindDeep(root, "StatDefense");
+        }
+
         if (def == null)
         {
             def = FindDeep(root, "StatDEF");
@@ -248,11 +253,18 @@ public static class UpgradePanelSetup
 
         Image attackFill = FindImage(atk, "BarFill");
         TMP_Text attackValue = FindTmp(atk, "Value");
+        TMP_Text attackName = FindTmp(atk, "Name");
         Image rangeFill = FindImage(range, "BarFill");
         TMP_Text rangeValue = FindTmp(range, "Value");
-        Image defenseFill = FindImage(def, "BarFill");
-        TMP_Text defenseValue = FindTmp(def, "Value");
+        TMP_Text rangeName = FindTmp(range, "Name");
+        Image netSpeedFill = FindImage(def, "BarFill");
+        TMP_Text netSpeedValue = FindTmp(def, "Value");
+        TMP_Text netSpeedName = FindTmp(def, "Name");
         TMP_Text costText = FindTmp(cost, "CostText");
+
+        if (attackName != null) { attackName.text = "Attack"; }
+        if (rangeName != null) { rangeName.text = "Range"; }
+        if (netSpeedName != null) { netSpeedName.text = "Net Speed"; }
         Button upgradeButton = upgradeTf.GetComponent<Button>();
         if (upgradeButton == null)
         {
@@ -275,10 +287,13 @@ public static class UpgradePanelSetup
         SetRef(cso, "upgradeButton", upgradeButton);
         SetRef(cso, "attackFill", attackFill);
         SetRef(cso, "attackValue", attackValue);
+        SetRef(cso, "attackName", attackName);
         SetRef(cso, "rangeFill", rangeFill);
         SetRef(cso, "rangeValue", rangeValue);
-        SetRef(cso, "defenseFill", defenseFill);
-        SetRef(cso, "defenseValue", defenseValue);
+        SetRef(cso, "rangeName", rangeName);
+        SetRef(cso, "netSpeedFill", netSpeedFill);
+        SetRef(cso, "netSpeedValue", netSpeedValue);
+        SetRef(cso, "netSpeedName", netSpeedName);
         SetRef(cso, "costText", costText);
         cso.ApplyModifiedPropertiesWithoutUndo();
         Debug.Log(LogTag + " UpgradePanelController wired.");
@@ -638,6 +653,8 @@ public static class UpgradePanelSetup
         DestroyChild(panel.Content, "StatAttack");
         DestroyChild(panel.Content, "StatRange");
         DestroyChild(panel.Content, "StatDefense");
+        DestroyChild(panel.Content, "StatNetSpeed");
+        DestroyChild(panel.Content, "StatDEF");
         DestroyChild(panel.Content, "CostRow");
         DestroyChild(panel.Content, "UpgradeButton");
         DestroyChild(panel.Window, "BackButton");

@@ -3162,10 +3162,13 @@ MonoBehaviour:
   upgradeButton: {fileID: 1860298136}
   attackFill: {fileID: 5057069}
   attackValue: {fileID: 1946119555}
+  attackName: {fileID: 1827105797}
   rangeFill: {fileID: 1071488298}
   rangeValue: {fileID: 282512603}
-  defenseFill: {fileID: 1793900549}
-  defenseValue: {fileID: 1851352783}
+  rangeName: {fileID: 1221030095}
+  netSpeedFill: {fileID: 1793900549}
+  netSpeedValue: {fileID: 1851352783}
+  netSpeedName: {fileID: 1127301541}
   costText: {fileID: 886004800}
 --- !u!1 &371389297
 GameObject:
@@ -10770,7 +10773,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Defenset
+  m_text: Net Speed
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 56e86ebb5c641454389cad93ec3b8b09, type: 2}
   m_sharedMaterial: {fileID: 5120973622693285583, guid: 56e86ebb5c641454389cad93ec3b8b09, type: 2}
