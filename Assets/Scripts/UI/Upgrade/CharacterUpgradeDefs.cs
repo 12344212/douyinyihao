@@ -94,18 +94,18 @@ public static class CharacterUpgradeDefs
 
     public static string FormatNetSpeed(int level)
     {
-        return FormatNetSpeedCurrent(level) + "/" + FormatNetSpeedMax();
+        return NetSpeedAtLevel(level).ToString("0.0", Invariant) + "S/" + NetSpeedMax.ToString("0.0", Invariant) + "S";
     }
 
     /// <summary>当前网速展示，如 1.0/S（不含满级分母时也可拼 Value）。</summary>
     public static string FormatNetSpeedCurrent(int level)
     {
-        return NetSpeedAtLevel(level).ToString("0.0", Invariant) + "/S";
+        return NetSpeedAtLevel(level).ToString("0.0", Invariant) + "S";
     }
 
     public static string FormatNetSpeedMax()
     {
-        return NetSpeedMax.ToString("0.0", Invariant) + "/S";
+        return NetSpeedMax.ToString("0.0", Invariant) + "S";
     }
 
     private static float Fill(float current, float max)
