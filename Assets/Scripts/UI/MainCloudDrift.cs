@@ -52,6 +52,8 @@ public class MainCloudDrift : MonoBehaviour
     [SerializeField] private Vector2 restDelayRange = new Vector2(0.8f, 4f);
     [SerializeField] private float edgePadding = 40f;
     [SerializeField] private float topPadding = 30f;
+    [Tooltip("云朵 anchoredPosition.y 下限（含 bob 下探）")]
+    [SerializeField] private float minY = 150f;
 
     [Header("First Enter")]
     [Tooltip("第一次进场景时，先在屏幕内随机铺开再开始飞。")]
@@ -327,6 +329,7 @@ public class MainCloudDrift : MonoBehaviour
             float yMin = layer.kind == CloudLayerKind.Near ? 0f
                 : layer.kind == CloudLayerKind.Mid ? halfH * 0.15f
                 : halfH * 0.35f;
+            yMin = Mathf.Max(yMin, minY);
             float yMax = Mathf.Max(yMin, halfH - cloudHalfH - topPadding);
             float baseY = Random.Range(yMin, yMax);
 
@@ -367,6 +370,8 @@ public class MainCloudDrift : MonoBehaviour
             float duration = Mathf.Max(0.8f, distance / Mathf.Max(1f, speed));
 
             float bobAmp = Random.Range(layer.bobAmplitudeRange.x, layer.bobAmplitudeRange.y);
+            // bob 下探也不得低于 minY
+            bobAmp = Mathf.Min(bobAmp, Mathf.Max(0f, baseY - minY));
             float bobPeriod = Random.Range(layer.bobPeriodRange.x, layer.bobPeriodRange.y);
             float bobPhase = Random.Range(0f, Mathf.PI * 2f);
             float bobOmega = (Mathf.PI * 2f) / Mathf.Max(0.2f, bobPeriod);
@@ -388,7 +393,7 @@ public class MainCloudDrift : MonoBehaviour
                 {
                     x = v;
                     float bob = Mathf.Sin(Time.unscaledTime * bobOmega + bobPhase) * bobAmp;
-                    rt.anchoredPosition = new Vector2(x, baseY + bob);
+                    rt.anchoredPosition = new Vector2(x, Mathf.Max(minY, baseY + bob));
                 }, endX, duration)
                 .SetEase(Ease.Linear)
                 .SetUpdate(true)

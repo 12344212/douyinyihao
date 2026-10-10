@@ -17,6 +17,7 @@ public class BattleBootstrap : MonoBehaviour
     public const string SpearAddress = "BattleSpear";
     public const string CaptureAddress = "BattleCaptureTower";
     public const string AttackAddress = "BattleAttackTower";
+    public const string AttractorAddress = "BattleAttractor";
 
     [SerializeField] private BattleDirector director;
     [SerializeField] private YooAssetManager yooAssetManager;
@@ -57,6 +58,7 @@ public class BattleBootstrap : MonoBehaviour
         BattleSpear spear = null;
         BattleTower capture = null;
         BattleTower attack = null;
+        BattleTower attractor = null;
         yield return LoadPrefab(yoo, PlankAddress, go => plank = go != null ? go.GetComponent<PlankView>() : null);
         yield return LoadPrefab(yoo, ResourceAddress, go => resource = go != null ? go.GetComponent<BattleResource>() : null);
         yield return LoadPrefab(yoo, CrabAddress, go => crab = go != null ? go.GetComponent<BattleCrab>() : null);
@@ -64,14 +66,15 @@ public class BattleBootstrap : MonoBehaviour
         yield return LoadPrefab(yoo, SpearAddress, go => spear = go != null ? go.GetComponent<BattleSpear>() : null);
         yield return LoadPrefab(yoo, CaptureAddress, go => capture = go != null ? go.GetComponent<BattleTower>() : null);
         yield return LoadPrefab(yoo, AttackAddress, go => attack = go != null ? go.GetComponent<BattleTower>() : null);
+        yield return LoadPrefab(yoo, AttractorAddress, go => attractor = go != null ? go.GetComponent<BattleTower>() : null);
 
-        if (config == null || plank == null || resource == null || crab == null || net == null || spear == null || capture == null || attack == null)
+        if (config == null || plank == null || resource == null || crab == null || net == null || spear == null || capture == null || attack == null || attractor == null)
         {
             Debug.LogError("[Battle] Failed to load battle config or runtime prefabs through YooAsset.");
             yield break;
         }
 
-        director.SetSpawnPrefabs(plank, resource, crab, net, spear, capture, attack);
+        director.SetSpawnPrefabs(plank, resource, crab, net, spear, capture, attack, attractor);
         director.Begin(config);
     }
 

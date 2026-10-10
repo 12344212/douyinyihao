@@ -23,7 +23,8 @@ public class BattleDirector : MonoBehaviour
         None,
         Plank,
         Capture,
-        Attack
+        Attack,
+        Attractor
     }
 
     private enum PressKind
@@ -49,6 +50,7 @@ public class BattleDirector : MonoBehaviour
         public NetShot Net;
         public float AttackCd;
         public float CaptureCd;
+        public float AttractorCd;
     }
 
     private class ResNode
@@ -58,6 +60,7 @@ public class BattleDirector : MonoBehaviour
         public Vector3 Pos;
         public Vector3 Velocity;
         public bool Dead;
+        public bool Attracting;
     }
 
     private class EnemyNode
@@ -116,6 +119,7 @@ public class BattleDirector : MonoBehaviour
     [SerializeField] private BattleSpear spearPrefab;
     [SerializeField] private BattleTower captureTowerPrefab;
     [SerializeField] private BattleTower attackTowerPrefab;
+    [SerializeField] private BattleTower attractorTowerPrefab;
 
     private BattleTuningConfig _config;
     private bool _ready;
@@ -144,6 +148,19 @@ public class BattleDirector : MonoBehaviour
     private Vector3 _characterPos;
     private float _characterRange = 4f;
     private int _netCapacity = 4;
+    private float _heroDamageBonus;
+    private float _netSizeBonus;
+    private float _netSpeedMul = 1f;
+    private float _captureRangeBonus;
+    private int _captureNetCapacity = 4;
+    private float _captureSizeBonus;
+    private float _captureCooldownMul = 1f;
+    private float _attackRangeBonus;
+    private float _attackDamageBonus;
+    private float _attractorRangeBonus;
+    private float _attractorIntervalMul = 1f;
+    private readonly BattleUpgradeKind[] _levelOffers = new BattleUpgradeKind[3];
+    private readonly List<BattleUpgradeKind> _offerPool = new List<BattleUpgradeKind>(16);
     private BattleCharacter _characterBody;
     private int _charX;
     private int _charY;
@@ -164,9 +181,18 @@ public class BattleDirector : MonoBehaviour
     private readonly List<Vector2Int> _expandCells = new List<Vector2Int>();
     private readonly List<PlankView> _ghostPlanks = new List<PlankView>();
     private readonly List<PlankNode> _raisedPlanks = new List<PlankNode>();
+    private readonly List<AttractPull> _attractPulls = new List<AttractPull>();
+
+    private class AttractPull
+    {
+        public ResNode Res;
+        public PlankNode Home;
+        public Vector3 From;
+        public float Elapsed;
+    }
 
     /// <summary>运行时才出现的预制体，由 YooAsset 按地址加载后塞进来。</summary>
-    public void SetSpawnPrefabs(PlankView plank, BattleResource resource, BattleCrab crab, BattleNet net, BattleSpear spear, BattleTower capture, BattleTower attack)
+    public void SetSpawnPrefabs(PlankView plank, BattleResource resource, BattleCrab crab, BattleNet net, BattleSpear spear, BattleTower capture, BattleTower attack, BattleTower attractor)
     {
         plankPrefab = plank;
         resourcePrefab = resource;
@@ -175,6 +201,7 @@ public class BattleDirector : MonoBehaviour
         spearPrefab = spear;
         captureTowerPrefab = capture;
         attackTowerPrefab = attack;
+        attractorTowerPrefab = attractor;
     }
 
     public void Begin(BattleTuningConfig config)
@@ -186,7 +213,8 @@ public class BattleDirector : MonoBehaviour
         }
 
         if (hud == null || plankPrefab == null || resourcePrefab == null || crabPrefab == null ||
-            netPrefab == null || spearPrefab == null || captureTowerPrefab == null || attackTowerPrefab == null)
+            netPrefab == null || spearPrefab == null || captureTowerPrefab == null || attackTowerPrefab == null ||
+            attractorTowerPrefab == null)
         {
             Debug.LogError("[Battle] BattleRoot is missing a serialized prefab or HUD reference.");
             return;
@@ -216,6 +244,18 @@ public class BattleDirector : MonoBehaviour
 
         _characterRange = _config.CharacterRange;
         _netCapacity = _config.NetCapacity;
+        _captureNetCapacity = _config.CaptureNetCapacity;
+        _heroDamageBonus = 0f;
+        _netSizeBonus = 0f;
+        _netSpeedMul = 1f;
+        _captureRangeBonus = 0f;
+        _captureSizeBonus = 0f;
+        _captureCooldownMul = 1f;
+        _attackRangeBonus = 0f;
+        _attackDamageBonus = 0f;
+        _attractorRangeBonus = 0f;
+        _attractorIntervalMul = 1f;
+        _attractPulls.Clear();
         RefreshCharacterRange();
 
         if (startingPlanks != null)
@@ -325,81 +365,27 @@ public class BattleDirector : MonoBehaviour
         hud.SetWeapon(_weapon);
     }
 
-    public void ChoosePlank()
+    /// <summary>HUD 三张卡槽回调（0/1/2）。</summary>
+    public void ChooseOfferSlot(int slot)
     {
         if (_phase != Phase.LevelUp || _modalArm > 0)
         {
             return;
         }
 
-        CollectExpansionCells(_expandCells);
-        if (_expandCells.Count == 0)
+        if (slot < 0 || slot >= _levelOffers.Length)
         {
-            hud.ShowLevelUp(false, FindEmptyPlank() != null);
             return;
         }
 
-        EnterBuildMode(BuildKind.Plank);
+        ApplyUpgrade(_levelOffers[slot]);
     }
 
-    public void ChooseCapture()
-    {
-        if (_phase != Phase.LevelUp || _modalArm > 0)
-        {
-            return;
-        }
-
-        if (FindEmptyPlank() == null)
-        {
-            int dumpX;
-            int dumpY;
-            hud.ShowLevelUp(FindExpansionCell(out dumpX, out dumpY), false);
-            return;
-        }
-
-        EnterBuildMode(BuildKind.Capture);
-    }
-
-    public void ChooseAttack()
-    {
-        if (_phase != Phase.LevelUp || _modalArm > 0)
-        {
-            return;
-        }
-
-        if (FindEmptyPlank() == null)
-        {
-            int dumpX;
-            int dumpY;
-            hud.ShowLevelUp(FindExpansionCell(out dumpX, out dumpY), false);
-            return;
-        }
-
-        EnterBuildMode(BuildKind.Attack);
-    }
-
-    public void ChooseRange()
-    {
-        if (_phase != Phase.LevelUp || _modalArm > 0)
-        {
-            return;
-        }
-
-        _characterRange += _config.CharacterRangeStep;
-        RefreshCharacterRange();
-        CommitLevelUp();
-    }
-
-    public void ChooseCapacity()
-    {
-        if (_phase != Phase.LevelUp || _modalArm > 0)
-        {
-            return;
-        }
-
-        _netCapacity += _config.NetCapacityStep;
-        CommitLevelUp();
-    }
+    public void ChoosePlank() { ChooseOfferSlot(0); }
+    public void ChooseCapture() { ChooseOfferSlot(1); }
+    public void ChooseAttack() { ChooseOfferSlot(2); }
+    public void ChooseRange() { ChooseOfferSlot(0); }
+    public void ChooseCapacity() { ChooseOfferSlot(1); }
 
     public void OnPrimary()
     {
@@ -575,6 +561,11 @@ public class BattleDirector : MonoBehaviour
                 continue;
             }
 
+            if (res.Attracting)
+            {
+                continue;
+            }
+
             res.Pos += res.Velocity * dt;
             bool offLeft = res.Pos.x < view.Cx - view.HalfW - 1.5f;
             bool offBottom = res.Pos.y < view.Cy - view.HalfH - 1.5f;
@@ -612,7 +603,12 @@ public class BattleDirector : MonoBehaviour
 
     private void PrefillDriftResources()
     {
-        int count = _config.DriftPrefillCount;
+        SpawnDriftBurst(_config.DriftPrefillCount);
+    }
+
+    /// <summary>在漂流走廊上刷一批木/叶（开战预填、升级爆发共用）。</summary>
+    private void SpawnDriftBurst(int count)
+    {
         if (count <= 0)
         {
             return;
@@ -671,7 +667,7 @@ public class BattleDirector : MonoBehaviour
         res.Velocity = velocity;
         res.View = Instantiate(resourcePrefab, spawnRoot);
         res.View.SetKind(res.Kind);
-        res.View.SetSortingOrder(12);
+        res.View.SetSortingOrder(1);
         res.View.transform.position = res.Pos;
         _resources.Add(res);
     }
@@ -687,7 +683,7 @@ public class BattleDirector : MonoBehaviour
         res.Velocity = dir * (_config.DriftSpeed / 6f);
         res.View = Instantiate(resourcePrefab, spawnRoot);
         res.View.SetKind(res.Kind);
-        res.View.SetSortingOrder(12);
+        res.View.SetSortingOrder(1);
         res.View.transform.position = res.Pos;
         _resources.Add(res);
     }
@@ -1039,14 +1035,28 @@ public class BattleDirector : MonoBehaviour
             Destroy(plank.Tower.gameObject);
         }
 
-        BattleTower prefab = kind == BattleBuildingKind.Capture ? captureTowerPrefab : attackTowerPrefab;
+        BattleTower prefab = captureTowerPrefab;
+        Color color = _config.CaptureTowerColor;
+        float radius = _config.CaptureRange + _captureRangeBonus;
+        if (kind == BattleBuildingKind.Attack)
+        {
+            prefab = attackTowerPrefab;
+            color = _config.AttackTowerColor;
+            radius = _config.TowerRange + _attackRangeBonus;
+        }
+        else if (kind == BattleBuildingKind.Attractor)
+        {
+            prefab = attractorTowerPrefab;
+            color = _config.AttractorTowerColor;
+            radius = _config.AttractorRange + _attractorRangeBonus;
+            plank.AttractorCd = 0f;
+        }
+
         Transform parent = plank.View != null && plank.View.TowerAnchor != null ? plank.View.TowerAnchor : plank.View.transform;
         BattleTower tower = Instantiate(prefab, parent);
         tower.transform.localPosition = Vector3.zero;
         tower.transform.localScale = Vector3.one * (_config.CellSize * 0.42f);
-        Color color = kind == BattleBuildingKind.Capture ? _config.CaptureTowerColor : _config.AttackTowerColor;
         tower.ApplyColor(color);
-        float radius = kind == BattleBuildingKind.Capture ? _config.CaptureRange : _config.TowerRange;
         tower.SetRangeRadius(radius);
         plank.Tower = tower;
     }
@@ -1081,6 +1091,8 @@ public class BattleDirector : MonoBehaviour
         {
             CancelNet(plank.Net);
         }
+
+        CancelAttractPullsFor(plank);
 
         if (plank.View != null)
         {
@@ -1235,7 +1247,7 @@ public class BattleDirector : MonoBehaviour
             return;
         }
 
-        if (_buildKind == BuildKind.Capture || _buildKind == BuildKind.Attack)
+        if (_buildKind == BuildKind.Capture || _buildKind == BuildKind.Attack || _buildKind == BuildKind.Attractor)
         {
             PlankNode plank = EmptyPlankUnder(point);
             if (plank == null)
@@ -1243,9 +1255,16 @@ public class BattleDirector : MonoBehaviour
                 return;
             }
 
-            BattleBuildingKind towerKind = _buildKind == BuildKind.Capture
-                ? BattleBuildingKind.Capture
-                : BattleBuildingKind.Attack;
+            BattleBuildingKind towerKind = BattleBuildingKind.Capture;
+            if (_buildKind == BuildKind.Attack)
+            {
+                towerKind = BattleBuildingKind.Attack;
+            }
+            else if (_buildKind == BuildKind.Attractor)
+            {
+                towerKind = BattleBuildingKind.Attractor;
+            }
+
             BuildTower(plank, towerKind);
             FinishBuildMode();
         }
@@ -1264,6 +1283,7 @@ public class BattleDirector : MonoBehaviour
         {
             if (_ghostPlanks[i] != null)
             {
+                _ghostPlanks[i].StopGhostBreathe();
                 Destroy(_ghostPlanks[i].gameObject);
             }
         }
@@ -1275,6 +1295,7 @@ public class BattleDirector : MonoBehaviour
             PlankNode plank = _raisedPlanks[i];
             if (plank != null && plank.View != null)
             {
+                plank.View.StopGhostBreathe();
                 plank.View.RestoreSorting();
             }
         }
@@ -1341,6 +1362,7 @@ public class BattleDirector : MonoBehaviour
             }
 
             plank.View.BoostSorting(55);
+            plank.View.StartTargetBreathe();
             _raisedPlanks.Add(plank);
         }
     }
@@ -1441,7 +1463,7 @@ public class BattleDirector : MonoBehaviour
                 plank.AttackCd -= dt;
                 if (plank.AttackCd <= 0f)
                 {
-                    EnemyNode target = NearestEnemy(plank.Logic, _config.TowerRange);
+                    EnemyNode target = NearestEnemy(plank.Logic, _config.TowerRange + _attackRangeBonus);
                     if (target != null)
                     {
                         ThrowTowerSpear(plank, target);
@@ -1454,14 +1476,149 @@ public class BattleDirector : MonoBehaviour
                 plank.CaptureCd -= dt;
                 if (plank.CaptureCd <= 0f && plank.Net == null)
                 {
-                    ResNode res = NearestResource(plank.Logic, _config.CaptureRange);
+                    ResNode res = NearestResource(plank.Logic, _config.CaptureRange + _captureRangeBonus);
                     if (res != null)
                     {
                         CreateNet(plank.Logic, res.Pos, plank, true);
-                        plank.CaptureCd = _config.CaptureCooldown;
+                        float cd = _config.CaptureCooldown * _captureCooldownMul;
+                        if (cd < _config.CaptureCooldownMin)
+                        {
+                            cd = _config.CaptureCooldownMin;
+                        }
+
+                        plank.CaptureCd = cd;
                     }
                 }
             }
+            else if (plank.Building == BattleBuildingKind.Attractor)
+            {
+                plank.AttractorCd -= dt;
+                if (plank.AttractorCd <= 0f)
+                {
+                    StartAttractorPulls(plank);
+                    float interval = _config.AttractorInterval * _attractorIntervalMul;
+                    if (interval < _config.AttractorIntervalMin)
+                    {
+                        interval = _config.AttractorIntervalMin;
+                    }
+
+                    plank.AttractorCd = interval;
+                }
+            }
+        }
+
+        TickAttractPulls(dt);
+    }
+
+    private void StartAttractorPulls(PlankNode plank)
+    {
+        if (plank == null || plank.Dead)
+        {
+            return;
+        }
+
+        float range = _config.AttractorRange + _attractorRangeBonus;
+        float limit = range * range;
+        for (int i = 0; i < _resources.Count; i++)
+        {
+            ResNode res = _resources[i];
+            if (res == null || res.Dead || res.Attracting)
+            {
+                continue;
+            }
+
+            if (Sqr2(res.Pos, plank.Logic) > limit)
+            {
+                continue;
+            }
+
+            res.Attracting = true;
+            res.Velocity = Vector3.zero;
+            AttractPull pull = new AttractPull();
+            pull.Res = res;
+            pull.Home = plank;
+            pull.From = res.Pos;
+            pull.Elapsed = 0f;
+            _attractPulls.Add(pull);
+        }
+    }
+
+    private void TickAttractPulls(float dt)
+    {
+        float duration = _config.AttractorPullDuration;
+        if (duration < 0.05f)
+        {
+            duration = 0.05f;
+        }
+
+        for (int i = _attractPulls.Count - 1; i >= 0; i--)
+        {
+            AttractPull pull = _attractPulls[i];
+            ResNode res = pull.Res;
+            if (res == null || res.Dead || pull.Home == null || pull.Home.Dead)
+            {
+                if (res != null && !res.Dead)
+                {
+                    res.Attracting = false;
+                }
+
+                _attractPulls.RemoveAt(i);
+                continue;
+            }
+
+            pull.Elapsed += dt;
+            float t = pull.Elapsed / duration;
+            if (t >= 1f)
+            {
+                GrantAttractedResource(res);
+                _attractPulls.RemoveAt(i);
+                continue;
+            }
+
+            Vector3 target = pull.Home.Logic;
+            res.Pos = Vector3.Lerp(pull.From, target, t);
+            if (res.View != null)
+            {
+                res.View.transform.position = res.Pos;
+            }
+        }
+    }
+
+    private void GrantAttractedResource(ResNode res)
+    {
+        if (res == null || res.Dead)
+        {
+            return;
+        }
+
+        res.Dead = true;
+        res.Attracting = false;
+        AddCount(res.Kind, 1);
+        AddXp(_config.XpPerResource);
+        if (res.View != null)
+        {
+            Destroy(res.View.gameObject);
+        }
+
+        _resources.Remove(res);
+    }
+
+    private void CancelAttractPullsFor(PlankNode home)
+    {
+        for (int i = _attractPulls.Count - 1; i >= 0; i--)
+        {
+            AttractPull pull = _attractPulls[i];
+            if (pull.Home != home)
+            {
+                continue;
+            }
+
+            if (pull.Res != null && !pull.Res.Dead)
+            {
+                pull.Res.Attracting = false;
+            }
+
+            _attractPulls.RemoveAt(i);
         }
     }
 
@@ -1483,7 +1640,12 @@ public class BattleDirector : MonoBehaviour
         net.Home = home;
         net.AutoReel = autoReel;
         net.View = Instantiate(netPrefab, spawnRoot);
-        float diameter = _config.NetDiameter;
+        float diameter = _config.NetDiameter + (home == null ? _netSizeBonus : _captureSizeBonus);
+        if (diameter < 0.4f)
+        {
+            diameter = 0.4f;
+        }
+
         net.View.transform.localScale = new Vector3(diameter, diameter, 1f);
         net.View.transform.position = origin;
         if (home != null)
@@ -1535,7 +1697,8 @@ public class BattleDirector : MonoBehaviour
                 }
                 else
                 {
-                    float fly = _config.NetSpeed * dt;
+                    float speedMul = net.Home == null ? _netSpeedMul : 1f;
+                    float fly = _config.NetSpeed * speedMul * dt;
                     net.Pos = Vector3.MoveTowards(net.Pos, net.Target, fly);
                     if (Sqr2(net.Pos, net.Target) <= 0.0025f)
                     {
@@ -1618,19 +1781,25 @@ public class BattleDirector : MonoBehaviour
     {
         CaptureAt(net);
     }
-    private float NetCatchRadius()
+    private float NetCatchRadius(NetShot net)
     {
-        return _config.NetDiameter * 0.5f;
+        float diameter = _config.NetDiameter + (net != null && net.Home != null ? _captureSizeBonus : _netSizeBonus);
+        if (diameter < 0.4f)
+        {
+            diameter = 0.4f;
+        }
+
+        return diameter * 0.5f;
     }
 
     private void CaptureAlongPath(NetShot net, Vector3 from, Vector3 to)
     {
-        float limit = NetCatchRadius();
+        float limit = NetCatchRadius(net);
         limit *= limit;
         for (int i = _resources.Count - 1; i >= 0; i--)
         {
             ResNode res = _resources[i];
-            if (res.Dead)
+            if (res.Dead || res.Attracting)
             {
                 continue;
             }
@@ -1669,12 +1838,12 @@ public class BattleDirector : MonoBehaviour
     }
     private void CaptureAt(NetShot net)
     {
-        float limit = NetCatchRadius();
+        float limit = NetCatchRadius(net);
         limit *= limit;
         for (int i = _resources.Count - 1; i >= 0; i--)
         {
             ResNode res = _resources[i];
-            if (res.Dead)
+            if (res.Dead || res.Attracting)
             {
                 continue;
             }
@@ -1690,9 +1859,13 @@ public class BattleDirector : MonoBehaviour
 
     private void TakeResource(NetShot net, int index)
     {
-        if (net != null && net.Home == null && net.Held.Count >= _netCapacity)
+        if (net != null)
         {
-            return;
+            int cap = net.Home == null ? _netCapacity : _captureNetCapacity;
+            if (net.Held.Count >= cap)
+            {
+                return;
+            }
         }
 
         ResNode res = _resources[index];
@@ -1809,7 +1982,7 @@ public class BattleDirector : MonoBehaviour
 
             if (res.View != null)
             {
-                res.View.SetSortingOrder(12);
+                res.View.SetSortingOrder(1);
             }
 
             _resources.Add(res);
@@ -1860,7 +2033,7 @@ public class BattleDirector : MonoBehaviour
         spear.Pos = _characterPos;
         spear.Origin = _characterPos;
         spear.Target = point;
-        spear.Damage = _config.SpearDamage;
+        spear.Damage = _config.SpearDamage + _heroDamageBonus;
         spear.Radius = _config.SpearRadius;
         spear.View = Instantiate(spearPrefab, spawnRoot);
         spear.View.transform.position = spear.Pos;
@@ -1873,7 +2046,7 @@ public class BattleDirector : MonoBehaviour
         spear.Pos = plank.Logic;
         spear.Origin = plank.Logic;
         spear.Target = enemy.Pos;
-        spear.Damage = _config.TowerDamage;
+        spear.Damage = _config.TowerDamage + _attackDamageBonus;
         spear.Radius = 0f;
         spear.Lock = enemy;
         spear.View = Instantiate(spearPrefab, spawnRoot);
@@ -1973,7 +2146,7 @@ public class BattleDirector : MonoBehaviour
         for (int i = 0; i < _resources.Count; i++)
         {
             ResNode res = _resources[i];
-            if (res.Dead)
+            if (res.Dead || res.Attracting)
             {
                 continue;
             }
@@ -2037,13 +2210,10 @@ public class BattleDirector : MonoBehaviour
             return;
         }
 
-        int dumpX;
-        int dumpY;
-        bool canPlank = FindExpansionCell(out dumpX, out dumpY);
-        bool canBuild = FindEmptyPlank() != null;
         _pendingNeed = need;
         _phase = Phase.LevelUp;
-        hud.ShowLevelUp(canPlank, canBuild);
+        DrawLevelOffers();
+        hud.ShowLevelUpOffers(_levelOffers);
         if (EventSystem.current != null)
         {
             EventSystem.current.SetSelectedGameObject(null);
@@ -2051,6 +2221,193 @@ public class BattleDirector : MonoBehaviour
 
         ArmModal(hud.LevelGroup);
         TouchHud();
+    }
+
+    private void DrawLevelOffers()
+    {
+        _offerPool.Clear();
+        CollectExpansionCells(_expandCells);
+        bool canPlank = _expandCells.Count > 0;
+        bool canPlace = FindEmptyPlank() != null;
+        bool hasCapture = HasBuilding(BattleBuildingKind.Capture);
+        bool hasAttack = HasBuilding(BattleBuildingKind.Attack);
+        bool hasAttractor = HasBuilding(BattleBuildingKind.Attractor);
+
+        if (canPlank) { _offerPool.Add(BattleUpgradeKind.Plank); }
+        if (canPlace) { _offerPool.Add(BattleUpgradeKind.PlaceCapture); }
+        if (canPlace) { _offerPool.Add(BattleUpgradeKind.PlaceAttack); }
+        if (canPlace) { _offerPool.Add(BattleUpgradeKind.PlaceAttractor); }
+
+        _offerPool.Add(BattleUpgradeKind.HeroRange);
+        _offerPool.Add(BattleUpgradeKind.HeroCapacity);
+        _offerPool.Add(BattleUpgradeKind.HeroDamage);
+        _offerPool.Add(BattleUpgradeKind.NetSize);
+        _offerPool.Add(BattleUpgradeKind.NetSpeed);
+
+        if (hasCapture)
+        {
+            _offerPool.Add(BattleUpgradeKind.CaptureRange);
+            _offerPool.Add(BattleUpgradeKind.CaptureCapacity);
+            _offerPool.Add(BattleUpgradeKind.CaptureSize);
+            _offerPool.Add(BattleUpgradeKind.CaptureSpeed);
+        }
+
+        if (hasAttack)
+        {
+            _offerPool.Add(BattleUpgradeKind.AttackRange);
+            _offerPool.Add(BattleUpgradeKind.AttackDamage);
+        }
+
+        if (hasAttractor)
+        {
+            _offerPool.Add(BattleUpgradeKind.AttractorRange);
+            _offerPool.Add(BattleUpgradeKind.AttractorFrequency);
+        }
+
+        // 洗牌后取前 3
+        for (int i = _offerPool.Count - 1; i > 0; i--)
+        {
+            int j = Random.Range(0, i + 1);
+            BattleUpgradeKind tmp = _offerPool[i];
+            _offerPool[i] = _offerPool[j];
+            _offerPool[j] = tmp;
+        }
+
+        int take = Mathf.Min(3, _offerPool.Count);
+        for (int i = 0; i < 3; i++)
+        {
+            _levelOffers[i] = i < take ? _offerPool[i] : BattleUpgradeKind.HeroRange;
+        }
+    }
+
+    private bool HasBuilding(BattleBuildingKind kind)
+    {
+        for (int i = 0; i < _planks.Count; i++)
+        {
+            if (!_planks[i].Dead && _planks[i].Building == kind)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void ApplyUpgrade(BattleUpgradeKind kind)
+    {
+        switch (kind)
+        {
+            case BattleUpgradeKind.Plank:
+                CollectExpansionCells(_expandCells);
+                if (_expandCells.Count == 0)
+                {
+                    DrawLevelOffers();
+                    hud.ShowLevelUpOffers(_levelOffers);
+                    return;
+                }
+
+                EnterBuildMode(BuildKind.Plank);
+                return;
+            case BattleUpgradeKind.PlaceCapture:
+                if (FindEmptyPlank() == null)
+                {
+                    DrawLevelOffers();
+                    hud.ShowLevelUpOffers(_levelOffers);
+                    return;
+                }
+
+                EnterBuildMode(BuildKind.Capture);
+                return;
+            case BattleUpgradeKind.PlaceAttack:
+                if (FindEmptyPlank() == null)
+                {
+                    DrawLevelOffers();
+                    hud.ShowLevelUpOffers(_levelOffers);
+                    return;
+                }
+
+                EnterBuildMode(BuildKind.Attack);
+                return;
+            case BattleUpgradeKind.PlaceAttractor:
+                if (FindEmptyPlank() == null)
+                {
+                    DrawLevelOffers();
+                    hud.ShowLevelUpOffers(_levelOffers);
+                    return;
+                }
+
+                EnterBuildMode(BuildKind.Attractor);
+                return;
+            case BattleUpgradeKind.HeroRange:
+                _characterRange += _config.CharacterRangeStep;
+                RefreshCharacterRange();
+                break;
+            case BattleUpgradeKind.HeroCapacity:
+                _netCapacity += _config.NetCapacityStep;
+                break;
+            case BattleUpgradeKind.HeroDamage:
+                _heroDamageBonus += _config.HeroDamageStep;
+                break;
+            case BattleUpgradeKind.NetSize:
+                _netSizeBonus += _config.NetDiameterStep;
+                break;
+            case BattleUpgradeKind.NetSpeed:
+                _netSpeedMul += _config.NetSpeedMulStep;
+                break;
+            case BattleUpgradeKind.CaptureRange:
+                _captureRangeBonus += _config.CaptureRangeStep;
+                RefreshTowerRanges();
+                break;
+            case BattleUpgradeKind.CaptureCapacity:
+                _captureNetCapacity += _config.CaptureCapacityStep;
+                break;
+            case BattleUpgradeKind.CaptureSize:
+                _captureSizeBonus += _config.CaptureDiameterStep;
+                break;
+            case BattleUpgradeKind.CaptureSpeed:
+                _captureCooldownMul *= Mathf.Max(0.5f, 1f - (_config.CaptureCooldownStep / Mathf.Max(0.01f, _config.CaptureCooldown)));
+                break;
+            case BattleUpgradeKind.AttackRange:
+                _attackRangeBonus += _config.AttackRangeStep;
+                RefreshTowerRanges();
+                break;
+            case BattleUpgradeKind.AttackDamage:
+                _attackDamageBonus += _config.AttackDamageStep;
+                break;
+            case BattleUpgradeKind.AttractorRange:
+                _attractorRangeBonus += _config.AttractorRangeStep;
+                RefreshTowerRanges();
+                break;
+            case BattleUpgradeKind.AttractorFrequency:
+                _attractorIntervalMul *= Mathf.Max(0.5f, 1f - (_config.AttractorIntervalStep / Mathf.Max(0.01f, _config.AttractorInterval)));
+                break;
+        }
+
+        CommitLevelUp();
+    }
+
+    private void RefreshTowerRanges()
+    {
+        for (int i = 0; i < _planks.Count; i++)
+        {
+            PlankNode plank = _planks[i];
+            if (plank == null || plank.Dead || plank.Tower == null)
+            {
+                continue;
+            }
+
+            float radius = _config.TowerRange + _attackRangeBonus;
+            if (plank.Building == BattleBuildingKind.Capture)
+            {
+                radius = _config.CaptureRange + _captureRangeBonus;
+            }
+            else if (plank.Building == BattleBuildingKind.Attractor)
+            {
+                radius = _config.AttractorRange + _attractorRangeBonus;
+            }
+
+            plank.Tower.SetRangeRadius(radius);
+        }
     }
 
     private void CommitLevelUp()
@@ -2062,6 +2419,9 @@ public class BattleDirector : MonoBehaviour
         }
 
         _level++;
+        // 升级后水面多刷一些漂流木叶（随等级略增，肉仍只来自螃蟹）
+        int burst = _config.DriftLevelUpBurstCount + Mathf.Min(_level - 1, 3);
+        SpawnDriftBurst(burst);
         _phase = Phase.Fight;
         hud.HideLevelUp();
         _modalArm = 0;

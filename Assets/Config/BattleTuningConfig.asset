@@ -33,7 +33,7 @@ MonoBehaviour:
   netCapacityStep: 4
   captureCooldown: 2
   captureRadius: 0.75
-  netSpeed: 9
+  netSpeed: 18
   reelHoldSeconds: 0.35
   netDiameter: 1.5
   reelStep: 1.2
@@ -49,6 +49,24 @@ MonoBehaviour:
   driftInterval: 0.6
   driftSpeed: 2.4
   driftPrefillCount: 10
+  driftLevelUpBurstCount: 4
+  heroDamageStep: 3
+  netDiameterStep: 0.25
+  netSpeedMulStep: 0.2
+  captureRangeStep: 0.75
+  captureNetCapacity: 4
+  captureCapacityStep: 4
+  captureDiameterStep: 0.25
+  captureCooldownStep: 0.25
+  captureCooldownMin: 0.6
+  attackRangeStep: 0.75
+  attackDamageStep: 3
+  attractorRange: 3
+  attractorInterval: 5
+  attractorRangeStep: 0.75
+  attractorIntervalStep: 0.5
+  attractorIntervalMin: 2
+  attractorPullDuration: 0.35
   crabInterval: 1.5
   waveGap: 30
   waveCap: 6
@@ -61,4 +79,5 @@ MonoBehaviour:
   woodPlankColor: {r: 0.62, g: 0.42, b: 0.22, a: 1}
   captureTowerColor: {r: 0.2, g: 0.75, b: 0.72, a: 1}
   attackTowerColor: {r: 0.75, g: 0.22, b: 0.22, a: 1}
+  attractorTowerColor: {r: 0.75, g: 0.35, b: 0.95, a: 1}
   towerSpearColor: {r: 0.95, g: 0.45, b: 0.2, a: 1}

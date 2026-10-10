@@ -3,28 +3,23 @@ using TMPro;
 using UnityEngine;
 
 /// <summary>
-/// 背包：按 LocalSaveManager.GetAllItems() 填列表。打开时刷新，并监听 OnItemsChanged。
-/// 没有道具时显示 "Your bag is empty."。点击一行打开详情。不含装备。
+/// 背包：ItemList 填格子，ItemData 显示选中项。打开时默认选中第一项。
 /// </summary>
 public class BagPanelController : MonoBehaviour
 {
     [SerializeField] private RectTransform listRoot;
     [SerializeField] private BagItemSlot slotPrefab;
     [SerializeField] private TMP_Text emptyLabel;
-    [SerializeField] private BagDetailView detailView;
+    [SerializeField] private BagDetailView itemData;
     [SerializeField] private ItemConfig itemConfig;
 
     private readonly List<BagItemSlot> _slots = new List<BagItemSlot>(8);
+    private string _selectedId;
     private bool _warnedMissingSave;
 
     private void OnEnable()
     {
         LocalSaveManager.OnItemsChanged += OnItemsChanged;
-        if (detailView != null)
-        {
-            detailView.Hide();
-        }
-
         Rebuild();
     }
 
@@ -40,7 +35,10 @@ public class BagPanelController : MonoBehaviour
 
     public void Rebuild()
     {
+        string keepId = _selectedId;
         ClearSlots();
+        _selectedId = null;
+
         LocalSaveManager save = LocalSaveManager.Instance;
         if (save == null)
         {
@@ -51,6 +49,11 @@ public class BagPanelController : MonoBehaviour
             }
 
             SetEmpty(true);
+            if (itemData != null)
+            {
+                itemData.Clear();
+            }
+
             return;
         }
 
@@ -59,13 +62,13 @@ public class BagPanelController : MonoBehaviour
             GameItemDefs.Bind(itemConfig);
         }
 
-        List<ItemStackEntry> items = save.GetAllItems();
         if (listRoot == null || slotPrefab == null)
         {
             Debug.LogWarning("[BagPanelController] List or slot prefab is not assigned.");
             return;
         }
 
+        List<ItemStackEntry> items = save.GetAllItems();
         int shown = 0;
         for (int i = 0; i < items.Count; i++)
         {
@@ -78,17 +81,64 @@ public class BagPanelController : MonoBehaviour
             GameItemDefs.Def def = GameItemDefs.Get(stack.itemId);
             BagItemSlot slot = Instantiate(slotPrefab, listRoot);
             slot.gameObject.SetActive(true);
-            slot.Bind(stack.itemId, def != null ? def.displayName : stack.itemId, stack.count, def != null ? def.iconLocation : null, OpenDetail);
+            slot.Bind(
+                stack.itemId,
+                def != null ? def.displayName : stack.itemId,
+                stack.count,
+                def != null ? def.iconLocation : null,
+                OnSlotClicked);
             _slots.Add(slot);
             shown++;
         }
 
         SetEmpty(shown == 0);
+        if (shown == 0)
+        {
+            if (itemData != null)
+            {
+                itemData.Clear();
+            }
+
+            return;
+        }
+
+        string pick = keepId;
+        if (string.IsNullOrEmpty(pick) || FindSlot(pick) == null)
+        {
+            pick = _slots[0].ItemId;
+        }
+
+        SelectItem(pick);
     }
 
-    public void OpenDetail(string itemId)
+    private void OnSlotClicked(string itemId)
     {
-        if (detailView == null || string.IsNullOrEmpty(itemId))
+        SelectItem(itemId);
+    }
+
+    private void SelectItem(string itemId)
+    {
+        if (string.IsNullOrEmpty(itemId))
+        {
+            return;
+        }
+
+        _selectedId = itemId;
+        for (int i = 0; i < _slots.Count; i++)
+        {
+            BagItemSlot slot = _slots[i];
+            if (slot != null)
+            {
+                slot.SetSelected(slot.ItemId == itemId);
+            }
+        }
+
+        ShowItemData(itemId);
+    }
+
+    private void ShowItemData(string itemId)
+    {
+        if (itemData == null || string.IsNullOrEmpty(itemId))
         {
             return;
         }
@@ -97,12 +147,30 @@ public class BagPanelController : MonoBehaviour
         int count = save != null ? save.GetItemCount(itemId) : 0;
         if (count <= 0)
         {
-            detailView.Hide();
+            itemData.Clear();
             return;
         }
 
         GameItemDefs.Def def = GameItemDefs.Get(itemId);
-        detailView.Show(itemId, def != null ? def.displayName : itemId, def != null ? def.description : string.Empty, count);
+        itemData.Show(
+            itemId,
+            def != null ? def.displayName : itemId,
+            def != null ? def.description : string.Empty,
+            count,
+            def != null ? def.iconLocation : null);
+    }
+
+    private BagItemSlot FindSlot(string itemId)
+    {
+        for (int i = 0; i < _slots.Count; i++)
+        {
+            if (_slots[i] != null && _slots[i].ItemId == itemId)
+            {
+                return _slots[i];
+            }
+        }
+
+        return null;
     }
 
     private void OnItemsChanged()
@@ -110,11 +178,6 @@ public class BagPanelController : MonoBehaviour
         if (!isActiveAndEnabled)
         {
             return;
-        }
-
-        if (detailView != null)
-        {
-            detailView.Hide();
         }
 
         Rebuild();

@@ -30,7 +30,7 @@ public class BattleTuningConfig : ScriptableObject
     [SerializeField] private int netCapacityStep = 4;
     [SerializeField] private float captureCooldown = 2f;
     [SerializeField] private float captureRadius = 0.75f;
-    [SerializeField] private float netSpeed = 9f;
+    [SerializeField] private float netSpeed = 18f;
     [SerializeField] private float reelHoldSeconds = 0.35f;
     [SerializeField] private float netDiameter = 1.5f;
     [SerializeField] private float reelStep = 1.2f;
@@ -46,6 +46,24 @@ public class BattleTuningConfig : ScriptableObject
     [SerializeField] private float driftInterval = 0.6f;
     [SerializeField] private float driftSpeed = 2.4f;
     [SerializeField] private int driftPrefillCount = 10;
+    [SerializeField] private int driftLevelUpBurstCount = 4;
+    [SerializeField] private float heroDamageStep = 3f;
+    [SerializeField] private float netDiameterStep = 0.25f;
+    [SerializeField] private float netSpeedMulStep = 0.2f;
+    [SerializeField] private float captureRangeStep = 0.75f;
+    [SerializeField] private int captureNetCapacity = 4;
+    [SerializeField] private int captureCapacityStep = 4;
+    [SerializeField] private float captureDiameterStep = 0.25f;
+    [SerializeField] private float captureCooldownStep = 0.25f;
+    [SerializeField] private float captureCooldownMin = 0.6f;
+    [SerializeField] private float attackRangeStep = 0.75f;
+    [SerializeField] private float attackDamageStep = 3f;
+    [SerializeField] private float attractorRange = 3f;
+    [SerializeField] private float attractorInterval = 5f;
+    [SerializeField] private float attractorRangeStep = 0.75f;
+    [SerializeField] private float attractorIntervalStep = 0.5f;
+    [SerializeField] private float attractorIntervalMin = 2f;
+    [SerializeField] private float attractorPullDuration = 0.35f;
     [SerializeField] private float crabInterval = 1.5f;
     [SerializeField] private float waveGap = 30f;
     [SerializeField] private int waveCap = 6;
@@ -59,6 +77,7 @@ public class BattleTuningConfig : ScriptableObject
     [SerializeField] private Color woodPlankColor = new Color(0.62f, 0.42f, 0.22f, 1f);
     [SerializeField] private Color captureTowerColor = new Color(0.20f, 0.75f, 0.72f, 1f);
     [SerializeField] private Color attackTowerColor = new Color(0.75f, 0.22f, 0.22f, 1f);
+    [SerializeField] private Color attractorTowerColor = new Color(0.75f, 0.35f, 0.95f, 1f);
     [SerializeField] private Color towerSpearColor = new Color(0.95f, 0.45f, 0.20f, 1f);
 
     public float CameraSize => cameraSize;
@@ -127,6 +146,24 @@ public class BattleTuningConfig : ScriptableObject
     public float DriftInterval => driftInterval;
     public float DriftSpeed => driftSpeed;
     public int DriftPrefillCount => driftPrefillCount;
+    public int DriftLevelUpBurstCount => driftLevelUpBurstCount;
+    public float HeroDamageStep => heroDamageStep;
+    public float NetDiameterStep => netDiameterStep;
+    public float NetSpeedMulStep => netSpeedMulStep;
+    public float CaptureRangeStep => captureRangeStep;
+    public int CaptureNetCapacity => captureNetCapacity;
+    public int CaptureCapacityStep => captureCapacityStep;
+    public float CaptureDiameterStep => captureDiameterStep;
+    public float CaptureCooldownStep => captureCooldownStep;
+    public float CaptureCooldownMin => captureCooldownMin;
+    public float AttackRangeStep => attackRangeStep;
+    public float AttackDamageStep => attackDamageStep;
+    public float AttractorRange => attractorRange;
+    public float AttractorInterval => attractorInterval;
+    public float AttractorRangeStep => attractorRangeStep;
+    public float AttractorIntervalStep => attractorIntervalStep;
+    public float AttractorIntervalMin => attractorIntervalMin;
+    public float AttractorPullDuration => attractorPullDuration;
     public float CrabInterval => crabInterval;
     public float WaveGap => waveGap;
     public int WaveCap => waveCap;
@@ -135,6 +172,7 @@ public class BattleTuningConfig : ScriptableObject
     public Color WoodPlankColor => woodPlankColor;
     public Color CaptureTowerColor => captureTowerColor;
     public Color AttackTowerColor => attackTowerColor;
+    public Color AttractorTowerColor => attractorTowerColor;
     public Color TowerSpearColor => towerSpearColor;
 
     public int StageIndex(int chapter, int stage)

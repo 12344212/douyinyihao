@@ -58,6 +58,26 @@ public static class BattleTuning
 
     public const int NetCapacityStep = 4;
 
+    // 升级卡数值步进
+    public const float HeroDamageStep = 3f;
+    public const float NetDiameterStep = 0.25f;
+    public const float NetSpeedMulStep = 0.2f;
+    public const float CaptureRangeStep = 0.75f;
+    public const int CaptureNetCapacity = 4;
+    public const int CaptureCapacityStep = 4;
+    public const float CaptureDiameterStep = 0.25f;
+    public const float CaptureCooldownStep = 0.25f;
+    public const float CaptureCooldownMin = 0.6f;
+    public const float AttackRangeStep = 0.75f;
+    public const float AttackDamageStep = 3f;
+
+    public const float AttractorRange = 3f;
+    public const float AttractorInterval = 5f;
+    public const float AttractorRangeStep = 0.75f;
+    public const float AttractorIntervalStep = 0.5f;
+    public const float AttractorIntervalMin = 2f;
+    public const float AttractorPullDuration = 0.35f;
+
     // 可调：捕获台两次撒网的间隔
     public const float CaptureCooldown = 2f;
 
@@ -65,7 +85,7 @@ public static class BattleTuning
     public const float CaptureRadius = 0.75f;
 
     // 可调
-    public const float NetSpeed = 9f;
+    public const float NetSpeed = 18f;
 
     // 可调：按住超过这个时间也收网；短按松开同样收
     public const float ReelHoldSeconds = 0.35f;
@@ -150,6 +170,9 @@ public static class BattleTuning
     // 开战时水面预填的漂流木叶数量
     public const int DriftPrefillCount = 10;
 
+    // 每次升级成功后额外刷出的漂流木叶数量（基础值）
+    public const int DriftLevelUpBurstCount = 4;
+
     // 可调：同一波里螃蟹的出生间隔
     public const float CrabInterval = 1.5f;
 
@@ -175,6 +198,7 @@ public static class BattleTuning
     public static readonly Color TowerSpearColor = new Color(0.95f, 0.45f, 0.20f, 1f);
     public static readonly Color CaptureTowerColor = new Color(0.20f, 0.75f, 0.72f, 1f);
     public static readonly Color AttackTowerColor = new Color(0.75f, 0.22f, 0.22f, 1f);
+    public static readonly Color AttractorTowerColor = new Color(0.75f, 0.35f, 0.95f, 1f);
 
     /// <summary>整条战役从 0 起算：1-1 = 0，1-2 = 1，2-1 = 10。</summary>
     public static int StageIndex(int chapter, int stage)
@@ -227,11 +251,33 @@ public enum BattleBuildingKind
 {
     None,
     Capture,
-    Attack
+    Attack,
+    Attractor
 }
 
 public enum BattleWeapon
 {
     Net,
     Spear
+}
+
+public enum BattleUpgradeKind
+{
+    Plank,
+    PlaceCapture,
+    PlaceAttack,
+    HeroRange,
+    HeroCapacity,
+    HeroDamage,
+    NetSize,
+    NetSpeed,
+    CaptureRange,
+    CaptureCapacity,
+    CaptureSize,
+    CaptureSpeed,
+    AttackRange,
+    AttackDamage,
+    PlaceAttractor,
+    AttractorRange,
+    AttractorFrequency
 }

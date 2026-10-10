@@ -1,10 +1,17 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// 木板外观。血条和塔挂点在预制体上拖好，不在代码里创建。
+/// 木板表现。血条与着色在预制体上配好，运行时创建亦可。
 /// </summary>
 public class PlankView : MonoBehaviour
 {
+    private const float GhostAlpha = 0.4f;
+    private const float BreathePeriod = 1.25f;
+    private const float BreatheScaleMin = 0.95f;
+    private const float BreatheScaleMax = 1.05f;
+    private const float GhostAlphaMin = 0.32f;
+    private const float GhostAlphaMax = 0.48f;
+
     [SerializeField] private SpriteRenderer body;
     [SerializeField] private Transform bodyScale;
     [SerializeField] private SpriteRenderer barFill;
@@ -15,6 +22,14 @@ public class PlankView : MonoBehaviour
     private Vector3 _fillBaseScale;
     private Vector3 _fillBasePos;
     private Color _baseColor = Color.white;
+
+    private bool _breathe;
+    private bool _breatheAlpha;
+    private Vector3 _breatheBaseScale = Vector3.one;
+    private float _breathePhase;
+
+    private SpriteRenderer[] _sprites;
+    private int[] _savedOrders;
 
     public int CellX => cellX;
     public int CellY => cellY;
@@ -27,6 +42,27 @@ public class PlankView : MonoBehaviour
         {
             _fillBaseScale = barFill.transform.localScale;
             _fillBasePos = barFill.transform.localPosition;
+        }
+    }
+
+    private void Update()
+    {
+        if (!_breathe)
+        {
+            return;
+        }
+
+        // 建造模式战斗逻辑暂停，用 unscaledTime 保证预览仍有呼吸感
+        float wave = (Mathf.Sin(Time.unscaledTime * (Mathf.PI * 2f / BreathePeriod) + _breathePhase) + 1f) * 0.5f;
+        float scaleMul = Mathf.Lerp(BreatheScaleMin, BreatheScaleMax, wave);
+        Transform scaleTarget = bodyScale != null ? bodyScale : transform;
+        scaleTarget.localScale = _breatheBaseScale * scaleMul;
+
+        if (_breatheAlpha && body != null)
+        {
+            Color c = body.color;
+            c.a = Mathf.Lerp(GhostAlphaMin, GhostAlphaMax, wave);
+            body.color = c;
         }
     }
 
@@ -91,7 +127,7 @@ public class PlankView : MonoBehaviour
         barFill.transform.localPosition = pos;
     }
 
-    /// <summary>建造模式幽灵木板：半透明、隐藏血条、提高排序。</summary>
+    /// <summary>建造模式幽灵木板：半透明、隐藏血条、提高排序，并开启含透明度的呼吸。</summary>
     public void ApplyGhostLook()
     {
         EnsureSprites();
@@ -106,7 +142,7 @@ public class PlankView : MonoBehaviour
             if (sr == body)
             {
                 Color c = _baseColor;
-                c.a = 0.4f;
+                c.a = GhostAlpha;
                 sr.color = c;
                 sr.sortingOrder = 45;
             }
@@ -115,6 +151,44 @@ public class PlankView : MonoBehaviour
                 sr.enabled = false;
             }
         }
+
+        StartBreathe(true);
+    }
+
+    /// <summary>建造模式下可选真木板：仅缩放呼吸，保留血条与不透明。</summary>
+    public void StartTargetBreathe()
+    {
+        StartBreathe(false);
+    }
+
+    /// <summary>停止建造预览呼吸（幽灵销毁前 / 真木板退出建造模式时调用）。</summary>
+    public void StopGhostBreathe()
+    {
+        if (!_breathe)
+        {
+            return;
+        }
+
+        bool wasAlpha = _breatheAlpha;
+        _breathe = false;
+        _breatheAlpha = false;
+        Transform scaleTarget = bodyScale != null ? bodyScale : transform;
+        scaleTarget.localScale = _breatheBaseScale;
+        if (wasAlpha && body != null)
+        {
+            Color c = body.color;
+            c.a = GhostAlpha;
+            body.color = c;
+        }
+    }
+
+    private void StartBreathe(bool pulseAlpha)
+    {
+        Transform scaleTarget = bodyScale != null ? bodyScale : transform;
+        _breatheBaseScale = scaleTarget.localScale;
+        _breathePhase = (GetInstanceID() & 1023) * 0.017f;
+        _breatheAlpha = pulseAlpha;
+        _breathe = true;
     }
 
     /// <summary>建造模式抬高空木板排序，使其压在遮罩之上。</summary>
@@ -164,7 +238,4 @@ public class PlankView : MonoBehaviour
             _sprites = GetComponentsInChildren<SpriteRenderer>(true);
         }
     }
-
-    private SpriteRenderer[] _sprites;
-    private int[] _savedOrders;
 }

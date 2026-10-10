@@ -115,7 +115,7 @@ public static class BagPanelSetup
         SetRef(so, "listRoot", list);
         SetRef(so, "slotPrefab", template);
         SetRef(so, "emptyLabel", empty);
-        SetRef(so, "detailView", detail);
+        SetRef(so, "itemData", detail);
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 
@@ -237,6 +237,7 @@ public static class BagPanelSetup
         DestroyChild(panel.Content, "ItemList");
         DestroyChild(panel.transform, "BagSlotTemplate");
         DestroyChild(panel.transform, "BagDetail");
+        DestroyChild(panel.transform, "ItemData");
     }
 
     private static void DestroyChild(Transform parent, string name)
@@ -294,91 +295,73 @@ public static class BagPanelSetup
     private static BagItemSlot CreateSlot(TMP_FontAsset font)
     {
         Image bg = CreateImage("BagPrefab", null, RowColor, true);
-        bg.rectTransform.sizeDelta = new Vector2(900f, 140f);
+        bg.rectTransform.sizeDelta = new Vector2(247f, 246f);
         LayoutElement layout = bg.gameObject.AddComponent<LayoutElement>();
-        layout.preferredHeight = 140f;
+        layout.preferredWidth = 247f;
+        layout.preferredHeight = 246f;
         Button button = bg.gameObject.AddComponent<Button>();
         button.targetGraphic = bg;
 
         Image icon = CreateImage("Icon", bg.transform, IconColor, false);
-        SetRect(icon.rectTransform, new Vector2(0f, 0.5f), new Vector2(86f, 0f), new Vector2(100f, 100f));
+        SetRect(icon.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(100f, 100f));
 
-        TMP_Text name = CreateText("Name", bg.transform, "Healing Potion", 34f, new Color(0.2f, 0.15f, 0.1f, 1f), font, TextAlignmentOptions.Left);
-        name.fontStyle = FontStyles.Bold;
-        SetRect(name.rectTransform, new Vector2(0f, 0.5f), new Vector2(420f, 0f), new Vector2(560f, 50f));
-
-        TMP_Text count = CreateText("Count", bg.transform, "x1", 32f, new Color(0.25f, 0.22f, 0.16f, 1f), font, TextAlignmentOptions.Right);
+        TMP_Text count = CreateText("Count", bg.transform, "x1", 32f, Color.white, font, TextAlignmentOptions.BottomRight);
         count.fontStyle = FontStyles.Bold;
-        SetRect(count.rectTransform, new Vector2(1f, 0.5f), new Vector2(-90f, 0f), new Vector2(140f, 48f));
+        RectTransform countRt = count.rectTransform;
+        countRt.anchorMin = new Vector2(1f, 0f);
+        countRt.anchorMax = new Vector2(1f, 0f);
+        countRt.pivot = new Vector2(0.5f, 0.5f);
+        countRt.anchoredPosition = new Vector2(-117.7f, 66.3f);
+        countRt.sizeDelta = new Vector2(140f, 48f);
+
+        Image select = CreateImage("Select", bg.transform, Color.white, false);
+        SetRect(select.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(247f, 246f));
+        select.gameObject.SetActive(false);
 
         BagItemSlot slot = bg.gameObject.AddComponent<BagItemSlot>();
         SerializedObject so = new SerializedObject(slot);
         SetRef(so, "iconImage", icon);
-        SetRef(so, "nameLabel", name);
         SetRef(so, "countLabel", count);
         SetRef(so, "button", button);
+        SetRef(so, "selectVisual", select.gameObject);
         so.ApplyModifiedPropertiesWithoutUndo();
         return slot;
     }
 
     private static BagDetailView CreateDetail(Transform parent, TMP_FontAsset font)
     {
-        GameObject root = CreateRect("BagDetail", parent).gameObject;
-        Stretch((RectTransform)root.transform, 0f);
-        CanvasGroup group = root.AddComponent<CanvasGroup>();
-        UIPanel panel = root.AddComponent<UIPanel>();
-        BagDetailView view = root.AddComponent<BagDetailView>();
+        // Side ItemData block (not fullscreen overlay)
+        Image rootImg = CreateImage("ItemData", parent, WindowColor, true);
+        RectTransform root = rootImg.rectTransform;
+        root.anchorMin = new Vector2(0f, 0f);
+        root.anchorMax = new Vector2(0f, 0f);
+        root.pivot = new Vector2(0.5f, 0.5f);
+        root.anchoredPosition = new Vector2(1536f, 504f);
+        root.sizeDelta = new Vector2(532f, 800f);
 
-        Image dim = CreateImage("Dim", root.transform, DimColor, true);
-        Stretch(dim.rectTransform, 0f);
-        Image window = CreateImage("Window", root.transform, WindowColor, true);
-        SetRect(window.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(820f, 520f));
+        BagDetailView view = rootImg.gameObject.AddComponent<BagDetailView>();
 
-        Image header = CreateImage("Header", window.transform, HeaderColor, false);
-        RectTransform hrt = header.rectTransform;
-        hrt.anchorMin = new Vector2(0f, 1f);
-        hrt.anchorMax = new Vector2(1f, 1f);
-        hrt.pivot = new Vector2(0.5f, 1f);
-        hrt.anchoredPosition = Vector2.zero;
-        hrt.sizeDelta = new Vector2(0f, 90f);
-        TMP_Text title = CreateText("Title", header.transform, "Item", 40f, Color.white, font, TextAlignmentOptions.Center);
-        title.fontStyle = FontStyles.Bold;
-        Stretch(title.rectTransform, 0f);
-        Button close = CreateButton("Close", header.transform, "X", 36f, CloseColor, font);
-        SetRect((RectTransform)close.transform, new Vector2(1f, 0.5f), new Vector2(-50f, 0f), new Vector2(70f, 70f));
-
-        Image icon = CreateImage("Icon", window.transform, IconColor, false);
-        SetRect(icon.rectTransform, new Vector2(0f, 1f), new Vector2(120f, -200f), new Vector2(140f, 140f));
-        TMP_Text name = CreateText("Name", window.transform, "Item", 36f, new Color(0.2f, 0.15f, 0.1f, 1f), font, TextAlignmentOptions.Left);
+        TMP_Text name = CreateText("Name", root, "Item", 36f, new Color(0.2f, 0.15f, 0.1f, 1f), font, TextAlignmentOptions.Center);
         name.fontStyle = FontStyles.Bold;
-        SetRect(name.rectTransform, new Vector2(0f, 1f), new Vector2(480f, -160f), new Vector2(480f, 50f));
-        TMP_Text count = CreateText("Count", window.transform, "x1", 30f, new Color(0.35f, 0.28f, 0.16f, 1f), font, TextAlignmentOptions.Left);
-        SetRect(count.rectTransform, new Vector2(0f, 1f), new Vector2(480f, -210f), new Vector2(480f, 40f));
-        TMP_Text desc = CreateText("Description", window.transform, "Description", 26f, new Color(0.35f, 0.30f, 0.24f, 1f), font, TextAlignmentOptions.Left);
-        SetRect(desc.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(40f, -20f), new Vector2(700f, 80f));
+        SetRect(name.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -80f), new Vector2(460f, 50f));
 
-        Button use = CreateButton("Use", window.transform, "Use", 34f, UseColor, font);
-        SetRect((RectTransform)use.transform, new Vector2(0.5f, 0f), new Vector2(0f, 70f), new Vector2(280f, 76f));
+        Image icon = CreateImage("Icon", root, IconColor, false);
+        SetRect(icon.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -220f), new Vector2(160f, 160f));
 
-        SerializedObject panelSo = new SerializedObject(panel);
-        SetRef(panelSo, "canvasGroup", group);
-        SetRef(panelSo, "window", window.rectTransform);
-        SetRef(panelSo, "closeButton", close);
-        SetRef(panelSo, "titleText", title);
-        SetRef(panelSo, "content", window.rectTransform);
-        panelSo.ApplyModifiedPropertiesWithoutUndo();
+        TMP_Text count = CreateText("Count", root, "x1", 30f, new Color(0.35f, 0.28f, 0.16f, 1f), font, TextAlignmentOptions.Center);
+        SetRect(count.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -340f), new Vector2(200f, 40f));
+
+        TMP_Text desc = CreateText("Description", root, "Description", 26f, new Color(0.35f, 0.30f, 0.24f, 1f), font, TextAlignmentOptions.Top);
+        SetRect(desc.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, -60f), new Vector2(440f, 280f));
 
         SerializedObject so = new SerializedObject(view);
-        SetRef(so, "panel", panel);
         SetRef(so, "iconImage", icon);
         SetRef(so, "nameLabel", name);
         SetRef(so, "descLabel", desc);
         SetRef(so, "countLabel", count);
-        SetRef(so, "useButton", use);
         so.ApplyModifiedPropertiesWithoutUndo();
 
-        root.transform.SetAsLastSibling();
-        root.SetActive(false);
+        root.SetAsLastSibling();
         return view;
     }
 

@@ -5,8 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 背包一行：图标、英文名、数量 xN。点击通知外面打开详情。
-/// 图标按地址走 YooAsset，没有资源时用色块。
+/// 背包格子：图标、数量。选中后才显示 Select。点击通知面板刷新 ItemData。
 /// </summary>
 public class BagItemSlot : MonoBehaviour
 {
@@ -14,6 +13,7 @@ public class BagItemSlot : MonoBehaviour
     [SerializeField] private TMP_Text nameLabel;
     [SerializeField] private TMP_Text countLabel;
     [SerializeField] private Button button;
+    [SerializeField] private GameObject selectVisual;
     [SerializeField] private Color placeholderColor = new Color(0.55f, 0.40f, 0.85f, 1f);
 
     private string _itemId;
@@ -27,6 +27,8 @@ public class BagItemSlot : MonoBehaviour
         {
             button.onClick.AddListener(HandleClick);
         }
+
+        SetSelected(false);
     }
 
     private void OnDestroy()
@@ -57,9 +59,18 @@ public class BagItemSlot : MonoBehaviour
             iconImage.color = placeholderColor;
         }
 
+        SetSelected(false);
         if (isActiveAndEnabled)
         {
             StartCoroutine(LoadIcon(iconLocation));
+        }
+    }
+
+    public void SetSelected(bool selected)
+    {
+        if (selectVisual != null)
+        {
+            selectVisual.SetActive(selected);
         }
     }
 
