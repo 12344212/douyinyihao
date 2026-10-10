@@ -14,7 +14,6 @@ public class ShopItemSlot : MonoBehaviour
     [SerializeField] private TMP_Text nameLabel;
     [SerializeField] private TMP_Text priceLabel;
     [SerializeField] private Button clickButton;
-    [SerializeField] private Image selectedHighlight;
     [SerializeField] private Color placeholderColor = new Color(0.55f, 0.40f, 0.85f, 1f);
     [SerializeField] private Color normalColor = Color.white;
     [SerializeField] private Color selectedColor = new Color(1f, 0.95f, 0.75f, 1f);
@@ -73,11 +72,6 @@ public class ShopItemSlot : MonoBehaviour
         {
             _bg.color = selected ? selectedColor : normalColor;
         }
-
-        if (selectedHighlight != null)
-        {
-            selectedHighlight.enabled = selected;
-        }
     }
 
     public GameItemDefs.Def Def => _def;
@@ -112,3 +106,4 @@ public class ShopItemSlot : MonoBehaviour
         }
     }
 }
+// empty-refs cleanup: dropped unused selectedHighlight

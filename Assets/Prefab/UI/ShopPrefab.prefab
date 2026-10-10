@@ -369,10 +369,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   iconImage: {fileID: 2075964245722253191}
-  nameLabel: {fileID: 0}
-  priceLabel: {fileID: 3143876565139788960}
+  nameLabel: {fileID: 3143876565139788960}
+  priceLabel: {fileID: 8442870411188033173}
   clickButton: {fileID: 7691791002231530442}
-  selectedHighlight: {fileID: 0}
   placeholderColor: {r: 0.55, g: 0.4, b: 0.85, a: 1}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   selectedColor: {r: 1, g: 0.95, b: 0.75, a: 1}
