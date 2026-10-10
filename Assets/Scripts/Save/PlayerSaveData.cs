@@ -4,6 +4,7 @@ using System.Collections.Generic;
 /// <summary>
 /// 本地存档数据（JsonUtility 序列化，JSON 字段名保持英文）。
 /// 新增字段请给默认值：旧存档缺少该字段时会保留这里的默认值，保证向后兼容。
+/// 注意：JsonUtility 对缺失的 int 会读成 0，需在 LocalSaveManager.NormalizeData 里把 characterLevel 钳到 1..50。
 /// </summary>
 [Serializable]
 public class PlayerSaveData
@@ -23,6 +24,9 @@ public class PlayerSaveData
 
     /// <summary>背包道具堆叠（itemId + count）。</summary>
     public List<ItemStackEntry> itemStacks = new List<ItemStackEntry>();
+
+    /// <summary>角色升级等级（1..50）。旧档缺失时 Normalize 为 1。</summary>
+    public int characterLevel = 1;
 
     /// <summary>新手教程是否已全部完成。</summary>
     public bool tutorialCompleted;

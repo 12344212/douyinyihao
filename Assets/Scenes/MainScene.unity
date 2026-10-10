@@ -3083,6 +3083,7 @@ GameObject:
   - component: {fileID: 363240863}
   - component: {fileID: 363240865}
   - component: {fileID: 363240864}
+  - component: {fileID: 363240866}
   m_Layer: 5
   m_Name: UpgradePanel
   m_TagString: Untagged
@@ -3145,6 +3146,27 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &363240866
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 363240862}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e201266170d14eeb824cb7204575ea4a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  panel: {fileID: 363240864}
+  upgradeButton: {fileID: 1860298136}
+  attackFill: {fileID: 5057069}
+  attackValue: {fileID: 1946119555}
+  rangeFill: {fileID: 1071488298}
+  rangeValue: {fileID: 282512603}
+  defenseFill: {fileID: 1793900549}
+  defenseValue: {fileID: 1851352783}
+  costText: {fileID: 886004800}
 --- !u!1 &371389297
 GameObject:
   m_ObjectHideFlags: 0
@@ -15941,7 +15963,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 471c51e5f167929468528095c87b4441, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 6ecfb197726dbfc4a8c16ff5bcf93b42, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -16666,7 +16688,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 928118560cb84c24fbd8f9a3017b086d, type: 3}
+  m_Sprite: {fileID: 21300000, guid: fca3594c960d85147bb119a1882ff70b, type: 3}
   m_Type: 3
   m_PreserveAspect: 1
   m_FillCenter: 1

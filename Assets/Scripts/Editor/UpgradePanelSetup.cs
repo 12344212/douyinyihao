@@ -40,15 +40,46 @@ public static class UpgradePanelSetup
     private static readonly Color CostColor = new Color(0.35f, 0.20f, 0.08f, 1f);
 
     private static string MarkerFilePath => Path.Combine(Directory.GetCurrentDirectory(), "UpgradePanelSetup.run");
+    private static string LogicMarkerFilePath => Path.Combine(Directory.GetCurrentDirectory(), "UpgradePanelLogicSetup.run");
 
     static UpgradePanelSetup()
     {
-        if (!File.Exists(MarkerFilePath))
+        if (File.Exists(LogicMarkerFilePath))
+        {
+            EditorApplication.delayCall += TryAutoBind;
+        }
+
+        if (File.Exists(MarkerFilePath))
+        {
+            EditorApplication.delayCall += TryAutoRun;
+        }
+    }
+
+    private static void TryAutoBind()
+    {
+        if (!File.Exists(LogicMarkerFilePath))
         {
             return;
         }
 
-        EditorApplication.delayCall += TryAutoRun;
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating)
+        {
+            EditorApplication.delayCall += TryAutoBind;
+            return;
+        }
+
+        try
+        {
+            File.Delete(LogicMarkerFilePath);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(LogTag + " Failed to delete logic marker: " + e.Message);
+            return;
+        }
+
+        Debug.Log(LogTag + " Auto-bind triggered by logic marker.");
+        RunBind(false);
     }
 
     private static void TryAutoRun()
@@ -87,6 +118,17 @@ public static class UpgradePanelSetup
         }
 
         Run(true);
+    }
+
+    [MenuItem("Tools/Template/Bind Upgrade Panel Logic")]
+    public static void BindLogicMenu()
+    {
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+        {
+            return;
+        }
+
+        RunBind(true);
     }
 
     public static void BuildInto(UIPanel panel)
@@ -171,7 +213,89 @@ public static class UpgradePanelSetup
         SerializedObject so = new SerializedObject(panel);
         SetRef(so, "closeButton", backButton);
         so.ApplyModifiedPropertiesWithoutUndo();
+
+        WireController(panel);
     }
+
+    /// <summary>给已有视觉节点挂 UpgradePanelController 并串引用（可单独再跑）。</summary>
+    public static void WireController(UIPanel panel)
+    {
+        if (panel == null)
+        {
+            throw new Exception("UpgradePanel missing for WireController.");
+        }
+
+        EnsureWindowAndContent(panel);
+        Transform root = panel.transform;
+
+        // 视觉可能在 Content 或 Parchment 下；Defense 节点可能叫 StatDefense / StatDEF
+        Transform atk = FindDeep(root, "StatAttack");
+        Transform range = FindDeep(root, "StatRange");
+        Transform def = FindDeep(root, "StatDefense");
+        if (def == null)
+        {
+            def = FindDeep(root, "StatDEF");
+        }
+
+        Transform cost = FindDeep(root, "CostRow");
+        Transform upgradeTf = FindDeep(root, "UpgradeButton");
+        if (atk == null || range == null || def == null || cost == null || upgradeTf == null)
+        {
+            throw new Exception("UpgradePanel visual nodes missing. Build Upgrade Panel UI first. atk="
+                + (atk != null) + " range=" + (range != null) + " def=" + (def != null)
+                + " cost=" + (cost != null) + " upgrade=" + (upgradeTf != null));
+        }
+
+        Image attackFill = FindImage(atk, "BarFill");
+        TMP_Text attackValue = FindTmp(atk, "Value");
+        Image rangeFill = FindImage(range, "BarFill");
+        TMP_Text rangeValue = FindTmp(range, "Value");
+        Image defenseFill = FindImage(def, "BarFill");
+        TMP_Text defenseValue = FindTmp(def, "Value");
+        TMP_Text costText = FindTmp(cost, "CostText");
+        Button upgradeButton = upgradeTf.GetComponent<Button>();
+        if (upgradeButton == null)
+        {
+            upgradeButton = upgradeTf.gameObject.AddComponent<Button>();
+            Image g = upgradeTf.GetComponent<Image>();
+            if (g != null)
+            {
+                upgradeButton.targetGraphic = g;
+            }
+        }
+
+        UpgradePanelController ctrl = panel.GetComponent<UpgradePanelController>();
+        if (ctrl == null)
+        {
+            ctrl = panel.gameObject.AddComponent<UpgradePanelController>();
+        }
+
+        SerializedObject cso = new SerializedObject(ctrl);
+        SetRef(cso, "panel", panel);
+        SetRef(cso, "upgradeButton", upgradeButton);
+        SetRef(cso, "attackFill", attackFill);
+        SetRef(cso, "attackValue", attackValue);
+        SetRef(cso, "rangeFill", rangeFill);
+        SetRef(cso, "rangeValue", rangeValue);
+        SetRef(cso, "defenseFill", defenseFill);
+        SetRef(cso, "defenseValue", defenseValue);
+        SetRef(cso, "costText", costText);
+        cso.ApplyModifiedPropertiesWithoutUndo();
+        Debug.Log(LogTag + " UpgradePanelController wired.");
+    }
+
+    private static Image FindImage(Transform root, string name)
+    {
+        Transform t = FindDeep(root, name);
+        return t != null ? t.GetComponent<Image>() : null;
+    }
+
+    private static TMP_Text FindTmp(Transform root, string name)
+    {
+        Transform t = FindDeep(root, name);
+        return t != null ? t.GetComponent<TMP_Text>() : null;
+    }
+
 
     private static void Run(bool interactive)
     {
@@ -227,7 +351,7 @@ public static class UpgradePanelSetup
                     Debug.Log(LogTag + " UpgradePanel UI assembled and saved.");
                     try
                     {
-                        bool hasChar = panel.Content != null && panel.Content.Find("Character") != null;
+                        bool hasChar = panel.Content != null && FindDeep(panel.transform, "Character") != null;
                         bool hasBack = panel.Window != null && panel.Window.Find("BackButton") != null;
                         File.WriteAllText(
                             Path.Combine(Directory.GetCurrentDirectory(), "UpgradePanelSetup.ok"),
@@ -267,6 +391,87 @@ public static class UpgradePanelSetup
         }
     }
 
+
+    private static void RunBind(bool interactive)
+    {
+        try
+        {
+            if (!File.Exists(MainScenePath))
+            {
+                Debug.LogError(LogTag + " " + MainScenePath + " not found.");
+                return;
+            }
+
+            Scene scene = SceneManager.GetSceneByPath(MainScenePath);
+            bool openedHere = false;
+            if (!(scene.IsValid() && scene.isLoaded))
+            {
+                scene = EditorSceneManager.OpenScene(MainScenePath, OpenSceneMode.Additive);
+                openedHere = true;
+            }
+
+            UIPanel panel = FindUpgradePanel(scene);
+            if (panel == null)
+            {
+                Debug.LogError(LogTag + " UpgradePanel not found.");
+                CloseIfOpened(scene, openedHere);
+                return;
+            }
+
+            EnsureWindowAndContent(panel);
+            if (!HasBuiltVisual(panel))
+            {
+                Debug.LogError(LogTag + " Visual not built. Run Build Upgrade Panel UI first.");
+                CloseIfOpened(scene, openedHere);
+                return;
+            }
+
+            Scene previous = SceneManager.GetActiveScene();
+            SceneManager.SetActiveScene(scene);
+            try
+            {
+                WireController(panel);
+                EditorSceneManager.MarkSceneDirty(scene);
+                if (EditorSceneManager.SaveScene(scene))
+                {
+                    Debug.Log(LogTag + " UpgradePanel logic bound and saved.");
+                    try
+                    {
+                        File.WriteAllText(
+                            Path.Combine(Directory.GetCurrentDirectory(), "UpgradePanelSetup.ok"),
+                            DateTime.Now.ToString("o") + " wired=" + (panel.GetComponent<UpgradePanelController>() != null));
+                    }
+                    catch
+                    {
+                    }
+                }
+                else
+                {
+                    Debug.LogError(LogTag + " Failed to save MainScene.");
+                }
+            }
+            finally
+            {
+                if (previous.IsValid() && previous.isLoaded)
+                {
+                    SceneManager.SetActiveScene(previous);
+                }
+
+                CloseIfOpened(scene, openedHere);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(LogTag + " " + e);
+            try
+            {
+                File.WriteAllText(Path.Combine(Directory.GetCurrentDirectory(), "UpgradePanelSetup.err"), e.ToString());
+            }
+            catch
+            {
+            }
+        }
+    }
     private static void EnsureWindowAndContent(UIPanel panel)
     {
         System.Text.StringBuilder childLog = new System.Text.StringBuilder();
@@ -442,7 +647,7 @@ public static class UpgradePanelSetup
     {
         return panel != null
             && panel.Content != null
-            && panel.Content.Find("Character") != null
+            && FindDeep(panel.transform, "Character") != null
             && panel.Window != null
             && panel.Window.Find("BackButton") != null;
     }

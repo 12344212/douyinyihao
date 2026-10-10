@@ -49,6 +49,7 @@ public class LocalSaveManager : MonoBehaviour
     public bool AllStagesCleared => _data != null && _data.allStagesCleared;
     public bool TutorialCompleted => _data != null && _data.tutorialCompleted;
     public int TutorialStep => _data != null ? _data.tutorialStep : 0;
+    public int CharacterLevel => _data != null ? CharacterUpgradeDefs.ClampLevel(_data.characterLevel) : CharacterUpgradeDefs.MinLevel;
 
     private string TempPath => _filePath + ".tmp";
     private string BackupPath => _filePath + ".bak";
@@ -402,6 +403,27 @@ public class LocalSaveManager : MonoBehaviour
         Save();
     }
 
+
+    // ---------- 角色升级 ----------
+
+    public int GetCharacterLevel()
+    {
+        return CharacterLevel;
+    }
+
+    /// <summary>设置角色等级（钳制到 1..50）并写盘。</summary>
+    public void SetCharacterLevel(int level)
+    {
+        EnsureData();
+        int clamped = CharacterUpgradeDefs.ClampLevel(level);
+        if (_data.characterLevel == clamped)
+        {
+            return;
+        }
+
+        _data.characterLevel = clamped;
+        Save();
+    }
     // ---------- 背包道具 ----------
 
     public int GetItemCount(string itemId)
@@ -602,6 +624,14 @@ public class LocalSaveManager : MonoBehaviour
         if (_data.gems < 0) { _data.gems = 0; changed = true; }
         if (_data.tutorialStep < 0) { _data.tutorialStep = 0; changed = true; }
 
+        // 旧档缺少 characterLevel 时 JsonUtility 读成 0 → 升到 1；并钳到 MaxLevel
+        int charLevel = CharacterUpgradeDefs.ClampLevel(_data.characterLevel <= 0 ? CharacterUpgradeDefs.MinLevel : _data.characterLevel);
+        if (charLevel != _data.characterLevel)
+        {
+            _data.characterLevel = charLevel;
+            changed = true;
+        }
+
         int chapter = Mathf.Clamp(_data.highestUnlockedChapter, 1, ChapterCount);
         int stage = Mathf.Clamp(_data.highestUnlockedStage, 1, StagesPerChapter);
         if (chapter != _data.highestUnlockedChapter || stage != _data.highestUnlockedStage)
@@ -658,6 +688,7 @@ public class LocalSaveManager : MonoBehaviour
             highestUnlockedStage = 1,
             allStagesCleared = false,
             itemStacks = new List<ItemStackEntry>(),
+            characterLevel = CharacterUpgradeDefs.MinLevel,
             tutorialCompleted = false,
             tutorialStep = 0
         };
