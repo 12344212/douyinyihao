@@ -6484,7 +6484,7 @@ MonoBehaviour:
     m_Left: 10
     m_Right: 0
     m_Top: 0
-    m_Bottom: 0
+    m_Bottom: 30
   m_ChildAlignment: 1
   m_StartCorner: 0
   m_StartAxis: 0
@@ -14814,7 +14814,6 @@ RectTransform:
   m_Children:
   - {fileID: 1479751729}
   - {fileID: 660760438}
-  - {fileID: 1693774388}
   m_Father: {fileID: 1626903799}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -14871,7 +14870,6 @@ MonoBehaviour:
   listRoot: {fileID: 721721892}
   topPrefab: {fileID: 4067736244600270498, guid: 4f0ed154cee97594292ded1ba79b8717, type: 3}
   loading: {fileID: 1693774389}
-  purchaseTip: {fileID: 0}
   gemPackConfig: {fileID: 11400000, guid: 5eb898f70a56bbe47a6887b9b3f50a62, type: 2}
   mrRoot: {fileID: 139414126}
   mrClaimButton: {fileID: 1514922584}
@@ -16207,13 +16205,14 @@ GameObject:
   - component: {fileID: 1693774391}
   - component: {fileID: 1693774390}
   - component: {fileID: 1693774389}
+  - component: {fileID: 1693774392}
   m_Layer: 5
   m_Name: PurchaseLoading
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1693774388
 RectTransform:
   m_ObjectHideFlags: 0
@@ -16228,7 +16227,7 @@ RectTransform:
   m_Children:
   - {fileID: 1460847986}
   - {fileID: 931536274}
-  m_Father: {fileID: 1597109053}
+  m_Father: {fileID: 2120886549}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -16249,6 +16248,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spinTarget: {fileID: 1460847986}
   spinSpeed: 180
+  canvasGroup: {fileID: 1693774392}
 --- !u!114 &1693774390
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16287,6 +16287,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1693774387}
   m_CullTransparentMesh: 1
+--- !u!225 &1693774392
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1693774387}
+  m_Enabled: 1
+  m_Alpha: 0
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!1 &1701753030
 GameObject:
   m_ObjectHideFlags: 0
@@ -22257,6 +22269,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1503748108}
+  - {fileID: 1693774388}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}

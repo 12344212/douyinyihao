@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Purchasing;
 
 /// <summary>
-/// Unity IAP 4.12.2。Android 走 Google Play（BillingMode.json）；编辑器强制 Fake Store，购买默认直接成功，不连真商店。
+/// Unity IAP。iOS 真机走真实 App Store；编辑器与非 iOS 强制 Fake Store（不连真商店）。
 /// 挂在 LoadScene 的 IapRuntime 上，DontDestroyOnLoad。由 LoadSceneController 序列化引用并调用 InitializeAsync。
 /// 成功时在这里 AddGems，界面只负责弹奖励，避免加两次。
 /// </summary>
@@ -74,9 +74,9 @@ public class IapPurchaseManager : MonoBehaviour, IStoreListener
         _initFailed = false;
         try
         {
-            StandardPurchasingModule module = StandardPurchasingModule.Instance(AppStore.GooglePlay);
-#if UNITY_EDITOR
-            // 编辑器不要去连 Google Play。Default 模式不弹窗，购买会直接成功。
+            StandardPurchasingModule module = StandardPurchasingModule.Instance();
+#if UNITY_EDITOR || !UNITY_IOS
+            // 编辑器与非 iOS：强制 Fake Store，不连真商店。Default 模式购买直接成功。
             module.useFakeStoreAlways = true;
             module.useFakeStoreUIMode = FakeStoreUIMode.Default;
 #endif
@@ -97,7 +97,7 @@ public class IapPurchaseManager : MonoBehaviour, IStoreListener
         }
     }
 
-    /// <summary>拉起购买。结果通过 onDone 回传；失败原因在 LastMessage。</summary>
+    /// <summary>拉起购买。结果通过 onDone 回调；失败原因在 LastMessage。</summary>
     public void Buy(string productId, Action<bool> onDone)
     {
         if (_onDone != null)

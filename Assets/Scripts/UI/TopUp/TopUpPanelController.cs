@@ -3,7 +3,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// TopUpPanel: instantiate TopPrefab from GemPackDefs; IAP buy; daily mr claim 200 gold once per local day.
+/// TopUpPanel: 用 GemPackDefs 实例化 TopPrefab；购买走 Unity IAP（Loading 在 CanvasMax）；
+/// 每日 mr 领 200 金币（本地日历日一次）。
 /// </summary>
 public class TopUpPanelController : MonoBehaviour
 {
@@ -11,7 +12,6 @@ public class TopUpPanelController : MonoBehaviour
     [SerializeField] private Transform listRoot;
     [SerializeField] private TopUpItemSlot topPrefab;
     [SerializeField] private PurchaseLoadingUI loading;
-    [SerializeField] private PurchaseTipUI purchaseTip;
     [SerializeField] private GemPackConfig gemPackConfig;
 
     [Header("Daily mr (free gold)")]
@@ -19,7 +19,6 @@ public class TopUpPanelController : MonoBehaviour
     [SerializeField] private Button mrClaimButton;
 
     private Coroutine _rebuild;
-    private Coroutine _flow;
     private bool _busy;
 
     private void Awake()
@@ -51,17 +50,8 @@ public class TopUpPanelController : MonoBehaviour
 
     private void OnDisable()
     {
-        if (_flow != null)
-        {
-            StopCoroutine(_flow);
-            _flow = null;
-        }
-
-        _busy = false;
-        if (loading != null)
-        {
-            loading.Hide();
-        }
+        // Loading 挂在 CanvasMax，购买流程不在此协程里；关闭面板时不要 Hide Loading。
+        _rebuild = null;
     }
 
     private IEnumerator RebuildRoutine()
@@ -109,85 +99,19 @@ public class TopUpPanelController : MonoBehaviour
             return;
         }
 
-        if (_flow != null)
+        if (loading == null)
         {
-            StopCoroutine(_flow);
+            TipPanelUI.ShowTip("Store is not ready.");
+            return;
         }
 
-        _flow = StartCoroutine(BuyRoutine(pack));
-    }
+        if (loading.IsBusy)
+        {
+            return;
+        }
 
-    private IEnumerator BuyRoutine(GemPackDefs.Pack pack)
-    {
         _busy = true;
-        if (purchaseTip != null)
-        {
-            purchaseTip.Hide();
-        }
-
-        if (loading != null)
-        {
-            loading.Show();
-        }
-
-        bool done = false;
-        bool ok = false;
-        IapPurchaseManager iap = IapPurchaseManager.Instance;
-        if (iap == null)
-        {
-            if (loading != null)
-            {
-                loading.Hide();
-            }
-
-            ShowFail("Store is not ready.");
-            _busy = false;
-            _flow = null;
-            yield break;
-        }
-
-        iap.Buy(pack.productId, success =>
-        {
-            ok = success;
-            done = true;
-        });
-
-        float timeout = 180f;
-        while (!done && timeout > 0f)
-        {
-            timeout -= Time.unscaledDeltaTime;
-            yield return null;
-        }
-
-        if (loading != null)
-        {
-            loading.Hide();
-        }
-
-        if (ok)
-        {
-            GetPanelController.Show(new GetPanelController.Reward
-            {
-                useCurrency = true,
-                currency = CurrencyType.Gems,
-                displayName = "Gems",
-                count = pack.gems,
-                iconLocation = GameItemDefs.CurrencyIconLocation(CurrencyType.Gems)
-            });
-        }
-        else
-        {
-            string message = iap.LastMessage;
-            if (string.IsNullOrEmpty(message))
-            {
-                message = done ? "Purchase failed." : "Purchase timed out.";
-            }
-
-            ShowFail(message);
-        }
-
-        _busy = false;
-        _flow = null;
+        loading.BeginBuy(pack.productId, pack.gems, () => { _busy = false; });
     }
 
     private void OnMrClaimClicked()
@@ -242,7 +166,6 @@ public class TopUpPanelController : MonoBehaviour
             mrClaimButton.interactable = !claimed;
         }
 
-        // Grey tint on mr root graphic when claimed.
         if (mrRoot != null)
         {
             Graphic g = mrRoot.GetComponent<Graphic>();
@@ -251,16 +174,5 @@ public class TopUpPanelController : MonoBehaviour
                 g.color = claimed ? new Color(0.55f, 0.55f, 0.55f, 1f) : Color.white;
             }
         }
-    }
-
-    private void ShowFail(string message)
-    {
-        if (purchaseTip != null)
-        {
-            purchaseTip.Show(message);
-            return;
-        }
-
-        TipPanelUI.ShowTip(message);
     }
 }
