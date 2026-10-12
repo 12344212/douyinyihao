@@ -6,7 +6,7 @@ using UnityEngine.Purchasing;
 /// <summary>
 /// Unity IAP。iOS 真机走真实 App Store；编辑器与非 iOS 强制 Fake Store（不连真商店）。
 /// 挂在 LoadScene 的 IapRuntime 上，DontDestroyOnLoad。由 LoadSceneController 序列化引用并调用 InitializeAsync。
-/// 成功时在这里 AddGems，界面只负责弹奖励，避免加两次。
+/// 成功不在这里发钻：钻石在 Loading 结束后弹 GetPanel 时由界面 AddGems 一次，避免过早入账与双发。
 /// </summary>
 public class IapPurchaseManager : MonoBehaviour, IStoreListener
 {
@@ -174,17 +174,7 @@ public class IapPurchaseManager : MonoBehaviour, IStoreListener
 
     public PurchaseProcessingResult ProcessPurchase(PurchaseEventArgs args)
     {
-        string id = args != null && args.purchasedProduct != null ? args.purchasedProduct.definition.id : null;
-        GemPackDefs.Pack pack = GemPackDefs.GetByProductId(id);
-        if (pack.gems > 0 && LocalSaveManager.Instance != null)
-        {
-            LocalSaveManager.Instance.AddGems(pack.gems);
-        }
-        else if (pack.gems > 0)
-        {
-            Debug.LogWarning("[IapPurchaseManager] Purchase completed but LocalSaveManager is missing. Gems were not added.");
-        }
-
+        // 不在此 AddGems：发钻改到 GetPanel 弹出时（PurchaseLoadingUI），避免 Loading 期间就入账。
         LastMessage = null;
         Finish(true);
         return PurchaseProcessingResult.Complete;

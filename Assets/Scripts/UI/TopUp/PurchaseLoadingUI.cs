@@ -6,7 +6,7 @@ using UnityEngine;
 /// 购买过程遮罩（挂在 CanvasMax 下）。显示时让序列化的转圈节点绕 Z 轴旋转。
 /// 整段购买等待与结果后的 2 秒停留在本组件上跑，避免 TopUpPanel 关闭时协程被掐断。
 /// 用 CanvasGroup 显隐，不 SetActive(false)，以免打断自身协程。
-/// 不负责发钻石：AddGems 只在 IapPurchaseManager.ProcessPurchase 里做一次。
+/// 成功时在弹 GetPanel 前 AddGems 一次（ProcessPurchase 不发钻）；失败路径不加钻。
 /// </summary>
 public class PurchaseLoadingUI : MonoBehaviour
 {
@@ -122,6 +122,16 @@ public class PurchaseLoadingUI : MonoBehaviour
 
         if (ok)
         {
+            // 仅成功且即将弹奖励时发钻一次；失败/取消不加。
+            if (gems > 0 && LocalSaveManager.Instance != null)
+            {
+                LocalSaveManager.Instance.AddGems(gems);
+            }
+            else if (gems > 0)
+            {
+                Debug.LogWarning("[PurchaseLoadingUI] Purchase ok but LocalSaveManager missing; gems not added.");
+            }
+
             TipPanelUI.ShowTip("Purchase successful.");
             GetPanelController.Show(new GetPanelController.Reward
             {

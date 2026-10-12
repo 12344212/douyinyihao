@@ -88,7 +88,6 @@ GameObject:
   - component: {fileID: 8409455841752952645}
   - component: {fileID: 1723283514362412550}
   - component: {fileID: 1872292008579847104}
-  - component: {fileID: 1872292008579847105}
   m_Layer: 5
   m_Name: BagPrefab
   m_TagString: Untagged
@@ -218,26 +217,6 @@ MonoBehaviour:
   button: {fileID: 1723283514362412550}
   selectVisual: {fileID: 1684837328909633651}
   placeholderColor: {r: 0.55, g: 0.4, b: 0.85, a: 1}
---- !u!114 &1872292008579847105
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2442650355409901066}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 306cc8c2dd9d3ba4f8286481e3ff2d3e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_IgnoreLayout: 0
-  m_MinWidth: -1
-  m_MinHeight: -1
-  m_PreferredWidth: 247
-  m_PreferredHeight: 246
-  m_FlexibleWidth: 0
-  m_FlexibleHeight: -1
-  m_LayoutPriority: 1
 --- !u!1 &3653126845200347228
 GameObject:
   m_ObjectHideFlags: 0
