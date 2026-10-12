@@ -2,8 +2,9 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// 道具配置。在 Inspector 里增删条目即可，商店和背包按这份表显示，不用改代码。
-/// 地址：ItemConfig（YooAsset AddressByFileName）。
+/// Item config. Add/remove entries in Inspector; shop and bag read this table.
+/// Address: ItemConfig (YooAsset AddressByFileName).
+/// Equipment entries carry type / attack / special fields for display + stub battle hooks.
 /// </summary>
 [CreateAssetMenu(fileName = "ItemConfig", menuName = "Template/Item Config")]
 public class ItemConfig : ScriptableObject
@@ -21,5 +22,14 @@ public class ItemConfig : ScriptableObject
         public int price;
         public CurrencyType currency;
         public string iconLocation;
+
+        [Header("Equipment (optional)")]
+        public EquipItemType equipType;
+        public int attackBonus;
+        [Tooltip("Short stat line shown in shop/bag, e.g. Attack +2 or Survivability.")]
+        public string statBonusLabel;
+        [Tooltip("Stable id for battle stub, e.g. longer_reach.")]
+        public string specialEffectId;
+        [TextArea] public string specialDescription;
     }
 }

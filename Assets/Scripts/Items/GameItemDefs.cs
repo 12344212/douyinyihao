@@ -1,16 +1,25 @@
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 /// <summary>
-/// 道具查询。数据在 ItemConfig 资源里，不在代码里写死。
-/// LoadScene 用 YooAsset 地址 ItemConfig 加载后 Bind；没加载到时用场景上的序列化引用。
+/// Item lookup. Data lives in ItemConfig; LoadScene binds via YooAsset address ItemConfig.
 /// </summary>
 public static class GameItemDefs
 {
     public const string ConfigAddress = "ItemConfig";
     public const string HealPotionId = "heal_potion";
 
-    /// <summary>单个道具（从配置条目拷出来，给商店 / 背包用）。</summary>
+    public const string IronPikeId = "ZB-BQ1";
+    public const string CoralLanceId = "ZB-BQ2";
+    public const string TideHoodId = "ZB-MZ1";
+    public const string DeepveilMaskId = "ZB-MZ2";
+    public const string ReefBootsId = "ZB-XZ1";
+    public const string GaleSolesId = "ZB-XZ2";
+    public const string ShellPlateId = "ZB-YF1";
+    public const string AbyssMailId = "ZB-YF2";
+
+    /// <summary>Single item (copied from config for shop / bag).</summary>
     public sealed class Def
     {
         public readonly string id;
@@ -19,8 +28,24 @@ public static class GameItemDefs
         public readonly int price;
         public readonly CurrencyType currency;
         public readonly string iconLocation;
+        public readonly EquipItemType equipType;
+        public readonly int attackBonus;
+        public readonly string statBonusLabel;
+        public readonly string specialEffectId;
+        public readonly string specialDescription;
 
-        public Def(string id, string displayName, string description, int price, CurrencyType currency, string iconLocation)
+        public Def(
+            string id,
+            string displayName,
+            string description,
+            int price,
+            CurrencyType currency,
+            string iconLocation,
+            EquipItemType equipType = EquipItemType.None,
+            int attackBonus = 0,
+            string statBonusLabel = null,
+            string specialEffectId = null,
+            string specialDescription = null)
         {
             this.id = id;
             this.displayName = displayName;
@@ -28,6 +53,66 @@ public static class GameItemDefs
             this.price = price;
             this.currency = currency;
             this.iconLocation = iconLocation;
+            this.equipType = equipType;
+            this.attackBonus = attackBonus;
+            this.statBonusLabel = statBonusLabel ?? string.Empty;
+            this.specialEffectId = specialEffectId ?? string.Empty;
+            this.specialDescription = specialDescription ?? string.Empty;
+        }
+
+        public bool IsEquipment => equipType != EquipItemType.None;
+
+        /// <summary>English type label for UI.</summary>
+        public string EquipTypeLabel
+        {
+            get
+            {
+                switch (equipType)
+                {
+                    case EquipItemType.Spear: return "Spear";
+                    case EquipItemType.Hood: return "Hood";
+                    case EquipItemType.Shoes: return "Shoes";
+                    case EquipItemType.Armor: return "Armor";
+                    default: return string.Empty;
+                }
+            }
+        }
+
+        /// <summary>Description plus type / stat / special lines for ItemData panels.</summary>
+        public string FormatDetailText()
+        {
+            StringBuilder sb = new StringBuilder();
+            if (!string.IsNullOrEmpty(description))
+            {
+                sb.Append(description);
+            }
+
+            if (equipType == EquipItemType.None)
+            {
+                return sb.ToString();
+            }
+
+            if (sb.Length > 0)
+            {
+                sb.Append('\n');
+            }
+
+            sb.Append("Type: ").Append(EquipTypeLabel);
+            if (!string.IsNullOrEmpty(statBonusLabel))
+            {
+                sb.Append("\nStat: ").Append(statBonusLabel);
+            }
+            else if (attackBonus > 0)
+            {
+                sb.Append("\nStat: Attack +").Append(attackBonus);
+            }
+
+            if (!string.IsNullOrEmpty(specialDescription))
+            {
+                sb.Append("\nSpecial: ").Append(specialDescription);
+            }
+
+            return sb.ToString();
         }
     }
 
@@ -91,7 +176,7 @@ public static class GameItemDefs
         return null;
     }
 
-    /// <summary>货币图标地址。这不是道具表里的条目。</summary>
+    /// <summary>Currency icon address. Not an item-table entry.</summary>
     public static string CurrencyIconLocation(CurrencyType currency)
     {
         return currency == CurrencyType.Gems ? "Icon_Gems" : "Icon_Gold";
@@ -114,6 +199,17 @@ public static class GameItemDefs
             return new Def(string.Empty, string.Empty, string.Empty, 0, CurrencyType.Gold, string.Empty);
         }
 
-        return new Def(entry.id, entry.displayName, entry.description, entry.price, entry.currency, entry.iconLocation);
+        return new Def(
+            entry.id,
+            entry.displayName,
+            entry.description,
+            entry.price,
+            entry.currency,
+            entry.iconLocation,
+            entry.equipType,
+            entry.attackBonus,
+            entry.statBonusLabel,
+            entry.specialEffectId,
+            entry.specialDescription);
     }
 }

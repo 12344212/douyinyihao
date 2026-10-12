@@ -19,3 +19,96 @@ MonoBehaviour:
     price: 150
     currency: 0
     iconLocation: Item_HealPotion
+    equipType: 0
+    attackBonus: 0
+    statBonusLabel: 
+    specialEffectId: 
+    specialDescription: 
+  - id: ZB-BQ1
+    displayName: Iron Pike
+    description: A sturdy iron pike with longer reach feel.
+    price: 120
+    currency: 0
+    iconLocation: ZB-BQ1
+    equipType: 1
+    attackBonus: 2
+    statBonusLabel: Attack +2
+    specialEffectId: longer_reach
+    specialDescription: Longer reach feel.
+  - id: ZB-BQ2
+    displayName: Coral Lance
+    description: Coral-forged lance.
+    price: 280
+    currency: 0
+    iconLocation: ZB-BQ2
+    equipType: 1
+    attackBonus: 4
+    statBonusLabel: Attack +4
+    specialEffectId: elite_bonus
+    specialDescription: Bonus damage vs elite.
+  - id: ZB-MZ1
+    displayName: Tide Hood
+    description: Hood soaked in tide charm.
+    price: 100
+    currency: 0
+    iconLocation: ZB-MZ1
+    equipType: 2
+    attackBonus: 0
+    statBonusLabel: Survivability
+    specialEffectId: gold_find
+    specialDescription: Slight gold find.
+  - id: ZB-MZ2
+    displayName: Deepveil Mask
+    description: Veils your presence.
+    price: 240
+    currency: 0
+    iconLocation: ZB-MZ2
+    equipType: 2
+    attackBonus: 0
+    statBonusLabel: 
+    specialEffectId: rare_loot
+    specialDescription: Rare loot chance up.
+  - id: ZB-XZ1
+    displayName: Reef Boots
+    description: Grippy reef soles.
+    price: 110
+    currency: 0
+    iconLocation: ZB-XZ1
+    equipType: 3
+    attackBonus: 0
+    statBonusLabel: 
+    specialEffectId: dash_cd_cut
+    specialDescription: Short dash cooldown cut.
+  - id: ZB-XZ2
+    displayName: Gale Soles
+    description: Wind-kissed soles.
+    price: 260
+    currency: 0
+    iconLocation: ZB-XZ2
+    equipType: 3
+    attackBonus: 0
+    statBonusLabel: 
+    specialEffectId: catch_speed_burst
+    specialDescription: After catch, brief speed burst.
+  - id: ZB-YF1
+    displayName: Shell Plate
+    description: Layered shell plating.
+    price: 150
+    currency: 0
+    iconLocation: ZB-YF1
+    equipType: 4
+    attackBonus: 0
+    statBonusLabel: 
+    specialEffectId: first_hit_shield
+    specialDescription: First hit shield once per stage.
+  - id: ZB-YF2
+    displayName: Abyss Mail
+    description: Mail from the abyss.
+    price: 300
+    currency: 0
+    iconLocation: ZB-YF2
+    equipType: 4
+    attackBonus: 0
+    statBonusLabel: 
+    specialEffectId: low_hp_defense
+    specialDescription: Low-HP defense up.

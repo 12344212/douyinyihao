@@ -155,7 +155,7 @@ public class BagPanelController : MonoBehaviour
         itemData.Show(
             itemId,
             def != null ? def.displayName : itemId,
-            def != null ? def.description : string.Empty,
+            def != null ? def.FormatDetailText() : string.Empty,
             count,
             def != null ? def.iconLocation : null);
     }

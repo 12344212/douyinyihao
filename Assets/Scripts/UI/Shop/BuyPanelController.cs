@@ -111,7 +111,7 @@ public class BuyPanelController : MonoBehaviour
         if (nameLabel != null) nameLabel.text = def.displayName;
         if (descLabel != null)
         {
-            descLabel.text = def.description;
+            descLabel.text = def.FormatDetailText();
             descLabel.enableWordWrapping = true;
         }
 

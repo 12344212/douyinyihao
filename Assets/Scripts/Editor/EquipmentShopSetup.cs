@@ -1,0 +1,286 @@
+using System;
+using System.IO;
+using UnityEditor;
+using UnityEngine;
+
+/// <summary>
+/// Ensures ItemConfig has Healing Potion + 8 equipment shop items (ZB-BQ/MZ/XZ/YF).
+/// Menu: Tools/Template/Ensure Equipment Shop Items
+/// One-shot: EquipmentShopSetup.run
+/// </summary>
+[InitializeOnLoad]
+public static class EquipmentShopSetup
+{
+    private const string LogTag = "[EquipmentShopSetup]";
+    private const string ItemConfigPath = ConfigAssetSetup.ItemConfigPath;
+
+    private static string MarkerPath => Path.Combine(Directory.GetCurrentDirectory(), "EquipmentShopSetup.run");
+    private static string OkPath => Path.Combine(Directory.GetCurrentDirectory(), "EquipmentShopSetup.ok");
+
+    private struct EquipDef
+    {
+        public string id;
+        public string displayName;
+        public string description;
+        public int price;
+        public EquipItemType equipType;
+        public int attackBonus;
+        public string statBonusLabel;
+        public string specialEffectId;
+        public string specialDescription;
+        public string iconLocation;
+    }
+
+    private static readonly EquipDef[] Equipment =
+    {
+        new EquipDef
+        {
+            id = GameItemDefs.IronPikeId,
+            displayName = "Iron Pike",
+            description = "A sturdy iron pike with longer reach feel.",
+            price = 120,
+            equipType = EquipItemType.Spear,
+            attackBonus = 2,
+            statBonusLabel = "Attack +2",
+            specialEffectId = "longer_reach",
+            specialDescription = "Longer reach feel.",
+            iconLocation = "ZB-BQ1"
+        },
+        new EquipDef
+        {
+            id = GameItemDefs.CoralLanceId,
+            displayName = "Coral Lance",
+            description = "Coral-forged lance.",
+            price = 280,
+            equipType = EquipItemType.Spear,
+            attackBonus = 4,
+            statBonusLabel = "Attack +4",
+            specialEffectId = "elite_bonus",
+            specialDescription = "Bonus damage vs elite.",
+            iconLocation = "ZB-BQ2"
+        },
+        new EquipDef
+        {
+            id = GameItemDefs.TideHoodId,
+            displayName = "Tide Hood",
+            description = "Hood soaked in tide charm.",
+            price = 100,
+            equipType = EquipItemType.Hood,
+            attackBonus = 0,
+            statBonusLabel = "Survivability",
+            specialEffectId = "gold_find",
+            specialDescription = "Slight gold find.",
+            iconLocation = "ZB-MZ1"
+        },
+        new EquipDef
+        {
+            id = GameItemDefs.DeepveilMaskId,
+            displayName = "Deepveil Mask",
+            description = "Veils your presence.",
+            price = 240,
+            equipType = EquipItemType.Hood,
+            attackBonus = 0,
+            statBonusLabel = "",
+            specialEffectId = "rare_loot",
+            specialDescription = "Rare loot chance up.",
+            iconLocation = "ZB-MZ2"
+        },
+        new EquipDef
+        {
+            id = GameItemDefs.ReefBootsId,
+            displayName = "Reef Boots",
+            description = "Grippy reef soles.",
+            price = 110,
+            equipType = EquipItemType.Shoes,
+            attackBonus = 0,
+            statBonusLabel = "",
+            specialEffectId = "dash_cd_cut",
+            specialDescription = "Short dash cooldown cut.",
+            iconLocation = "ZB-XZ1"
+        },
+        new EquipDef
+        {
+            id = GameItemDefs.GaleSolesId,
+            displayName = "Gale Soles",
+            description = "Wind-kissed soles.",
+            price = 260,
+            equipType = EquipItemType.Shoes,
+            attackBonus = 0,
+            statBonusLabel = "",
+            specialEffectId = "catch_speed_burst",
+            specialDescription = "After catch, brief speed burst.",
+            iconLocation = "ZB-XZ2"
+        },
+        new EquipDef
+        {
+            id = GameItemDefs.ShellPlateId,
+            displayName = "Shell Plate",
+            description = "Layered shell plating.",
+            price = 150,
+            equipType = EquipItemType.Armor,
+            attackBonus = 0,
+            statBonusLabel = "",
+            specialEffectId = "first_hit_shield",
+            specialDescription = "First hit shield once per stage.",
+            iconLocation = "ZB-YF1"
+        },
+        new EquipDef
+        {
+            id = GameItemDefs.AbyssMailId,
+            displayName = "Abyss Mail",
+            description = "Mail from the abyss.",
+            price = 300,
+            equipType = EquipItemType.Armor,
+            attackBonus = 0,
+            statBonusLabel = "",
+            specialEffectId = "low_hp_defense",
+            specialDescription = "Low-HP defense up.",
+            iconLocation = "ZB-YF2"
+        }
+    };
+
+    static EquipmentShopSetup()
+    {
+        if (!File.Exists(MarkerPath))
+        {
+            return;
+        }
+
+        EditorApplication.delayCall += TryAutoRun;
+    }
+
+    private static void TryAutoRun()
+    {
+        if (!File.Exists(MarkerPath))
+        {
+            return;
+        }
+
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating)
+        {
+            EditorApplication.delayCall += TryAutoRun;
+            return;
+        }
+
+        try
+        {
+            File.Delete(MarkerPath);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(LogTag + " marker delete failed: " + e.Message);
+            return;
+        }
+
+        Debug.Log(LogTag + " Auto-run.");
+        Run();
+    }
+
+    [MenuItem("Tools/Template/Ensure Equipment Shop Items")]
+    public static void BuildMenu()
+    {
+        Run();
+    }
+
+    public static void Run()
+    {
+        try
+        {
+            ConfigAssetSetup.EnsureAssets();
+            ItemConfig cfg = AssetDatabase.LoadAssetAtPath<ItemConfig>(ItemConfigPath);
+            if (cfg == null)
+            {
+                Debug.LogError(LogTag + " ItemConfig missing at " + ItemConfigPath);
+                return;
+            }
+
+            SerializedObject so = new SerializedObject(cfg);
+            SerializedProperty items = so.FindProperty("items");
+            EnsureHealPotion(items);
+            for (int i = 0; i < Equipment.Length; i++)
+            {
+                UpsertEquipment(items, Equipment[i]);
+            }
+
+            so.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(cfg);
+            AssetDatabase.SaveAssets();
+
+            int count = items.arraySize;
+            string msg = LogTag + " ItemConfig ready. entries=" + count + " (heal + 8 equipment). Icons AddressByFileName under Assets/UI.";
+            Debug.Log(msg);
+            try
+            {
+                File.WriteAllText(OkPath, msg + "\n" + DateTime.Now.ToString("o"));
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(LogTag + " " + e);
+        }
+    }
+
+    private static void EnsureHealPotion(SerializedProperty items)
+    {
+        int index = FindIndex(items, GameItemDefs.HealPotionId);
+        if (index < 0)
+        {
+            index = items.arraySize;
+            items.arraySize++;
+        }
+
+        SerializedProperty entry = items.GetArrayElementAtIndex(index);
+        entry.FindPropertyRelative("id").stringValue = GameItemDefs.HealPotionId;
+        entry.FindPropertyRelative("displayName").stringValue = "Healing Potion";
+        entry.FindPropertyRelative("description").stringValue = "Restores 30% of max HP.";
+        entry.FindPropertyRelative("price").intValue = 150;
+        entry.FindPropertyRelative("currency").enumValueIndex = (int)CurrencyType.Gold;
+        entry.FindPropertyRelative("iconLocation").stringValue = "Item_HealPotion";
+        entry.FindPropertyRelative("equipType").enumValueIndex = (int)EquipItemType.None;
+        entry.FindPropertyRelative("attackBonus").intValue = 0;
+        entry.FindPropertyRelative("statBonusLabel").stringValue = string.Empty;
+        entry.FindPropertyRelative("specialEffectId").stringValue = string.Empty;
+        entry.FindPropertyRelative("specialDescription").stringValue = string.Empty;
+    }
+
+    private static void UpsertEquipment(SerializedProperty items, EquipDef def)
+    {
+        int index = FindIndex(items, def.id);
+        if (index < 0)
+        {
+            index = items.arraySize;
+            items.arraySize++;
+        }
+
+        SerializedProperty entry = items.GetArrayElementAtIndex(index);
+        entry.FindPropertyRelative("id").stringValue = def.id;
+        entry.FindPropertyRelative("displayName").stringValue = def.displayName;
+        entry.FindPropertyRelative("description").stringValue = def.description;
+        entry.FindPropertyRelative("price").intValue = def.price;
+        entry.FindPropertyRelative("currency").enumValueIndex = (int)CurrencyType.Gold;
+        entry.FindPropertyRelative("iconLocation").stringValue = def.iconLocation;
+        entry.FindPropertyRelative("equipType").enumValueIndex = (int)def.equipType;
+        entry.FindPropertyRelative("attackBonus").intValue = def.attackBonus;
+        entry.FindPropertyRelative("statBonusLabel").stringValue = def.statBonusLabel ?? string.Empty;
+        entry.FindPropertyRelative("specialEffectId").stringValue = def.specialEffectId ?? string.Empty;
+        entry.FindPropertyRelative("specialDescription").stringValue = def.specialDescription ?? string.Empty;
+    }
+
+    private static int FindIndex(SerializedProperty items, string id)
+    {
+        for (int i = 0; i < items.arraySize; i++)
+        {
+            SerializedProperty entry = items.GetArrayElementAtIndex(i);
+            if (entry.FindPropertyRelative("id").stringValue == id)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+}

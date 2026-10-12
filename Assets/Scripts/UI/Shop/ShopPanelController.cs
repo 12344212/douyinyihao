@@ -364,7 +364,7 @@ public class ShopPanelController : MonoBehaviour
 
         if (itemDescription != null)
         {
-            itemDescription.text = _selected.description;
+            itemDescription.text = _selected.FormatDetailText();
             itemDescription.enableWordWrapping = true;
         }
 
