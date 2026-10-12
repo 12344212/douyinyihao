@@ -28,6 +28,9 @@ public class PlayerSaveData
     public bool shopChest2Claimed;
     public bool shopChest3Claimed;
 
+    /// <summary>TopUp daily free gold last claim local date yyyy-MM-dd.</summary>
+    public string topUpDailyGoldClaimDate;
+
     public bool tutorialCompleted;
     public int tutorialStep;
 }

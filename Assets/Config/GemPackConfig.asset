@@ -18,34 +18,34 @@ MonoBehaviour:
     productId: com.demontw.id2254.pay30
     gems: 30
     priceUsd: 0.49
-    iconLocation: HB1
+    iconLocation: hb (1)
   - index: 2
     displayName: Package 2
     productId: com.demontw.id2254.pay120
     gems: 120
     priceUsd: 1.99
-    iconLocation: HB2
+    iconLocation: hb (2)
   - index: 3
     displayName: Package 3
     productId: com.demontw.id2254.pay300
     gems: 300
     priceUsd: 4.99
-    iconLocation: HB3
+    iconLocation: hb (3)
   - index: 4
     displayName: Package 4
     productId: com.demontw.id2254.pay1200
     gems: 1280
     priceUsd: 19.99
-    iconLocation: HB4
+    iconLocation: hb (4)
   - index: 5
     displayName: Package 5
     productId: com.demontw.id2254.pay3000
     gems: 3280
     priceUsd: 49.99
-    iconLocation: HB5
+    iconLocation: hb (5)
   - index: 6
     displayName: Package 6
     productId: com.demontw.id2254.pay6000
     gems: 6480
     priceUsd: 99.99
-    iconLocation: HB6
+    iconLocation: hb (6)

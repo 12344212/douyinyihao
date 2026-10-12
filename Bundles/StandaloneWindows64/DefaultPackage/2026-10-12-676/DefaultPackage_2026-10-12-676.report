@@ -1,0 +1,2247 @@
+{
+    "Summary": {
+        "YooVersion": "3.0.6",
+        "UnityVersion": "2022.3.62f3c1",
+        "BuildDate": "2026/10/12 11:16:41",
+        "BuildSeconds": 26,
+        "BuildTarget": 19,
+        "BuildPipeline": "ScriptableBuildPipeline",
+        "BuildBundleType": 2,
+        "BuildPackageName": "DefaultPackage",
+        "BuildPackageVersion": "2026-10-12-676",
+        "BuildPackageNote": "2026/10/12 11:16:13",
+        "UniqueBundleName": true,
+        "EnableAddressable": true,
+        "SupportExtensionless": true,
+        "LocationToLower": false,
+        "IncludeAssetGuid": false,
+        "AutoCollectShaders": true,
+        "IgnoreRuleName": "YooAsset.Editor.NormalIgnoreRule",
+        "ClearBuildCacheFiles": false,
+        "UseAssetDependencyDB": false,
+        "EnableSharePackRule": true,
+        "SingleReferencedPackAlone": true,
+        "EncryptionServicesClassName": "YooAsset.Editor.EncryptionNone",
+        "ManifestProcessServicesClassName": "YooAsset.Editor.ManifestEncryptorNone",
+        "ManifestRestoreServicesClassName": "YooAsset.Editor.ManifestDecryptorNone",
+        "FileNameStyle": 0,
+        "CompressOption": 2,
+        "DisableWriteTypeTree": false,
+        "IgnoreTypeTreeChanges": false,
+        "ReplaceAssetPathWithAddress": false,
+        "WriteLinkXML": true,
+        "CacheServerHost": "",
+        "CacheServerPort": 0,
+        "BuiltinShadersBundleName": "defaultpackage_unityshaders.bundle",
+        "MonoScriptsBundleName": "",
+        "AssetFileTotalCount": 119,
+        "MainAssetTotalCount": 116,
+        "AllBundleTotalCount": 11,
+        "AllBundleTotalSize": 30803208,
+        "EncryptedBundleTotalCount": 0,
+        "EncryptedBundleTotalSize": 0
+    },
+    "AssetInfos": [
+        {
+            "Address": "BattleTuningConfig",
+            "AssetPath": "Assets/Config/BattleTuningConfig.asset",
+            "AssetGuid": "33cc0000000000010000000000000001",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_config.bundle",
+            "MainBundleSize": 4501,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "GemPackConfig",
+            "AssetPath": "Assets/Config/GemPackConfig.asset",
+            "AssetGuid": "5eb898f70a56bbe47a6887b9b3f50a62",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_config.bundle",
+            "MainBundleSize": 4501,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "ItemConfig",
+            "AssetPath": "Assets/Config/ItemConfig.asset",
+            "AssetGuid": "14dd171ecc29298429ded2f62fc1a87f",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_config.bundle",
+            "MainBundleSize": 4501,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "YooAssetPlaceholder",
+            "AssetPath": "Assets/Config/YooAssetPlaceholder.txt",
+            "AssetGuid": "17fce6a78f72ec040965b436c092bf0c",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_config.bundle",
+            "MainBundleSize": 4501,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "BattleSpriteCharacter",
+            "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteCharacter.png",
+            "AssetGuid": "22bb0000000000010000000000000003",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle_art.bundle",
+            "MainBundleSize": 7543,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "BattleSpriteCrab",
+            "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteCrab.png",
+            "AssetGuid": "22bb0000000000010000000000000007",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle_art.bundle",
+            "MainBundleSize": 7543,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "BattleSpriteLeaf",
+            "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteLeaf.png",
+            "AssetGuid": "22bb0000000000010000000000000005",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle_art.bundle",
+            "MainBundleSize": 7543,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "BattleSpriteNet",
+            "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteNet.png",
+            "AssetGuid": "22bb0000000000010000000000000008",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle_art.bundle",
+            "MainBundleSize": 7543,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "BattleSpritePlank",
+            "AssetPath": "Assets/Prefab/Battle/Art/BattleSpritePlank.png",
+            "AssetGuid": "22bb0000000000010000000000000002",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle_art.bundle",
+            "MainBundleSize": 7543,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "BattleSpriteRange",
+            "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteRange.png",
+            "AssetGuid": "22bb000000000001000000000000000a",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle_art.bundle",
+            "MainBundleSize": 7543,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "BattleSpriteRangeThin",
+            "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteRangeThin.png",
+            "AssetGuid": "22bb000000000001000000000000000b",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle_art.bundle",
+            "MainBundleSize": 7543,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "BattleSpriteScrap",
+            "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteScrap.png",
+            "AssetGuid": "22bb0000000000010000000000000006",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle_art.bundle",
+            "MainBundleSize": 7543,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "BattleSpriteSpear",
+            "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteSpear.png",
+            "AssetGuid": "22bb0000000000010000000000000009",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle_art.bundle",
+            "MainBundleSize": 7543,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "BattleSpriteWater",
+            "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteWater.png",
+            "AssetGuid": "22bb0000000000010000000000000001",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle_art.bundle",
+            "MainBundleSize": 7543,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "BattleSpriteWood",
+            "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteWood.png",
+            "AssetGuid": "22bb0000000000010000000000000004",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle_art.bundle",
+            "MainBundleSize": 7543,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "BattleAttackTower",
+            "AssetPath": "Assets/Prefab/Battle/BattleAttackTower.prefab",
+            "AssetGuid": "11aa0000000000010000000000000009",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle.bundle",
+            "MainBundleSize": 28561,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteRange.png",
+                    "AssetGUID": "22bb000000000001000000000000000a"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteScrap.png",
+                    "AssetGUID": "22bb0000000000010000000000000006"
+                }
+            ],
+            "DependBundles": [
+                "defaultpackage_assets_prefab_battle_art.bundle",
+                "defaultpackage_unityshaders.bundle"
+            ]
+        },
+        {
+            "Address": "BattleAttractor",
+            "AssetPath": "Assets/Prefab/Battle/BattleAttractor.prefab",
+            "AssetGuid": "11aa000000000001000000000000000c",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle.bundle",
+            "MainBundleSize": 28561,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteRange.png",
+                    "AssetGUID": "22bb000000000001000000000000000a"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteScrap.png",
+                    "AssetGUID": "22bb0000000000010000000000000006"
+                }
+            ],
+            "DependBundles": [
+                "defaultpackage_assets_prefab_battle_art.bundle",
+                "defaultpackage_unityshaders.bundle"
+            ]
+        },
+        {
+            "Address": "BattleCaptureTower",
+            "AssetPath": "Assets/Prefab/Battle/BattleCaptureTower.prefab",
+            "AssetGuid": "11aa0000000000010000000000000008",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle.bundle",
+            "MainBundleSize": 28561,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteRange.png",
+                    "AssetGUID": "22bb000000000001000000000000000a"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteScrap.png",
+                    "AssetGUID": "22bb0000000000010000000000000006"
+                }
+            ],
+            "DependBundles": [
+                "defaultpackage_assets_prefab_battle_art.bundle",
+                "defaultpackage_unityshaders.bundle"
+            ]
+        },
+        {
+            "Address": "BattleCharacter",
+            "AssetPath": "Assets/Prefab/Battle/BattleCharacter.prefab",
+            "AssetGuid": "11aa0000000000010000000000000003",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle.bundle",
+            "MainBundleSize": 28561,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteCharacter.png",
+                    "AssetGUID": "22bb0000000000010000000000000003"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteRangeThin.png",
+                    "AssetGUID": "22bb000000000001000000000000000b"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteSpear.png",
+                    "AssetGUID": "22bb0000000000010000000000000009"
+                }
+            ],
+            "DependBundles": [
+                "defaultpackage_assets_prefab_battle_art.bundle",
+                "defaultpackage_unityshaders.bundle"
+            ]
+        },
+        {
+            "Address": "BattleCrab",
+            "AssetPath": "Assets/Prefab/Battle/BattleCrab.prefab",
+            "AssetGuid": "11aa0000000000010000000000000005",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle.bundle",
+            "MainBundleSize": 28561,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteCrab.png",
+                    "AssetGUID": "22bb0000000000010000000000000007"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteScrap.png",
+                    "AssetGUID": "22bb0000000000010000000000000006"
+                }
+            ],
+            "DependBundles": [
+                "defaultpackage_assets_prefab_battle_art.bundle",
+                "defaultpackage_unityshaders.bundle"
+            ]
+        },
+        {
+            "Address": "BattleHud",
+            "AssetPath": "Assets/Prefab/Battle/BattleHud.prefab",
+            "AssetGuid": "11aa000000000001000000000000000a",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle.bundle",
+            "MainBundleSize": 28561,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteScrap.png",
+                    "AssetGUID": "22bb0000000000010000000000000006"
+                },
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Fonts/AlimamaFangYuanTiVF-Thin-2 SDF.asset",
+                    "AssetGUID": "56e86ebb5c641454389cad93ec3b8b09"
+                },
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Fonts/AlimamaFangYuanTiVF-Thin-2.ttf",
+                    "AssetGUID": "b4edd0258817447498d7ec8979a48895"
+                },
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile.shader",
+                    "AssetGUID": "fe393ace9b354375a9cb14cdbbc28be4"
+                }
+            ],
+            "DependBundles": [
+                "defaultpackage_assets_prefab_battle_art.bundle",
+                "defaultpackage_share_assets_textmesh_pro_fonts.bundle",
+                "defaultpackage_unityshaders.bundle"
+            ]
+        },
+        {
+            "Address": "BattleNet",
+            "AssetPath": "Assets/Prefab/Battle/BattleNet.prefab",
+            "AssetGuid": "11aa0000000000010000000000000006",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle.bundle",
+            "MainBundleSize": 28561,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteNet.png",
+                    "AssetGUID": "22bb0000000000010000000000000008"
+                },
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Fonts/AlimamaFangYuanTiVF-Thin-2 SDF.asset",
+                    "AssetGUID": "56e86ebb5c641454389cad93ec3b8b09"
+                },
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Fonts/AlimamaFangYuanTiVF-Thin-2.ttf",
+                    "AssetGUID": "b4edd0258817447498d7ec8979a48895"
+                },
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile.shader",
+                    "AssetGUID": "fe393ace9b354375a9cb14cdbbc28be4"
+                }
+            ],
+            "DependBundles": [
+                "defaultpackage_assets_prefab_battle_art.bundle",
+                "defaultpackage_share_assets_textmesh_pro_fonts.bundle",
+                "defaultpackage_unityshaders.bundle"
+            ]
+        },
+        {
+            "Address": "BattlePlank",
+            "AssetPath": "Assets/Prefab/Battle/BattlePlank.prefab",
+            "AssetGuid": "11aa0000000000010000000000000002",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle.bundle",
+            "MainBundleSize": 28561,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpritePlank.png",
+                    "AssetGUID": "22bb0000000000010000000000000002"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteScrap.png",
+                    "AssetGUID": "22bb0000000000010000000000000006"
+                }
+            ],
+            "DependBundles": [
+                "defaultpackage_assets_prefab_battle_art.bundle",
+                "defaultpackage_unityshaders.bundle"
+            ]
+        },
+        {
+            "Address": "BattleResource",
+            "AssetPath": "Assets/Prefab/Battle/BattleResource.prefab",
+            "AssetGuid": "11aa0000000000010000000000000004",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle.bundle",
+            "MainBundleSize": 28561,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteLeaf.png",
+                    "AssetGUID": "22bb0000000000010000000000000005"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteScrap.png",
+                    "AssetGUID": "22bb0000000000010000000000000006"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteWood.png",
+                    "AssetGUID": "22bb0000000000010000000000000004"
+                }
+            ],
+            "DependBundles": [
+                "defaultpackage_assets_prefab_battle_art.bundle",
+                "defaultpackage_unityshaders.bundle"
+            ]
+        },
+        {
+            "Address": "BattleSpear",
+            "AssetPath": "Assets/Prefab/Battle/BattleSpear.prefab",
+            "AssetGuid": "11aa0000000000010000000000000007",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle.bundle",
+            "MainBundleSize": 28561,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteSpear.png",
+                    "AssetGUID": "22bb0000000000010000000000000009"
+                }
+            ],
+            "DependBundles": [
+                "defaultpackage_assets_prefab_battle_art.bundle",
+                "defaultpackage_unityshaders.bundle"
+            ]
+        },
+        {
+            "Address": "BattleWater",
+            "AssetPath": "Assets/Prefab/Battle/BattleWater.prefab",
+            "AssetGuid": "11aa0000000000010000000000000001",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle.bundle",
+            "MainBundleSize": 28561,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteWater.png",
+                    "AssetGUID": "22bb0000000000010000000000000001"
+                }
+            ],
+            "DependBundles": [
+                "defaultpackage_assets_prefab_battle_art.bundle",
+                "defaultpackage_unityshaders.bundle"
+            ]
+        },
+        {
+            "Address": "BattleWorld",
+            "AssetPath": "Assets/Prefab/Battle/BattleWorld.prefab",
+            "AssetGuid": "11aa000000000001000000000000000b",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_battle.bundle",
+            "MainBundleSize": 28561,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteCharacter.png",
+                    "AssetGUID": "22bb0000000000010000000000000003"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteCrab.png",
+                    "AssetGUID": "22bb0000000000010000000000000007"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteLeaf.png",
+                    "AssetGUID": "22bb0000000000010000000000000005"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteNet.png",
+                    "AssetGUID": "22bb0000000000010000000000000008"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpritePlank.png",
+                    "AssetGUID": "22bb0000000000010000000000000002"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteRange.png",
+                    "AssetGUID": "22bb000000000001000000000000000a"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteRangeThin.png",
+                    "AssetGUID": "22bb000000000001000000000000000b"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteScrap.png",
+                    "AssetGUID": "22bb0000000000010000000000000006"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteSpear.png",
+                    "AssetGUID": "22bb0000000000010000000000000009"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteWater.png",
+                    "AssetGUID": "22bb0000000000010000000000000001"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteWood.png",
+                    "AssetGUID": "22bb0000000000010000000000000004"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/BattleAttackTower.prefab",
+                    "AssetGUID": "11aa0000000000010000000000000009"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/BattleCaptureTower.prefab",
+                    "AssetGUID": "11aa0000000000010000000000000008"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/BattleCharacter.prefab",
+                    "AssetGUID": "11aa0000000000010000000000000003"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/BattleCrab.prefab",
+                    "AssetGUID": "11aa0000000000010000000000000005"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/BattleHud.prefab",
+                    "AssetGUID": "11aa000000000001000000000000000a"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/BattleNet.prefab",
+                    "AssetGUID": "11aa0000000000010000000000000006"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/BattlePlank.prefab",
+                    "AssetGUID": "11aa0000000000010000000000000002"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/BattleResource.prefab",
+                    "AssetGUID": "11aa0000000000010000000000000004"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/BattleSpear.prefab",
+                    "AssetGUID": "11aa0000000000010000000000000007"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/BattleWater.prefab",
+                    "AssetGUID": "11aa0000000000010000000000000001"
+                },
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Fonts/AlimamaFangYuanTiVF-Thin-2 SDF.asset",
+                    "AssetGUID": "56e86ebb5c641454389cad93ec3b8b09"
+                },
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Fonts/AlimamaFangYuanTiVF-Thin-2.ttf",
+                    "AssetGUID": "b4edd0258817447498d7ec8979a48895"
+                },
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile.shader",
+                    "AssetGUID": "fe393ace9b354375a9cb14cdbbc28be4"
+                }
+            ],
+            "DependBundles": [
+                "defaultpackage_assets_prefab_battle_art.bundle",
+                "defaultpackage_share_assets_textmesh_pro_fonts.bundle",
+                "defaultpackage_unityshaders.bundle"
+            ]
+        },
+        {
+            "Address": "BagPrefab",
+            "AssetPath": "Assets/Prefab/UI/BagPrefab.prefab",
+            "AssetGuid": "a0eb8008c2f12fe4888857168e1a46c3",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_ui.bundle",
+            "MainBundleSize": 13264,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Fonts/AlimamaFangYuanTiVF-Thin-2 SDF.asset",
+                    "AssetGUID": "56e86ebb5c641454389cad93ec3b8b09"
+                },
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Fonts/AlimamaFangYuanTiVF-Thin-2.ttf",
+                    "AssetGUID": "b4edd0258817447498d7ec8979a48895"
+                },
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile.shader",
+                    "AssetGUID": "fe393ace9b354375a9cb14cdbbc28be4"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-BB/BB-GZ.png",
+                    "AssetGUID": "d97d0c65bc50c194bbad93813325fb4c"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-BB/BB-XZ.png",
+                    "AssetGUID": "02382d3a727d70c44933b814996a0f51"
+                }
+            ],
+            "DependBundles": [
+                "defaultpackage_assets_ui_us-1010-bydr-gm-bb.bundle",
+                "defaultpackage_share_assets_textmesh_pro_fonts.bundle",
+                "defaultpackage_unityshaders.bundle"
+            ]
+        },
+        {
+            "Address": "ShopPrefab",
+            "AssetPath": "Assets/Prefab/UI/ShopPrefab.prefab",
+            "AssetGuid": "9227dbf1176dd5e4e9fbc72dfde3e76f",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_ui.bundle",
+            "MainBundleSize": 13264,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Fonts/AlimamaFangYuanTiVF-Thin-2 SDF.asset",
+                    "AssetGUID": "56e86ebb5c641454389cad93ec3b8b09"
+                },
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Fonts/AlimamaFangYuanTiVF-Thin-2.ttf",
+                    "AssetGUID": "b4edd0258817447498d7ec8979a48895"
+                },
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile.shader",
+                    "AssetGUID": "fe393ace9b354375a9cb14cdbbc28be4"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-GM.png",
+                    "AssetGUID": "28d4800ed54d2d84aa5c9ebb41d1b498"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-SDDK.png",
+                    "AssetGUID": "90421d9ab6fcd564dbf07dd699b34bd1"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-JB.png",
+                    "AssetGUID": "1afc5e6dd14599f42a6f755fc9c67858"
+                }
+            ],
+            "DependBundles": [
+                "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+                "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+                "defaultpackage_share_assets_textmesh_pro_fonts.bundle",
+                "defaultpackage_unityshaders.bundle"
+            ]
+        },
+        {
+            "Address": "TipPrefab",
+            "AssetPath": "Assets/Prefab/UI/TipPrefab.prefab",
+            "AssetGuid": "8294a220bdba0924ea61b3928643173f",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_ui.bundle",
+            "MainBundleSize": 13264,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Fonts/AlimamaFangYuanTiVF-Thin-2 SDF.asset",
+                    "AssetGUID": "56e86ebb5c641454389cad93ec3b8b09"
+                },
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Fonts/AlimamaFangYuanTiVF-Thin-2.ttf",
+                    "AssetGUID": "b4edd0258817447498d7ec8979a48895"
+                },
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile.shader",
+                    "AssetGUID": "fe393ace9b354375a9cb14cdbbc28be4"
+                }
+            ],
+            "DependBundles": [
+                "defaultpackage_share_assets_textmesh_pro_fonts.bundle",
+                "defaultpackage_unityshaders.bundle"
+            ]
+        },
+        {
+            "Address": "TopBarPrefab",
+            "AssetPath": "Assets/Prefab/UI/TopBarPrefab.prefab",
+            "AssetGuid": "a4508af2e9f354d4eae0eff40c21041b",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_ui.bundle",
+            "MainBundleSize": 13264,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Fonts/AlimamaFangYuanTiVF-Thin-2 SDF.asset",
+                    "AssetGUID": "56e86ebb5c641454389cad93ec3b8b09"
+                },
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Fonts/AlimamaFangYuanTiVF-Thin-2.ttf",
+                    "AssetGUID": "b4edd0258817447498d7ec8979a48895"
+                },
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile.shader",
+                    "AssetGUID": "fe393ace9b354375a9cb14cdbbc28be4"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-HBHT.png",
+                    "AssetGUID": "2ed4e6894e6f3db44a425dbf58f78c31"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-JB.png",
+                    "AssetGUID": "1afc5e6dd14599f42a6f755fc9c67858"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-JH.png",
+                    "AssetGUID": "1e7f7aa3d516f2d47b80a8a2efb23f1e"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-ZS.png",
+                    "AssetGUID": "bd71ac06e3577a64cb59bbc268f64c32"
+                }
+            ],
+            "DependBundles": [
+                "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+                "defaultpackage_share_assets_textmesh_pro_fonts.bundle",
+                "defaultpackage_unityshaders.bundle"
+            ]
+        },
+        {
+            "Address": "TopPrefab",
+            "AssetPath": "Assets/Prefab/UI/TopPrefab.prefab",
+            "AssetGuid": "4f0ed154cee97594292ded1ba79b8717",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_prefab_ui.bundle",
+            "MainBundleSize": 13264,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Fonts/AlimamaFangYuanTiVF-Thin-2 SDF.asset",
+                    "AssetGUID": "56e86ebb5c641454389cad93ec3b8b09"
+                },
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Fonts/AlimamaFangYuanTiVF-Thin-2.ttf",
+                    "AssetGUID": "b4edd0258817447498d7ec8979a48895"
+                },
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile.shader",
+                    "AssetGUID": "fe393ace9b354375a9cb14cdbbc28be4"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/CZ-GMANN.png",
+                    "AssetGUID": "c59c874770e026046800c04b192bdb63"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/CZ-HBK.png",
+                    "AssetGUID": "0d2f732a81b295d4a85fad1fa4545016"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/hb (1).png",
+                    "AssetGUID": "ae0fb78fb7582704c8dcfcbd94dcea53"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-ZS.png",
+                    "AssetGUID": "bd71ac06e3577a64cb59bbc268f64c32"
+                }
+            ],
+            "DependBundles": [
+                "defaultpackage_assets_ui_us-1010-bydr-gm-cz.bundle",
+                "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+                "defaultpackage_share_assets_textmesh_pro_fonts.bundle",
+                "defaultpackage_unityshaders.bundle"
+            ]
+        },
+        {
+            "Address": "BB-BK",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-BB/BB-BK.png",
+            "AssetGuid": "6ae15cce25c247b4da91fb5be7d00082",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-bb.bundle",
+            "MainBundleSize": 2811770,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "BB-CK",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-BB/BB-CK.png",
+            "AssetGuid": "117f706c985bebf41ab35de590b4c9c4",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-bb.bundle",
+            "MainBundleSize": 2811770,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "BB-FH",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-BB/BB-FH.png",
+            "AssetGuid": "dab8873160ec5fb4b989047629fc47c9",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-bb.bundle",
+            "MainBundleSize": 2811770,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "BB-GZ",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-BB/BB-GZ.png",
+            "AssetGuid": "d97d0c65bc50c194bbad93813325fb4c",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-bb.bundle",
+            "MainBundleSize": 2811770,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "BB-JG",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-BB/BB-JG.png",
+            "AssetGuid": "2708753fce05f834fa8f0d242b33d6ac",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-bb.bundle",
+            "MainBundleSize": 2811770,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "BB-JSK",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-BB/BB-JSK.png",
+            "AssetGuid": "ac59e29d1611bce46a89943bc81f3787",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-bb.bundle",
+            "MainBundleSize": 2811770,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "BB-SL",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-BB/BB-SL.png",
+            "AssetGuid": "df03d56807dd86447961c1bb891cf00c",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-bb.bundle",
+            "MainBundleSize": 2811770,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "BB-XZ",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-BB/BB-XZ.png",
+            "AssetGuid": "02382d3a727d70c44933b814996a0f51",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-bb.bundle",
+            "MainBundleSize": 2811770,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "CZ-CK",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/CZ-CK.png",
+            "AssetGuid": "47cd50e70aa6dc548bbda0babed802d8",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-cz.bundle",
+            "MainBundleSize": 7186107,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "CZ-DT",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/CZ-DT.jpg",
+            "AssetGuid": "c978db4261677154ab6d78ff116d2147",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-cz.bundle",
+            "MainBundleSize": 7186107,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "CZ-GMANN",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/CZ-GMANN.png",
+            "AssetGuid": "c59c874770e026046800c04b192bdb63",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-cz.bundle",
+            "MainBundleSize": 7186107,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "CZ-HBD",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/CZ-HBD.png",
+            "AssetGuid": "94e55696d57ae0342a5a97bf6cdc9e9b",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-cz.bundle",
+            "MainBundleSize": 7186107,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "CZ-HBK",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/CZ-HBK.png",
+            "AssetGuid": "0d2f732a81b295d4a85fad1fa4545016",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-cz.bundle",
+            "MainBundleSize": 7186107,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "CZ-LQ",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/CZ-LQ.png",
+            "AssetGuid": "ad882379d0ac0504faa0376b02c2264f",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-cz.bundle",
+            "MainBundleSize": 7186107,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "CZ-MFJBK",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/CZ-MFJBK.png",
+            "AssetGuid": "e16d96d26f49f1d4f903a5df4b96a62e",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-cz.bundle",
+            "MainBundleSize": 7186107,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "CZ-TP",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/CZ-TP.png",
+            "AssetGuid": "51fde4f261b0e4947a3a8869ffaf3e92",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-cz.bundle",
+            "MainBundleSize": 7186107,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "CZ-YLQ",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/CZ-YLQ.png",
+            "AssetGuid": "06d3439ba5d663145a796aa2ddfc8a14",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-cz.bundle",
+            "MainBundleSize": 7186107,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "hb (1)",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/hb (1).png",
+            "AssetGuid": "ae0fb78fb7582704c8dcfcbd94dcea53",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-cz.bundle",
+            "MainBundleSize": 7186107,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "hb (2)",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/hb (2).png",
+            "AssetGuid": "8d3b404f062be4c41933c8449531824c",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-cz.bundle",
+            "MainBundleSize": 7186107,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "hb (3)",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/hb (3).png",
+            "AssetGuid": "32678cdf10da1a14e81890614df50d4b",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-cz.bundle",
+            "MainBundleSize": 7186107,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "hb (4)",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/hb (4).png",
+            "AssetGuid": "986b792f39671834eb9f662764c6b012",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-cz.bundle",
+            "MainBundleSize": 7186107,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "hb (5)",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/hb (5).png",
+            "AssetGuid": "f53507ef7a3806247ba8b0cd84df4572",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-cz.bundle",
+            "MainBundleSize": 7186107,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "hb (6)",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/hb (6).png",
+            "AssetGuid": "944f8f3b8a9e47949a4a4b9c8b5e5948",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-cz.bundle",
+            "MainBundleSize": 7186107,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "hb (7)",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/hb (7).png",
+            "AssetGuid": "2408195d4e6146743b8cd7362892fa7f",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-cz.bundle",
+            "MainBundleSize": 7186107,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "hb (8)",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/hb (8).png",
+            "AssetGuid": "8ada04e40d04f2d48a72ddeba5c71e9e",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-cz.bundle",
+            "MainBundleSize": 7186107,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "hb (9)",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/hb (9).png",
+            "AssetGuid": "a70fe1f98c4452d4dbcc20fed3689362",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-cz.bundle",
+            "MainBundleSize": 7186107,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "img_v3_0216b_d24c3a1b-44e8-4082-9cc3-e551ed51d56g",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/img_v3_0216b_d24c3a1b-44e8-4082-9cc3-e551ed51d56g.png",
+            "AssetGuid": "6ecfb197726dbfc4a8c16ff5bcf93b42",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-js.bundle",
+            "MainBundleSize": 5372162,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "JS-CK",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-CK.png",
+            "AssetGuid": "ef569e5be2684924e83d07b4e7521d33",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-js.bundle",
+            "MainBundleSize": 5372162,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "JS-DT",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-DT.jpg",
+            "AssetGuid": "783c277357f46ce41a783701f07c361e",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-js.bundle",
+            "MainBundleSize": 5372162,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "JS-FW",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-FW.png",
+            "AssetGuid": "76860f16993bc004cb2aaf4b408c95f2",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-js.bundle",
+            "MainBundleSize": 5372162,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "JS-FWJDT",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-FWJDT.png",
+            "AssetGuid": "928118560cb84c24fbd8f9a3017b086d",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-js.bundle",
+            "MainBundleSize": 5372162,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "JS-FYJDT",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-FYJDT.png",
+            "AssetGuid": "fca3594c960d85147bb119a1882ff70b",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-js.bundle",
+            "MainBundleSize": 5372162,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "JS-GJ",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-GJ.png",
+            "AssetGuid": "3ddecaf124e506c429f269446b3ea26f",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-js.bundle",
+            "MainBundleSize": 5372162,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "JS-GJJDT",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-GJJDT.png",
+            "AssetGuid": "206ef91a0106fb0498840952f6cad2e2",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-js.bundle",
+            "MainBundleSize": 5372162,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "JS-JDTD",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-JDTD.png",
+            "AssetGuid": "52a49b4b9bdde1d47a5f9a0ecd51bc10",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-js.bundle",
+            "MainBundleSize": 5372162,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "JS-RW",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-RW.png",
+            "AssetGuid": "d55fe2d4bb9e77b4880ac922d4967218",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-js.bundle",
+            "MainBundleSize": 5372162,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "JS-SJ",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-SJ.png",
+            "AssetGuid": "47e6836ea97b8c146ae47546776689e3",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-js.bundle",
+            "MainBundleSize": 5372162,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "JS-ZBGZ1",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-ZBGZ1.png",
+            "AssetGuid": "8cfeaa667218ded4f80e2a72f74aaaea",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-js.bundle",
+            "MainBundleSize": 5372162,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "JS-ZBGZ2",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-ZBGZ2.png",
+            "AssetGuid": "c89b204ffbc2ab144bc8382763d729a3",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-js.bundle",
+            "MainBundleSize": 5372162,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "JS-ZBGZ3",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-ZBGZ3.png",
+            "AssetGuid": "6d3698167138c7445a6de34961374fd4",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-js.bundle",
+            "MainBundleSize": 5372162,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "JS-ZBGZ4",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-ZBGZ4.png",
+            "AssetGuid": "005136cff7a7e6e4b98941f792588a87",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-js.bundle",
+            "MainBundleSize": 5372162,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "JS-ZBKL",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-ZBKL.png",
+            "AssetGuid": "77edb7213e26bf949b59ae7aa3ed0250",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-js.bundle",
+            "MainBundleSize": 5372162,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "SD-BX",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-BX.png",
+            "AssetGuid": "6ddd233c2338dbc4fbad11c4c588fd60",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+            "MainBundleSize": 3055596,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "SD-BX1",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-BX1.png",
+            "AssetGuid": "388656390f8fd294c8eee888cd8dae44",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+            "MainBundleSize": 3055596,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "SD-CK",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-CK.png",
+            "AssetGuid": "a8a9ea6eac790ed49bda176b964a4f43",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+            "MainBundleSize": 3055596,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "SD-CK2",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-CK2.png",
+            "AssetGuid": "0410c01a7fe2c5e46aa7a5b24079df33",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+            "MainBundleSize": 3055596,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "SD-GM",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-GM.png",
+            "AssetGuid": "28d4800ed54d2d84aa5c9ebb41d1b498",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+            "MainBundleSize": 3055596,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "SD-GMANN",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-GMANN.png",
+            "AssetGuid": "164a3c5bc6bd79a45a27313a52777722",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+            "MainBundleSize": 3055596,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "SD-GMDK",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-GMDK.png",
+            "AssetGuid": "758956f8407e6f1438c58b26a4692610",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+            "MainBundleSize": 3055596,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "SD-JDT",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-JDT.png",
+            "AssetGuid": "1e38e8e6162d30e42b99ebf71abb8fe3",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+            "MainBundleSize": 3055596,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "SD-JDTD",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-JDTD.png",
+            "AssetGuid": "01063caacbc60dd41a404857a13400d8",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+            "MainBundleSize": 3055596,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "SD-JH",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-JH.png",
+            "AssetGuid": "197b3b3250612da438746828e3acba6c",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+            "MainBundleSize": 3055596,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "SD-JH1",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-JH1.png",
+            "AssetGuid": "5cc4a5b2001556941af5f4d2b34e5d7b",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+            "MainBundleSize": 3055596,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "SD-JSK",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-JSK.png",
+            "AssetGuid": "f1dd3ca7fe6292b43a7f7dfa40f5d0e5",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+            "MainBundleSize": 3055596,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "SD-QXANN",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-QXANN.png",
+            "AssetGuid": "9587847749d98ad4fb79f117b79183e9",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+            "MainBundleSize": 3055596,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "SD-SDDK",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-SDDK.png",
+            "AssetGuid": "90421d9ab6fcd564dbf07dd699b34bd1",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+            "MainBundleSize": 3055596,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "SD-SLK",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-SLK.png",
+            "AssetGuid": "7eff8bf3c20ba2f4b97df2c89c216b67",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+            "MainBundleSize": 3055596,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "SD-SPK",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-SPK.png",
+            "AssetGuid": "0ee4f2afa84c62d46b774d32e753df18",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+            "MainBundleSize": 3055596,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "SD-TP",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-TP.png",
+            "AssetGuid": "86631fd4f55077a4a8aea93693ea17cb",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+            "MainBundleSize": 3055596,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "SD-TPDK",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-TPDK.png",
+            "AssetGuid": "9915e7cad6b6e2b42817b33cf55490ca",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+            "MainBundleSize": 3055596,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "SD-TS",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-TS.png",
+            "AssetGuid": "28f1cfc044ffd6241b465e11362196c1",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+            "MainBundleSize": 3055596,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "SD-TSK",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-TSK.png",
+            "AssetGuid": "1373e16642c3f38448ef2ea37f20fe87",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+            "MainBundleSize": 3055596,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "ZJM-BB",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-BB.png",
+            "AssetGuid": "1e40b3cddac62574f9c2739f334ab200",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "MainBundleSize": 7589775,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "ZJM-BB1",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-BB1.png",
+            "AssetGuid": "190f82e96d5907c4ba22d5d0de877bc4",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "MainBundleSize": 7589775,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "ZJM-CHUAN",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-CHUAN.png",
+            "AssetGuid": "80dab410193dc6749830d93fd3bf74b9",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "MainBundleSize": 7589775,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "zjm-ck",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/zjm-ck.png",
+            "AssetGuid": "04b4d6027f6246a44a85a89f9f8950e4",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "MainBundleSize": 7589775,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "ZJM-CP",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-CP.png",
+            "AssetGuid": "01d5704f8550afb4bb90fb5b465c35b3",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "MainBundleSize": 7589775,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "ZJM-CZ",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-CZ.png",
+            "AssetGuid": "9dd9377725cb7834c813fcdc17233ebf",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "MainBundleSize": 7589775,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "ZJM-HAI",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-HAI.png",
+            "AssetGuid": "cafc07915bca4db40bd7e81471cf683b",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "MainBundleSize": 7589775,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "ZJM-HBHT",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-HBHT.png",
+            "AssetGuid": "2ed4e6894e6f3db44a425dbf58f78c31",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "MainBundleSize": 7589775,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "ZJM-JB",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-JB.png",
+            "AssetGuid": "1afc5e6dd14599f42a6f755fc9c67858",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "MainBundleSize": 7589775,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "ZJM-JH",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-JH.png",
+            "AssetGuid": "1e7f7aa3d516f2d47b80a8a2efb23f1e",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "MainBundleSize": 7589775,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "ZJM-JS",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-JS.png",
+            "AssetGuid": "cc69ceb53f591a84f80eb6e49bc123f5",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "MainBundleSize": 7589775,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "ZJM-SD",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-SD.png",
+            "AssetGuid": "79fb786072bb9bd46995257a1169196a",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "MainBundleSize": 7589775,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "ZJM-SSTBJ",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-SSTBJ.png",
+            "AssetGuid": "d3bd0b37ddfe17c4c819c5f5876eee3e",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "MainBundleSize": 7589775,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "ZJM-TKBJ",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-TKBJ.jpg",
+            "AssetGuid": "8c3990c6e0233cf49a90fe02b4f25cfd",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "MainBundleSize": 7589775,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "ZJM-TX",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-TX.png",
+            "AssetGuid": "96dfcabef3e24314d8c690503d637e9f",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "MainBundleSize": 7589775,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "ZJM-TXHT",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-TXHT.png",
+            "AssetGuid": "6d1364a824e53dd40813e592462266fe",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "MainBundleSize": 7589775,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "ZJM-XZ",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-XZ.png",
+            "AssetGuid": "af62cdce5bc845c4998c650aab8a1cfe",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "MainBundleSize": 7589775,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "ZJM-Y1",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-Y1.png",
+            "AssetGuid": "8c7245e0227399a47868d4d07d95a487",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "MainBundleSize": 7589775,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "ZJM-Y2",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-Y2.png",
+            "AssetGuid": "4348a8ef261287e4fb2084cebcbc0705",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "MainBundleSize": 7589775,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "ZJM-ZD",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-ZD.png",
+            "AssetGuid": "005dab26578043e45893c99799175b82",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "MainBundleSize": 7589775,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "ZJM-ZP",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-ZP.png",
+            "AssetGuid": "518f6537e011ca945a353a3ed33bb210",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "MainBundleSize": 7589775,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "ZJM-ZS",
+            "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-ZS.png",
+            "AssetGuid": "bd71ac06e3577a64cb59bbc268f64c32",
+            "AssetTags": [],
+            "MainBundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "MainBundleSize": 7589775,
+            "DependAssets": [],
+            "DependBundles": []
+        }
+    ],
+    "BundleInfos": [
+        {
+            "BundleName": "defaultpackage_assets_config.bundle",
+            "FileName": "a6eb1629aee6c891ebc631d66863310a.bundle",
+            "FileHash": "a6eb1629aee6c891ebc631d66863310a",
+            "FileCrc": 2784583961,
+            "FileSize": 4501,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [],
+            "ReferenceBundles": [],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/Config/BattleTuningConfig.asset",
+                    "AssetGUID": "33cc0000000000010000000000000001"
+                },
+                {
+                    "AssetPath": "Assets/Config/GemPackConfig.asset",
+                    "AssetGUID": "5eb898f70a56bbe47a6887b9b3f50a62"
+                },
+                {
+                    "AssetPath": "Assets/Config/ItemConfig.asset",
+                    "AssetGUID": "14dd171ecc29298429ded2f62fc1a87f"
+                },
+                {
+                    "AssetPath": "Assets/Config/YooAssetPlaceholder.txt",
+                    "AssetGUID": "17fce6a78f72ec040965b436c092bf0c"
+                }
+            ]
+        },
+        {
+            "BundleName": "defaultpackage_assets_prefab_battle.bundle",
+            "FileName": "5eb2e207d5284958d1c142202152a1fd.bundle",
+            "FileHash": "5eb2e207d5284958d1c142202152a1fd",
+            "FileCrc": 2838834695,
+            "FileSize": 28561,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [
+                "defaultpackage_assets_prefab_battle_art.bundle",
+                "defaultpackage_share_assets_textmesh_pro_fonts.bundle",
+                "defaultpackage_unityshaders.bundle"
+            ],
+            "ReferenceBundles": [],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/Prefab/Battle/BattleAttackTower.prefab",
+                    "AssetGUID": "11aa0000000000010000000000000009"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/BattleAttractor.prefab",
+                    "AssetGUID": "11aa000000000001000000000000000c"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/BattleCaptureTower.prefab",
+                    "AssetGUID": "11aa0000000000010000000000000008"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/BattleCharacter.prefab",
+                    "AssetGUID": "11aa0000000000010000000000000003"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/BattleCrab.prefab",
+                    "AssetGUID": "11aa0000000000010000000000000005"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/BattleHud.prefab",
+                    "AssetGUID": "11aa000000000001000000000000000a"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/BattleNet.prefab",
+                    "AssetGUID": "11aa0000000000010000000000000006"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/BattlePlank.prefab",
+                    "AssetGUID": "11aa0000000000010000000000000002"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/BattleResource.prefab",
+                    "AssetGUID": "11aa0000000000010000000000000004"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/BattleSpear.prefab",
+                    "AssetGUID": "11aa0000000000010000000000000007"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/BattleWater.prefab",
+                    "AssetGUID": "11aa0000000000010000000000000001"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/BattleWorld.prefab",
+                    "AssetGUID": "11aa000000000001000000000000000b"
+                }
+            ]
+        },
+        {
+            "BundleName": "defaultpackage_assets_prefab_battle_art.bundle",
+            "FileName": "13923897f81a9f63e8beb1f3b3a07e3a.bundle",
+            "FileHash": "13923897f81a9f63e8beb1f3b3a07e3a",
+            "FileCrc": 1442320339,
+            "FileSize": 7543,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [],
+            "ReferenceBundles": [
+                "defaultpackage_assets_prefab_battle.bundle"
+            ],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteCharacter.png",
+                    "AssetGUID": "22bb0000000000010000000000000003"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteCrab.png",
+                    "AssetGUID": "22bb0000000000010000000000000007"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteLeaf.png",
+                    "AssetGUID": "22bb0000000000010000000000000005"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteNet.png",
+                    "AssetGUID": "22bb0000000000010000000000000008"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpritePlank.png",
+                    "AssetGUID": "22bb0000000000010000000000000002"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteRange.png",
+                    "AssetGUID": "22bb000000000001000000000000000a"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteRangeThin.png",
+                    "AssetGUID": "22bb000000000001000000000000000b"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteScrap.png",
+                    "AssetGUID": "22bb0000000000010000000000000006"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteSpear.png",
+                    "AssetGUID": "22bb0000000000010000000000000009"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteWater.png",
+                    "AssetGUID": "22bb0000000000010000000000000001"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/Battle/Art/BattleSpriteWood.png",
+                    "AssetGUID": "22bb0000000000010000000000000004"
+                }
+            ]
+        },
+        {
+            "BundleName": "defaultpackage_assets_prefab_ui.bundle",
+            "FileName": "67cdb54a85fcd474912553bfa4c8277b.bundle",
+            "FileHash": "67cdb54a85fcd474912553bfa4c8277b",
+            "FileCrc": 4147821037,
+            "FileSize": 13264,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [
+                "defaultpackage_assets_ui_us-1010-bydr-gm-bb.bundle",
+                "defaultpackage_assets_ui_us-1010-bydr-gm-cz.bundle",
+                "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+                "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+                "defaultpackage_share_assets_textmesh_pro_fonts.bundle",
+                "defaultpackage_unityshaders.bundle"
+            ],
+            "ReferenceBundles": [],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/Prefab/UI/BagPrefab.prefab",
+                    "AssetGUID": "a0eb8008c2f12fe4888857168e1a46c3"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/UI/ShopPrefab.prefab",
+                    "AssetGUID": "9227dbf1176dd5e4e9fbc72dfde3e76f"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/UI/TipPrefab.prefab",
+                    "AssetGUID": "8294a220bdba0924ea61b3928643173f"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/UI/TopBarPrefab.prefab",
+                    "AssetGUID": "a4508af2e9f354d4eae0eff40c21041b"
+                },
+                {
+                    "AssetPath": "Assets/Prefab/UI/TopPrefab.prefab",
+                    "AssetGUID": "4f0ed154cee97594292ded1ba79b8717"
+                }
+            ]
+        },
+        {
+            "BundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-bb.bundle",
+            "FileName": "6d9cbc4221ba4a70a465a47c15d0cf18.bundle",
+            "FileHash": "6d9cbc4221ba4a70a465a47c15d0cf18",
+            "FileCrc": 1747178712,
+            "FileSize": 2811770,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [],
+            "ReferenceBundles": [
+                "defaultpackage_assets_prefab_ui.bundle"
+            ],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-BB/BB-BK.png",
+                    "AssetGUID": "6ae15cce25c247b4da91fb5be7d00082"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-BB/BB-CK.png",
+                    "AssetGUID": "117f706c985bebf41ab35de590b4c9c4"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-BB/BB-FH.png",
+                    "AssetGUID": "dab8873160ec5fb4b989047629fc47c9"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-BB/BB-GZ.png",
+                    "AssetGUID": "d97d0c65bc50c194bbad93813325fb4c"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-BB/BB-JG.png",
+                    "AssetGUID": "2708753fce05f834fa8f0d242b33d6ac"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-BB/BB-JSK.png",
+                    "AssetGUID": "ac59e29d1611bce46a89943bc81f3787"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-BB/BB-SL.png",
+                    "AssetGUID": "df03d56807dd86447961c1bb891cf00c"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-BB/BB-XZ.png",
+                    "AssetGUID": "02382d3a727d70c44933b814996a0f51"
+                }
+            ]
+        },
+        {
+            "BundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-cz.bundle",
+            "FileName": "6f940e285765b72a715b56dc279535a3.bundle",
+            "FileHash": "6f940e285765b72a715b56dc279535a3",
+            "FileCrc": 3892453292,
+            "FileSize": 7186107,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [],
+            "ReferenceBundles": [
+                "defaultpackage_assets_prefab_ui.bundle"
+            ],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/CZ-CK.png",
+                    "AssetGUID": "47cd50e70aa6dc548bbda0babed802d8"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/CZ-DT.jpg",
+                    "AssetGUID": "c978db4261677154ab6d78ff116d2147"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/CZ-GMANN.png",
+                    "AssetGUID": "c59c874770e026046800c04b192bdb63"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/CZ-HBD.png",
+                    "AssetGUID": "94e55696d57ae0342a5a97bf6cdc9e9b"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/CZ-HBK.png",
+                    "AssetGUID": "0d2f732a81b295d4a85fad1fa4545016"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/CZ-LQ.png",
+                    "AssetGUID": "ad882379d0ac0504faa0376b02c2264f"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/CZ-MFJBK.png",
+                    "AssetGUID": "e16d96d26f49f1d4f903a5df4b96a62e"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/CZ-TP.png",
+                    "AssetGUID": "51fde4f261b0e4947a3a8869ffaf3e92"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/CZ-YLQ.png",
+                    "AssetGUID": "06d3439ba5d663145a796aa2ddfc8a14"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/hb (1).png",
+                    "AssetGUID": "ae0fb78fb7582704c8dcfcbd94dcea53"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/hb (2).png",
+                    "AssetGUID": "8d3b404f062be4c41933c8449531824c"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/hb (3).png",
+                    "AssetGUID": "32678cdf10da1a14e81890614df50d4b"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/hb (4).png",
+                    "AssetGUID": "986b792f39671834eb9f662764c6b012"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/hb (5).png",
+                    "AssetGUID": "f53507ef7a3806247ba8b0cd84df4572"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/hb (6).png",
+                    "AssetGUID": "944f8f3b8a9e47949a4a4b9c8b5e5948"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/hb (7).png",
+                    "AssetGUID": "2408195d4e6146743b8cd7362892fa7f"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/hb (8).png",
+                    "AssetGUID": "8ada04e40d04f2d48a72ddeba5c71e9e"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-CZ/hb (9).png",
+                    "AssetGUID": "a70fe1f98c4452d4dbcc20fed3689362"
+                }
+            ]
+        },
+        {
+            "BundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-js.bundle",
+            "FileName": "1f4955af6f8a444ffae95950ccf6557f.bundle",
+            "FileHash": "1f4955af6f8a444ffae95950ccf6557f",
+            "FileCrc": 2643343566,
+            "FileSize": 5372162,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [],
+            "ReferenceBundles": [],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/img_v3_0216b_d24c3a1b-44e8-4082-9cc3-e551ed51d56g.png",
+                    "AssetGUID": "6ecfb197726dbfc4a8c16ff5bcf93b42"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-CK.png",
+                    "AssetGUID": "ef569e5be2684924e83d07b4e7521d33"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-DT.jpg",
+                    "AssetGUID": "783c277357f46ce41a783701f07c361e"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-FW.png",
+                    "AssetGUID": "76860f16993bc004cb2aaf4b408c95f2"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-FWJDT.png",
+                    "AssetGUID": "928118560cb84c24fbd8f9a3017b086d"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-FYJDT.png",
+                    "AssetGUID": "fca3594c960d85147bb119a1882ff70b"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-GJ.png",
+                    "AssetGUID": "3ddecaf124e506c429f269446b3ea26f"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-GJJDT.png",
+                    "AssetGUID": "206ef91a0106fb0498840952f6cad2e2"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-JDTD.png",
+                    "AssetGUID": "52a49b4b9bdde1d47a5f9a0ecd51bc10"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-RW.png",
+                    "AssetGUID": "d55fe2d4bb9e77b4880ac922d4967218"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-SJ.png",
+                    "AssetGUID": "47e6836ea97b8c146ae47546776689e3"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-ZBGZ1.png",
+                    "AssetGUID": "8cfeaa667218ded4f80e2a72f74aaaea"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-ZBGZ2.png",
+                    "AssetGUID": "c89b204ffbc2ab144bc8382763d729a3"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-ZBGZ3.png",
+                    "AssetGUID": "6d3698167138c7445a6de34961374fd4"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-ZBGZ4.png",
+                    "AssetGUID": "005136cff7a7e6e4b98941f792588a87"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-JS/JS-ZBKL.png",
+                    "AssetGUID": "77edb7213e26bf949b59ae7aa3ed0250"
+                }
+            ]
+        },
+        {
+            "BundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-sd.bundle",
+            "FileName": "1a048ba00aa7fa33654ebbd13728620b.bundle",
+            "FileHash": "1a048ba00aa7fa33654ebbd13728620b",
+            "FileCrc": 999069720,
+            "FileSize": 3055596,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [],
+            "ReferenceBundles": [
+                "defaultpackage_assets_prefab_ui.bundle"
+            ],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-BX.png",
+                    "AssetGUID": "6ddd233c2338dbc4fbad11c4c588fd60"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-BX1.png",
+                    "AssetGUID": "388656390f8fd294c8eee888cd8dae44"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-CK.png",
+                    "AssetGUID": "a8a9ea6eac790ed49bda176b964a4f43"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-CK2.png",
+                    "AssetGUID": "0410c01a7fe2c5e46aa7a5b24079df33"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-GM.png",
+                    "AssetGUID": "28d4800ed54d2d84aa5c9ebb41d1b498"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-GMANN.png",
+                    "AssetGUID": "164a3c5bc6bd79a45a27313a52777722"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-GMDK.png",
+                    "AssetGUID": "758956f8407e6f1438c58b26a4692610"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-JDT.png",
+                    "AssetGUID": "1e38e8e6162d30e42b99ebf71abb8fe3"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-JDTD.png",
+                    "AssetGUID": "01063caacbc60dd41a404857a13400d8"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-JH.png",
+                    "AssetGUID": "197b3b3250612da438746828e3acba6c"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-JH1.png",
+                    "AssetGUID": "5cc4a5b2001556941af5f4d2b34e5d7b"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-JSK.png",
+                    "AssetGUID": "f1dd3ca7fe6292b43a7f7dfa40f5d0e5"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-QXANN.png",
+                    "AssetGUID": "9587847749d98ad4fb79f117b79183e9"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-SDDK.png",
+                    "AssetGUID": "90421d9ab6fcd564dbf07dd699b34bd1"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-SLK.png",
+                    "AssetGUID": "7eff8bf3c20ba2f4b97df2c89c216b67"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-SPK.png",
+                    "AssetGUID": "0ee4f2afa84c62d46b774d32e753df18"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-TP.png",
+                    "AssetGUID": "86631fd4f55077a4a8aea93693ea17cb"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-TPDK.png",
+                    "AssetGUID": "9915e7cad6b6e2b42817b33cf55490ca"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-TS.png",
+                    "AssetGUID": "28f1cfc044ffd6241b465e11362196c1"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-SD/SD-TSK.png",
+                    "AssetGUID": "1373e16642c3f38448ef2ea37f20fe87"
+                }
+            ]
+        },
+        {
+            "BundleName": "defaultpackage_assets_ui_us-1010-bydr-gm-zjm.bundle",
+            "FileName": "3589362a6b0e695d51338e99b14e75ef.bundle",
+            "FileHash": "3589362a6b0e695d51338e99b14e75ef",
+            "FileCrc": 4068125531,
+            "FileSize": 7589775,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [],
+            "ReferenceBundles": [
+                "defaultpackage_assets_prefab_ui.bundle"
+            ],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-BB.png",
+                    "AssetGUID": "1e40b3cddac62574f9c2739f334ab200"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-BB1.png",
+                    "AssetGUID": "190f82e96d5907c4ba22d5d0de877bc4"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-CHUAN.png",
+                    "AssetGUID": "80dab410193dc6749830d93fd3bf74b9"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/zjm-ck.png",
+                    "AssetGUID": "04b4d6027f6246a44a85a89f9f8950e4"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-CP.png",
+                    "AssetGUID": "01d5704f8550afb4bb90fb5b465c35b3"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-CZ.png",
+                    "AssetGUID": "9dd9377725cb7834c813fcdc17233ebf"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-HAI.png",
+                    "AssetGUID": "cafc07915bca4db40bd7e81471cf683b"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-HBHT.png",
+                    "AssetGUID": "2ed4e6894e6f3db44a425dbf58f78c31"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-JB.png",
+                    "AssetGUID": "1afc5e6dd14599f42a6f755fc9c67858"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-JH.png",
+                    "AssetGUID": "1e7f7aa3d516f2d47b80a8a2efb23f1e"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-JS.png",
+                    "AssetGUID": "cc69ceb53f591a84f80eb6e49bc123f5"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-SD.png",
+                    "AssetGUID": "79fb786072bb9bd46995257a1169196a"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-SSTBJ.png",
+                    "AssetGUID": "d3bd0b37ddfe17c4c819c5f5876eee3e"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-TKBJ.jpg",
+                    "AssetGUID": "8c3990c6e0233cf49a90fe02b4f25cfd"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-TX.png",
+                    "AssetGUID": "96dfcabef3e24314d8c690503d637e9f"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-TXHT.png",
+                    "AssetGUID": "6d1364a824e53dd40813e592462266fe"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-XZ.png",
+                    "AssetGUID": "af62cdce5bc845c4998c650aab8a1cfe"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-Y1.png",
+                    "AssetGUID": "8c7245e0227399a47868d4d07d95a487"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-Y2.png",
+                    "AssetGUID": "4348a8ef261287e4fb2084cebcbc0705"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-ZD.png",
+                    "AssetGUID": "005dab26578043e45893c99799175b82"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-ZP.png",
+                    "AssetGUID": "518f6537e011ca945a353a3ed33bb210"
+                },
+                {
+                    "AssetPath": "Assets/UI/US-1010-BYDR-GM-ZJM/ZJM-ZS.png",
+                    "AssetGUID": "bd71ac06e3577a64cb59bbc268f64c32"
+                }
+            ]
+        },
+        {
+            "BundleName": "defaultpackage_share_assets_textmesh_pro_fonts.bundle",
+            "FileName": "d645dfa9da1a40c50061d960f562f00a.bundle",
+            "FileHash": "d645dfa9da1a40c50061d960f562f00a",
+            "FileCrc": 1433020830,
+            "FileSize": 4711292,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [
+                "defaultpackage_unityshaders.bundle"
+            ],
+            "ReferenceBundles": [
+                "defaultpackage_assets_prefab_battle.bundle",
+                "defaultpackage_assets_prefab_ui.bundle"
+            ],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Fonts/AlimamaFangYuanTiVF-Thin-2 SDF.asset",
+                    "AssetGUID": "56e86ebb5c641454389cad93ec3b8b09"
+                },
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Fonts/AlimamaFangYuanTiVF-Thin-2.ttf",
+                    "AssetGUID": "b4edd0258817447498d7ec8979a48895"
+                }
+            ]
+        },
+        {
+            "BundleName": "defaultpackage_unityshaders.bundle",
+            "FileName": "9c1317fa1b06f9ee935ddd12a0116861.bundle",
+            "FileHash": "9c1317fa1b06f9ee935ddd12a0116861",
+            "FileCrc": 3522184769,
+            "FileSize": 22637,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [],
+            "ReferenceBundles": [
+                "defaultpackage_assets_prefab_battle.bundle",
+                "defaultpackage_assets_prefab_ui.bundle",
+                "defaultpackage_share_assets_textmesh_pro_fonts.bundle"
+            ],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile.shader",
+                    "AssetGUID": "fe393ace9b354375a9cb14cdbbc28be4"
+                }
+            ]
+        }
+    ],
+    "IndependentAssets": []
+}

@@ -1,21 +1,42 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
-/// 已有 TopUpPanel：用 TopPrefab 铺 GemPackDefs 的 6 档。
-/// 购买走 IapPurchaseManager（编辑器 Fake Store）。成功只弹奖励（钻石已在 ProcessPurchase 里加上）；失败/取消走 PurchaseTipUI。
+/// TopUpPanel: instantiate TopPrefab from GemPackDefs; IAP buy; daily mr claim 200 gold once per local day.
 /// </summary>
 public class TopUpPanelController : MonoBehaviour
 {
+    [Header("Pack list")]
     [SerializeField] private Transform listRoot;
     [SerializeField] private TopUpItemSlot topPrefab;
     [SerializeField] private PurchaseLoadingUI loading;
     [SerializeField] private PurchaseTipUI purchaseTip;
     [SerializeField] private GemPackConfig gemPackConfig;
 
+    [Header("Daily mr (free gold)")]
+    [SerializeField] private CanvasGroup mrRoot;
+    [SerializeField] private Button mrClaimButton;
+
     private Coroutine _rebuild;
     private Coroutine _flow;
     private bool _busy;
+
+    private void Awake()
+    {
+        if (mrClaimButton != null)
+        {
+            mrClaimButton.onClick.AddListener(OnMrClaimClicked);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (mrClaimButton != null)
+        {
+            mrClaimButton.onClick.RemoveListener(OnMrClaimClicked);
+        }
+    }
 
     private void OnEnable()
     {
@@ -25,6 +46,7 @@ public class TopUpPanelController : MonoBehaviour
         }
 
         _rebuild = StartCoroutine(RebuildRoutine());
+        RefreshMrVisual();
     }
 
     private void OnDisable()
@@ -166,6 +188,69 @@ public class TopUpPanelController : MonoBehaviour
 
         _busy = false;
         _flow = null;
+    }
+
+    private void OnMrClaimClicked()
+    {
+        LocalSaveManager save = LocalSaveManager.Instance;
+        if (save == null)
+        {
+            TipPanelUI.ShowTip("Not ready.");
+            return;
+        }
+
+        if (save.IsTopUpDailyGoldClaimedToday())
+        {
+            TipPanelUI.ShowTip("Already claimed today.");
+            RefreshMrVisual();
+            return;
+        }
+
+        int gold;
+        if (!save.TryClaimTopUpDailyGold(out gold))
+        {
+            TipPanelUI.ShowTip("Already claimed today.");
+            RefreshMrVisual();
+            return;
+        }
+
+        GetPanelController.Show(new GetPanelController.Reward
+        {
+            useCurrency = true,
+            currency = CurrencyType.Gold,
+            displayName = "Gold",
+            count = gold
+        });
+        TipPanelUI.ShowTip("Claimed!");
+        RefreshMrVisual();
+    }
+
+    private void RefreshMrVisual()
+    {
+        LocalSaveManager save = LocalSaveManager.Instance;
+        bool claimed = save != null && save.IsTopUpDailyGoldClaimedToday();
+
+        if (mrRoot != null)
+        {
+            mrRoot.alpha = claimed ? 0.5f : 1f;
+            mrRoot.interactable = !claimed;
+            mrRoot.blocksRaycasts = !claimed;
+        }
+
+        if (mrClaimButton != null)
+        {
+            mrClaimButton.interactable = !claimed;
+        }
+
+        // Grey tint on mr root graphic when claimed.
+        if (mrRoot != null)
+        {
+            Graphic g = mrRoot.GetComponent<Graphic>();
+            if (g != null)
+            {
+                g.color = claimed ? new Color(0.55f, 0.55f, 0.55f, 1f) : Color.white;
+            }
+        }
     }
 
     private void ShowFail(string message)

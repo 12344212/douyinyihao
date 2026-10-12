@@ -495,6 +495,43 @@ public class LocalSaveManager : MonoBehaviour
         AddGold(goldReward);
         return true;
     }
+
+    // ---------- TopUp daily free gold ----------
+
+    public const int TopUpDailyGoldReward = 200;
+
+    public static string TodayLocalDateString()
+    {
+        return DateTime.Now.ToString("yyyy-MM-dd");
+    }
+
+    public bool IsTopUpDailyGoldClaimedToday()
+    {
+        EnsureData();
+        if (string.IsNullOrEmpty(_data.topUpDailyGoldClaimDate))
+        {
+            return false;
+        }
+
+        return _data.topUpDailyGoldClaimDate == TodayLocalDateString();
+    }
+
+    /// <summary>Claim 200 gold once per local calendar day. Returns false if already claimed today.</summary>
+    public bool TryClaimTopUpDailyGold(out int goldReward)
+    {
+        goldReward = 0;
+        EnsureData();
+        if (IsTopUpDailyGoldClaimedToday())
+        {
+            return false;
+        }
+
+        _data.topUpDailyGoldClaimDate = TodayLocalDateString();
+        goldReward = TopUpDailyGoldReward;
+        Save();
+        AddGold(goldReward);
+        return true;
+    }
     // ---------- 背包道具 ----------
 
     public int GetItemCount(string itemId)
