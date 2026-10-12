@@ -26,10 +26,14 @@ public class ItemConfig : ScriptableObject
         [Header("Equipment (optional)")]
         public EquipItemType equipType;
         public int attackBonus;
-        [Tooltip("Short stat line shown in shop/bag, e.g. Attack +2 or Survivability.")]
+        [Tooltip("Short stat line shown in shop/bag, e.g. Attack +2 or Attack Range +0.2.")]
         public string statBonusLabel;
-        [Tooltip("Stable id for battle stub, e.g. longer_reach.")]
+        [Tooltip("Numeric base bonus by type: spear unused (use attackBonus); hood attack range; shoes net speed mul; armor HP.")]
+        public float statBonusValue;
+        [Tooltip("Stable id for battle stub, e.g. crit_chance.")]
         public string specialEffectId;
+        [Tooltip("Numeric special param: crit/lifesteal/dodge chance, EXP amount, capacity, retrieve levels, dmg reduce.")]
+        public float specialValue;
         [TextArea] public string specialDescription;
     }
 }

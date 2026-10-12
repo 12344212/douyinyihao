@@ -72,4 +72,18 @@ public static class EquipSpecialEffects
         GameItemDefs.Def def = GameItemDefs.Get(itemId);
         return def != null ? Mathf.Max(0, def.attackBonus) : 0;
     }
+
+    /// <summary>Primary non-attack bonus (hood range, shoe net-speed mul, armor HP). Stub data only.</summary>
+    public static float GetStatBonusValue(string itemId)
+    {
+        GameItemDefs.Def def = GameItemDefs.Get(itemId);
+        return def != null ? def.statBonusValue : 0f;
+    }
+
+    /// <summary>Special effect magnitude from config (chance, EXP, capacity, etc.). Stub data only.</summary>
+    public static float GetSpecialValue(string itemId)
+    {
+        GameItemDefs.Def def = GameItemDefs.Get(itemId);
+        return def != null ? def.specialValue : 0f;
+    }
 }

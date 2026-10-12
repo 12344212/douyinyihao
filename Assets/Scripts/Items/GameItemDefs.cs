@@ -31,7 +31,9 @@ public static class GameItemDefs
         public readonly EquipItemType equipType;
         public readonly int attackBonus;
         public readonly string statBonusLabel;
+        public readonly float statBonusValue;
         public readonly string specialEffectId;
+        public readonly float specialValue;
         public readonly string specialDescription;
 
         public Def(
@@ -44,7 +46,9 @@ public static class GameItemDefs
             EquipItemType equipType = EquipItemType.None,
             int attackBonus = 0,
             string statBonusLabel = null,
+            float statBonusValue = 0f,
             string specialEffectId = null,
+            float specialValue = 0f,
             string specialDescription = null)
         {
             this.id = id;
@@ -56,7 +60,9 @@ public static class GameItemDefs
             this.equipType = equipType;
             this.attackBonus = attackBonus;
             this.statBonusLabel = statBonusLabel ?? string.Empty;
+            this.statBonusValue = statBonusValue;
             this.specialEffectId = specialEffectId ?? string.Empty;
+            this.specialValue = specialValue;
             this.specialDescription = specialDescription ?? string.Empty;
         }
 
@@ -209,7 +215,9 @@ public static class GameItemDefs
             entry.equipType,
             entry.attackBonus,
             entry.statBonusLabel,
+            entry.statBonusValue,
             entry.specialEffectId,
+            entry.specialValue,
             entry.specialDescription);
     }
 }

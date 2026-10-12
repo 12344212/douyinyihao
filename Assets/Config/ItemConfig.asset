@@ -22,93 +22,111 @@ MonoBehaviour:
     equipType: 0
     attackBonus: 0
     statBonusLabel: 
+    statBonusValue: 0
     specialEffectId: 
+    specialValue: 0
     specialDescription: 
   - id: ZB-BQ1
     displayName: Iron Pike
-    description: A sturdy iron pike with longer reach feel.
+    description: A sturdy iron pike. Boosts attack power.
     price: 120
     currency: 0
     iconLocation: ZB-BQ1
     equipType: 1
     attackBonus: 2
     statBonusLabel: Attack +2
-    specialEffectId: longer_reach
-    specialDescription: Longer reach feel.
+    statBonusValue: 0
+    specialEffectId: crit_chance
+    specialValue: 0.15
+    specialDescription: 15% chance to critically strike.
   - id: ZB-BQ2
     displayName: Coral Lance
-    description: Coral-forged lance.
+    description: Coral-forged lance with draining barbs.
     price: 280
     currency: 0
     iconLocation: ZB-BQ2
     equipType: 1
     attackBonus: 4
     statBonusLabel: Attack +4
-    specialEffectId: elite_bonus
-    specialDescription: Bonus damage vs elite.
+    statBonusValue: 0
+    specialEffectId: lifesteal
+    specialValue: 0.2
+    specialDescription: 20% lifesteal on hit.
   - id: ZB-MZ1
     displayName: Tide Hood
-    description: Hood soaked in tide charm.
+    description: Hood soaked in tide charm. Extends attack reach.
     price: 100
     currency: 0
     iconLocation: ZB-MZ1
     equipType: 2
     attackBonus: 0
-    statBonusLabel: Survivability
-    specialEffectId: gold_find
-    specialDescription: Slight gold find.
+    statBonusLabel: Attack Range +0.2
+    statBonusValue: 0.2
+    specialEffectId: net_retrieve_exp
+    specialValue: 10
+    specialDescription: On net retrieve, gain +10 EXP.
   - id: ZB-MZ2
     displayName: Deepveil Mask
-    description: Veils your presence.
+    description: Veils your presence and stretches spear range.
     price: 240
     currency: 0
     iconLocation: ZB-MZ2
     equipType: 2
     attackBonus: 0
-    statBonusLabel: 
-    specialEffectId: rare_loot
-    specialDescription: Rare loot chance up.
+    statBonusLabel: Attack Range +0.4
+    statBonusValue: 0.4
+    specialEffectId: net_retrieve_double_exp
+    specialValue: 0.15
+    specialDescription: On net retrieve, 15% chance to double EXP.
   - id: ZB-XZ1
     displayName: Reef Boots
-    description: Grippy reef soles.
+    description: Grippy reef soles that hurry the net outward.
     price: 110
     currency: 0
     iconLocation: ZB-XZ1
     equipType: 3
     attackBonus: 0
-    statBonusLabel: 
-    specialEffectId: dash_cd_cut
-    specialDescription: Short dash cooldown cut.
+    statBonusLabel: Net Speed +10%
+    statBonusValue: 0.1
+    specialEffectId: net_capacity
+    specialValue: 4
+    specialDescription: Net capacity fixed +4.
   - id: ZB-XZ2
     displayName: Gale Soles
-    description: Wind-kissed soles.
+    description: Wind-kissed soles that whip the net faster.
     price: 260
     currency: 0
     iconLocation: ZB-XZ2
     equipType: 3
     attackBonus: 0
-    statBonusLabel: 
-    specialEffectId: catch_speed_burst
-    specialDescription: After catch, brief speed burst.
+    statBonusLabel: Net Speed +20%
+    statBonusValue: 0.2
+    specialEffectId: net_retrieve_speed_levels
+    specialValue: 3
+    specialDescription: Net retrieve speed +3 levels.
   - id: ZB-YF1
     displayName: Shell Plate
-    description: Layered shell plating.
+    description: Layered shell plating that toughens your body.
     price: 150
     currency: 0
     iconLocation: ZB-YF1
     equipType: 4
     attackBonus: 0
-    statBonusLabel: 
-    specialEffectId: first_hit_shield
-    specialDescription: First hit shield once per stage.
+    statBonusLabel: HP +5
+    statBonusValue: 5
+    specialEffectId: hit_dmg_reduce
+    specialValue: 1
+    specialDescription: Each hit taken reduces damage by 1.
   - id: ZB-YF2
     displayName: Abyss Mail
-    description: Mail from the abyss.
+    description: Mail from the abyss that hardens resolve.
     price: 300
     currency: 0
     iconLocation: ZB-YF2
     equipType: 4
     attackBonus: 0
-    statBonusLabel: 
-    specialEffectId: low_hp_defense
-    specialDescription: Low-HP defense up.
+    statBonusLabel: HP +10
+    statBonusValue: 10
+    specialEffectId: dodge_chance
+    specialValue: 0.15
+    specialDescription: 15% chance to dodge the attack.

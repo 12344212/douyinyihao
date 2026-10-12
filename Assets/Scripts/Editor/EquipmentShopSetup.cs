@@ -26,7 +26,9 @@ public static class EquipmentShopSetup
         public EquipItemType equipType;
         public int attackBonus;
         public string statBonusLabel;
+        public float statBonusValue;
         public string specialEffectId;
+        public float specialValue;
         public string specialDescription;
         public string iconLocation;
     }
@@ -37,104 +39,120 @@ public static class EquipmentShopSetup
         {
             id = GameItemDefs.IronPikeId,
             displayName = "Iron Pike",
-            description = "A sturdy iron pike with longer reach feel.",
+            description = "A sturdy iron pike. Boosts attack power.",
             price = 120,
             equipType = EquipItemType.Spear,
             attackBonus = 2,
             statBonusLabel = "Attack +2",
-            specialEffectId = "longer_reach",
-            specialDescription = "Longer reach feel.",
+            statBonusValue = 0f,
+            specialEffectId = "crit_chance",
+            specialValue = 0.15f,
+            specialDescription = "15% chance to critically strike.",
             iconLocation = "ZB-BQ1"
         },
         new EquipDef
         {
             id = GameItemDefs.CoralLanceId,
             displayName = "Coral Lance",
-            description = "Coral-forged lance.",
+            description = "Coral-forged lance with draining barbs.",
             price = 280,
             equipType = EquipItemType.Spear,
             attackBonus = 4,
             statBonusLabel = "Attack +4",
-            specialEffectId = "elite_bonus",
-            specialDescription = "Bonus damage vs elite.",
+            statBonusValue = 0f,
+            specialEffectId = "lifesteal",
+            specialValue = 0.20f,
+            specialDescription = "20% lifesteal on hit.",
             iconLocation = "ZB-BQ2"
         },
         new EquipDef
         {
             id = GameItemDefs.TideHoodId,
             displayName = "Tide Hood",
-            description = "Hood soaked in tide charm.",
+            description = "Hood soaked in tide charm. Extends attack reach.",
             price = 100,
             equipType = EquipItemType.Hood,
             attackBonus = 0,
-            statBonusLabel = "Survivability",
-            specialEffectId = "gold_find",
-            specialDescription = "Slight gold find.",
+            statBonusLabel = "Attack Range +0.2",
+            statBonusValue = 0.2f,
+            specialEffectId = "net_retrieve_exp",
+            specialValue = 10f,
+            specialDescription = "On net retrieve, gain +10 EXP.",
             iconLocation = "ZB-MZ1"
         },
         new EquipDef
         {
             id = GameItemDefs.DeepveilMaskId,
             displayName = "Deepveil Mask",
-            description = "Veils your presence.",
+            description = "Veils your presence and stretches spear range.",
             price = 240,
             equipType = EquipItemType.Hood,
             attackBonus = 0,
-            statBonusLabel = "",
-            specialEffectId = "rare_loot",
-            specialDescription = "Rare loot chance up.",
+            statBonusLabel = "Attack Range +0.4",
+            statBonusValue = 0.4f,
+            specialEffectId = "net_retrieve_double_exp",
+            specialValue = 0.15f,
+            specialDescription = "On net retrieve, 15% chance to double EXP.",
             iconLocation = "ZB-MZ2"
         },
         new EquipDef
         {
             id = GameItemDefs.ReefBootsId,
             displayName = "Reef Boots",
-            description = "Grippy reef soles.",
+            description = "Grippy reef soles that hurry the net outward.",
             price = 110,
             equipType = EquipItemType.Shoes,
             attackBonus = 0,
-            statBonusLabel = "",
-            specialEffectId = "dash_cd_cut",
-            specialDescription = "Short dash cooldown cut.",
+            statBonusLabel = "Net Speed +10%",
+            statBonusValue = 0.1f,
+            specialEffectId = "net_capacity",
+            specialValue = 4f,
+            specialDescription = "Net capacity fixed +4.",
             iconLocation = "ZB-XZ1"
         },
         new EquipDef
         {
             id = GameItemDefs.GaleSolesId,
             displayName = "Gale Soles",
-            description = "Wind-kissed soles.",
+            description = "Wind-kissed soles that whip the net faster.",
             price = 260,
             equipType = EquipItemType.Shoes,
             attackBonus = 0,
-            statBonusLabel = "",
-            specialEffectId = "catch_speed_burst",
-            specialDescription = "After catch, brief speed burst.",
+            statBonusLabel = "Net Speed +20%",
+            statBonusValue = 0.2f,
+            specialEffectId = "net_retrieve_speed_levels",
+            specialValue = 3f,
+            specialDescription = "Net retrieve speed +3 levels.",
             iconLocation = "ZB-XZ2"
         },
         new EquipDef
         {
             id = GameItemDefs.ShellPlateId,
             displayName = "Shell Plate",
-            description = "Layered shell plating.",
+            description = "Layered shell plating that toughens your body.",
             price = 150,
             equipType = EquipItemType.Armor,
             attackBonus = 0,
-            statBonusLabel = "",
-            specialEffectId = "first_hit_shield",
-            specialDescription = "First hit shield once per stage.",
+            statBonusLabel = "HP +5",
+            statBonusValue = 5f,
+            specialEffectId = "hit_dmg_reduce",
+            specialValue = 1f,
+            specialDescription = "Each hit taken reduces damage by 1.",
             iconLocation = "ZB-YF1"
         },
         new EquipDef
         {
             id = GameItemDefs.AbyssMailId,
             displayName = "Abyss Mail",
-            description = "Mail from the abyss.",
+            description = "Mail from the abyss that hardens resolve.",
             price = 300,
             equipType = EquipItemType.Armor,
             attackBonus = 0,
-            statBonusLabel = "",
-            specialEffectId = "low_hp_defense",
-            specialDescription = "Low-HP defense up.",
+            statBonusLabel = "HP +10",
+            statBonusValue = 10f,
+            specialEffectId = "dodge_chance",
+            specialValue = 0.15f,
+            specialDescription = "15% chance to dodge the attack.",
             iconLocation = "ZB-YF2"
         }
     };
@@ -243,7 +261,9 @@ public static class EquipmentShopSetup
         entry.FindPropertyRelative("equipType").enumValueIndex = (int)EquipItemType.None;
         entry.FindPropertyRelative("attackBonus").intValue = 0;
         entry.FindPropertyRelative("statBonusLabel").stringValue = string.Empty;
+        entry.FindPropertyRelative("statBonusValue").floatValue = 0f;
         entry.FindPropertyRelative("specialEffectId").stringValue = string.Empty;
+        entry.FindPropertyRelative("specialValue").floatValue = 0f;
         entry.FindPropertyRelative("specialDescription").stringValue = string.Empty;
     }
 
@@ -266,7 +286,9 @@ public static class EquipmentShopSetup
         entry.FindPropertyRelative("equipType").enumValueIndex = (int)def.equipType;
         entry.FindPropertyRelative("attackBonus").intValue = def.attackBonus;
         entry.FindPropertyRelative("statBonusLabel").stringValue = def.statBonusLabel ?? string.Empty;
+        entry.FindPropertyRelative("statBonusValue").floatValue = def.statBonusValue;
         entry.FindPropertyRelative("specialEffectId").stringValue = def.specialEffectId ?? string.Empty;
+        entry.FindPropertyRelative("specialValue").floatValue = def.specialValue;
         entry.FindPropertyRelative("specialDescription").stringValue = def.specialDescription ?? string.Empty;
     }
 
