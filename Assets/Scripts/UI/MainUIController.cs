@@ -21,6 +21,7 @@ public class MainUIController : MonoBehaviour
     [SerializeField] private Button shopButton;
     [SerializeField] private Button bagButton;
     [SerializeField] private Button upgradeButton;
+    [SerializeField] private Button topUpButton;
 
     [Header("Top Bar (avatar / gold + / gems +)")]
     [SerializeField] private TopBarUI topBar;
@@ -61,6 +62,7 @@ public class MainUIController : MonoBehaviour
         Bind(shopButton, OpenShop);
         Bind(bagButton, OpenBag);
         Bind(upgradeButton, OpenUpgrade);
+        Bind(topUpButton, OpenTopUp);
 
         if (topBar != null)
         {
@@ -96,6 +98,7 @@ public class MainUIController : MonoBehaviour
         Unbind(shopButton, OpenShop);
         Unbind(bagButton, OpenBag);
         Unbind(upgradeButton, OpenUpgrade);
+        Unbind(topUpButton, OpenTopUp);
 
         if (topBar != null)
         {
