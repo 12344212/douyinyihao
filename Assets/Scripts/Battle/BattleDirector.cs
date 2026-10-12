@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -108,6 +108,8 @@ public class BattleDirector : MonoBehaviour
     }
 
     [SerializeField] private BattleHudView hud;
+    [Tooltip("Optional. CanvasPanel/Reslut BattleResultPanel; falls back to HUD ResultPanel.")]
+    [SerializeField] private BattleResultPanel resultPanel;
     [SerializeField] private Transform water;
     [SerializeField] private Transform character;
     [SerializeField] private Transform spawnRoot;
@@ -419,7 +421,15 @@ public class BattleDirector : MonoBehaviour
         _modalArm--;
         if (_modalArm == 0)
         {
-            hud.SetGroupBlocks(_modalGroup, true);
+            if (hud != null)
+            {
+                hud.SetGroupBlocks(_modalGroup, true);
+            }
+            else if (_modalGroup != null)
+            {
+                _modalGroup.blocksRaycasts = true;
+                _modalGroup.interactable = true;
+            }
         }
     }
 
@@ -2482,19 +2492,45 @@ public class BattleDirector : MonoBehaviour
         int nextChapter;
         int nextStage;
         bool showPrimary = !victory || TryGetNext(out nextChapter, out nextStage);
-        hud.ShowResult(victory, showPrimary);
         if (EventSystem.current != null)
         {
             EventSystem.current.SetSelectedGameObject(null);
         }
 
-        ArmModal(hud.ResultGroup);
+        // Prefer scene Reslut panel; fall back to HUD ResultPanel.
+        if (resultPanel == null)
+        {
+            resultPanel = FindObjectOfType<BattleResultPanel>(true);
+        }
+
+        if (resultPanel != null)
+        {
+            resultPanel.Show(victory, _chapter, _stage, showPrimary);
+            ArmModal(resultPanel.CanvasGroup);
+            return;
+        }
+
+        if (hud != null)
+        {
+            hud.ShowResult(victory, showPrimary);
+            ArmModal(hud.ResultGroup);
+        }
     }
 
     private void ArmModal(CanvasGroup group)
     {
         _modalGroup = group;
-        hud.SetGroupBlocks(group, false);
+        if (hud != null)
+        {
+            hud.SetGroupBlocks(group, false);
+        }
+        else if (group != null)
+        {
+            group.alpha = 1f;
+            group.blocksRaycasts = false;
+            group.interactable = false;
+        }
+
         _modalArm = 2;
     }
 
