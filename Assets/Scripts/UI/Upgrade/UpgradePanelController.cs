@@ -28,6 +28,11 @@ public class UpgradePanelController : MonoBehaviour
     [SerializeField] private TMP_Text netSpeedValue;
     [SerializeField] private TMP_Text netSpeedName;
 
+    [Header("Hp")]
+    [SerializeField] private Image hpFill;
+    [SerializeField] private TMP_Text hpValue;
+    [SerializeField] private TMP_Text hpName;
+
     [Header("Cost")]
     [SerializeField] private TMP_Text costText;
 
@@ -103,9 +108,15 @@ public class UpgradePanelController : MonoBehaviour
             netSpeedName.text = "Net Speed";
         }
 
+        if (hpName != null)
+        {
+            hpName.text = "Hp";
+        }
+
         SetStat(attackFill, attackValue, CharacterUpgradeDefs.AttackFill(level), CharacterUpgradeDefs.FormatAttack(level));
         SetStat(rangeFill, rangeValue, CharacterUpgradeDefs.RangeFill(level), CharacterUpgradeDefs.FormatRange(level));
         SetStat(netSpeedFill, netSpeedValue, CharacterUpgradeDefs.NetSpeedFill(level), CharacterUpgradeDefs.FormatNetSpeed(level));
+        SetStat(hpFill, hpValue, CharacterUpgradeDefs.HpFill(level), CharacterUpgradeDefs.FormatHp(level));
 
         bool atMax = level >= CharacterUpgradeDefs.MaxLevel;
         if (costText != null)

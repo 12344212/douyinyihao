@@ -2433,7 +2433,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 99/99
+  m_text: 50/70
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fab1c87dd420a194f87b5fd4342aa0ba, type: 2}
   m_sharedMaterial: {fileID: 5054170101524131046, guid: fab1c87dd420a194f87b5fd4342aa0ba, type: 2}
@@ -3770,7 +3770,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Net Speed
+  m_text: Hp
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fab1c87dd420a194f87b5fd4342aa0ba, type: 2}
   m_sharedMaterial: {fileID: 5054170101524131046, guid: fab1c87dd420a194f87b5fd4342aa0ba, type: 2}
@@ -3944,6 +3944,9 @@ MonoBehaviour:
   netSpeedFill: {fileID: 1793900549}
   netSpeedValue: {fileID: 1851352783}
   netSpeedName: {fileID: 1127301541}
+  hpFill: {fileID: 1768904209}
+  hpValue: {fileID: 208355116}
+  hpName: {fileID: 358774713}
   costText: {fileID: 886004800}
 --- !u!1 &371389297
 GameObject:

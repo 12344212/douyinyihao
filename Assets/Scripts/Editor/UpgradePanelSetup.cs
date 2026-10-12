@@ -242,6 +242,12 @@ public static class UpgradePanelSetup
             def = FindDeep(root, "StatDEF");
         }
 
+        Transform hp = FindDeep(root, "StatHp");
+        if (hp == null)
+        {
+            hp = FindDeep(root, "Hp");
+        }
+
         Transform cost = FindDeep(root, "CostRow");
         Transform upgradeTf = FindDeep(root, "UpgradeButton");
         if (atk == null || range == null || def == null || cost == null || upgradeTf == null)
@@ -260,11 +266,15 @@ public static class UpgradePanelSetup
         Image netSpeedFill = FindImage(def, "BarFill");
         TMP_Text netSpeedValue = FindTmp(def, "Value");
         TMP_Text netSpeedName = FindTmp(def, "Name");
+        Image hpFill = hp != null ? FindImage(hp, "BarFill") : null;
+        TMP_Text hpValue = hp != null ? FindTmp(hp, "Value") : null;
+        TMP_Text hpName = hp != null ? FindTmp(hp, "Name") : null;
         TMP_Text costText = FindTmp(cost, "CostText");
 
         if (attackName != null) { attackName.text = "Attack"; }
         if (rangeName != null) { rangeName.text = "Range"; }
         if (netSpeedName != null) { netSpeedName.text = "Net Speed"; }
+        if (hpName != null) { hpName.text = "Hp"; }
         Button upgradeButton = upgradeTf.GetComponent<Button>();
         if (upgradeButton == null)
         {
@@ -294,6 +304,9 @@ public static class UpgradePanelSetup
         SetRef(cso, "netSpeedFill", netSpeedFill);
         SetRef(cso, "netSpeedValue", netSpeedValue);
         SetRef(cso, "netSpeedName", netSpeedName);
+        SetRef(cso, "hpFill", hpFill);
+        SetRef(cso, "hpValue", hpValue);
+        SetRef(cso, "hpName", hpName);
         SetRef(cso, "costText", costText);
         cso.ApplyModifiedPropertiesWithoutUndo();
         Debug.Log(LogTag + " UpgradePanelController wired.");

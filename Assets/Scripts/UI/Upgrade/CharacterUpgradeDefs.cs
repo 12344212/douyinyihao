@@ -22,6 +22,11 @@ public static class CharacterUpgradeDefs
     public const float NetSpeedBase = 1.0f;
     public const float NetSpeedPerLevel = 0.2f;
 
+    /// <summary>Hp: base 50, +1 per upgrade, max bonus +20 (display 50..70).</summary>
+    public const int HpBase = 50;
+    public const int HpPerLevel = 1;
+    public const int HpMaxBonus = 20;
+
     public const int BaseCost = 100;
     public const int CostPerLevel = 40;
 
@@ -56,6 +61,15 @@ public static class CharacterUpgradeDefs
 
     public static float NetSpeedMax => NetSpeedAtLevel(MaxLevel);
 
+    public static int HpAtLevel(int level)
+    {
+        level = ClampLevel(level);
+        int bonus = Mathf.Min((level - 1) * HpPerLevel, HpMaxBonus);
+        return HpBase + bonus;
+    }
+
+    public static int HpMax => HpBase + HpMaxBonus;
+
     public static int CostToNext(int currentLevel)
     {
         currentLevel = ClampLevel(currentLevel);
@@ -82,6 +96,11 @@ public static class CharacterUpgradeDefs
         return Fill(NetSpeedAtLevel(level), NetSpeedMax);
     }
 
+    public static float HpFill(int level)
+    {
+        return Fill(HpAtLevel(level), HpMax);
+    }
+
     public static string FormatAttack(int level)
     {
         return AttackAtLevel(level).ToString(Invariant) + "/" + AttackMax.ToString(Invariant);
@@ -95,6 +114,11 @@ public static class CharacterUpgradeDefs
     public static string FormatNetSpeed(int level)
     {
         return NetSpeedAtLevel(level).ToString("0.0", Invariant) + "S/" + NetSpeedMax.ToString("0.0", Invariant) + "S";
+    }
+
+    public static string FormatHp(int level)
+    {
+        return HpAtLevel(level).ToString(Invariant) + "/" + HpMax.ToString(Invariant);
     }
 
     /// <summary>当前网速展示，如 1.0/S（不含满级分母时也可拼 Value）。</summary>
