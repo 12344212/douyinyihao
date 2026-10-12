@@ -86,13 +86,26 @@ public class BuyPanelController : MonoBehaviour
         _def = def;
         _qty = 1;
         _open = true;
+
+        // Must be active for UIPanel tween / coroutines; draw above Shop Window.
+        if (!gameObject.activeSelf)
+        {
+            gameObject.SetActive(true);
+        }
+
+        transform.SetAsLastSibling();
+
         if (panel != null)
         {
             panel.Show();
         }
-        else
+
+        CanvasGroup group = GetComponent<CanvasGroup>();
+        if (group != null)
         {
-            gameObject.SetActive(true);
+            group.alpha = 1f;
+            group.interactable = true;
+            group.blocksRaycasts = true;
         }
 
         if (nameLabel != null) nameLabel.text = def.displayName;
@@ -126,12 +139,36 @@ public class BuyPanelController : MonoBehaviour
     {
         if (panel != null)
         {
+            if (!gameObject.activeSelf)
+            {
+                FinishClose();
+                return;
+            }
+
             panel.Hide();
+            return;
         }
-        else if (gameObject.activeSelf)
+
+        if (gameObject.activeSelf)
         {
             gameObject.SetActive(false);
-            FinishClose();
+        }
+
+        FinishClose();
+    }
+
+    /// <summary>Shop open: force closed without relying on inactive UIPanel.Hide early-out.</summary>
+    public void EnsureHidden()
+    {
+        _open = false;
+        if (panel != null)
+        {
+            panel.HideImmediate();
+        }
+
+        if (gameObject.activeSelf)
+        {
+            gameObject.SetActive(false);
         }
     }
 

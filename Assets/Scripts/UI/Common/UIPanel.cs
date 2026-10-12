@@ -113,6 +113,7 @@ public class UIPanel : MonoBehaviour
         if (!gameObject.activeSelf)
         {
             IsOpen = false;
+            Hidden?.Invoke(this);
             onHidden?.Invoke();
             return;
         }

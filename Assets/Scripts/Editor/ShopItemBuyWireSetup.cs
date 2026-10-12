@@ -359,7 +359,7 @@ public static class ShopItemBuyWireSetup
         SerializedObject panelSo = new SerializedObject(panel);
         SetRef(panelSo, "canvasGroup", group);
         SetRef(panelSo, "window", window.rectTransform);
-        SetRef(panelSo, "closeButton", cancel);
+        SetRef(panelSo, "closeButton", null); // Cancel via BuyPanelController.Hide only
         SetRef(panelSo, "content", window.rectTransform);
         panelSo.ApplyModifiedPropertiesWithoutUndo();
 

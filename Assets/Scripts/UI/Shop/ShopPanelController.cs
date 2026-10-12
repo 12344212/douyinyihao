@@ -47,31 +47,39 @@ public class ShopPanelController : MonoBehaviour
 
     private void Awake()
     {
-        if (itemBuyButton != null)
+        BindItemBuyButton(true);
+    }
+
+    private void OnDestroy()
+    {
+        BindItemBuyButton(false);
+        UnbindBuyPanelEvents();
+        UnbindChestButtons();
+    }
+
+    private void BindItemBuyButton(bool bind)
+    {
+        if (itemBuyButton == null)
+        {
+            return;
+        }
+
+        itemBuyButton.onClick.RemoveListener(OnItemBuyClicked);
+        if (bind)
         {
             itemBuyButton.onClick.AddListener(OnItemBuyClicked);
         }
     }
 
-    private void OnDestroy()
-    {
-        if (itemBuyButton != null)
-        {
-            itemBuyButton.onClick.RemoveListener(OnItemBuyClicked);
-        }
-
-        UnbindBuyPanelEvents();
-        UnbindChestButtons();
-    }
-
     private void OnEnable()
     {
+        BindItemBuyButton(true);
         UnbindChestButtons();
         BindChestButtons();
         BindBuyPanelEvents();
         if (buyPanel != null)
         {
-            buyPanel.Hide();
+            buyPanel.EnsureHidden();
         }
 
         if (refreshTimerLabel != null)
@@ -86,6 +94,7 @@ public class ShopPanelController : MonoBehaviour
 
     private void OnDisable()
     {
+        BindItemBuyButton(false);
         UnbindBuyPanelEvents();
         UnbindChestButtons();
     }
@@ -202,6 +211,13 @@ public class ShopPanelController : MonoBehaviour
         if (buyPanel == null)
         {
             Debug.LogWarning("[ShopPanelController] Buy panel is not assigned.");
+            TipPanelUI.ShowTip("Buy panel missing.");
+            return;
+        }
+
+        if (def == null)
+        {
+            TipPanelUI.ShowTip("Select an item.");
             return;
         }
 
@@ -210,10 +226,13 @@ public class ShopPanelController : MonoBehaviour
 
     private void OnItemBuyClicked()
     {
-        if (_selected != null)
+        if (_selected == null)
         {
-            OpenBuy(_selected);
+            TipPanelUI.ShowTip("Select an item.");
+            return;
         }
+
+        OpenBuy(_selected);
     }
 
     private void OnBuyQtyChanged(int qty)
