@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -29,6 +29,9 @@ public class LocalSaveManager : MonoBehaviour
 
     /// <summary>背包道具数量变化后触发，供背包 / 商店 UI 刷新。</summary>
     public static event Action OnItemsChanged;
+
+    /// <summary>藏品拥有 / 领奖状态变化后触发，供 Collection 面板刷新。</summary>
+    public static event Action OnCollectiblesChanged;
 
     public static LocalSaveManager Instance { get; private set; }
 
@@ -150,6 +153,7 @@ public class LocalSaveManager : MonoBehaviour
         Debug.Log($"[LocalSaveManager] Loaded: {_filePath}");
         NotifyCurrencyChanged();
         NotifyItemsChanged();
+        NotifyCollectiblesChanged();
     }
 
     /// <summary>立即写盘（临时文件 + 替换）。成功返回 true。</summary>
@@ -210,6 +214,7 @@ public class LocalSaveManager : MonoBehaviour
         Save();
         NotifyCurrencyChanged();
         NotifyItemsChanged();
+        NotifyCollectiblesChanged();
     }
 
     // ---------- 货币 ----------
@@ -532,6 +537,191 @@ public class LocalSaveManager : MonoBehaviour
         AddGold(goldReward);
         return true;
     }
+    // ---------- 藏品 CP1–CP15 ----------
+
+    public const int CollectibleCount = 15;
+    public const int CollectibleClickGold = 1000;
+
+    public bool IsCollectibleOwned(int index)
+    {
+        EnsureData();
+        EnsureCollectibleArrays();
+        if (!CollectionDefs.IsValidIndex(index))
+        {
+            return false;
+        }
+
+        return _data.collectibleOwned[index];
+    }
+
+    public bool IsCollectibleRewardClaimed(int index)
+    {
+        EnsureData();
+        EnsureCollectibleArrays();
+        if (!CollectionDefs.IsValidIndex(index))
+        {
+            return false;
+        }
+
+        return _data.collectibleRewardClaimed[index];
+    }
+
+    public int GetOwnedCollectibleCount()
+    {
+        EnsureData();
+        EnsureCollectibleArrays();
+        int count = 0;
+        for (int i = 0; i < CollectibleCount; i++)
+        {
+            if (_data.collectibleOwned[i])
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    /// <summary>
+    /// 设置藏品拥有状态（战斗捕捉 / 调试用）。owned=false 时同时清除领奖标记。
+    /// 有变化时写盘并触发 OnCollectiblesChanged，返回 true。
+    /// </summary>
+    public bool SetCollectibleOwned(int index, bool owned)
+    {
+        if (!CollectionDefs.IsValidIndex(index))
+        {
+            return false;
+        }
+
+        EnsureData();
+        EnsureCollectibleArrays();
+        bool changed = false;
+        if (_data.collectibleOwned[index] != owned)
+        {
+            _data.collectibleOwned[index] = owned;
+            changed = true;
+        }
+
+        if (!owned && _data.collectibleRewardClaimed[index])
+        {
+            _data.collectibleRewardClaimed[index] = false;
+            changed = true;
+        }
+
+        if (!changed)
+        {
+            return false;
+        }
+
+        Save();
+        NotifyCollectiblesChanged();
+        return true;
+    }
+
+    /// <summary>
+    /// 拥有且未领奖时领取一次 1000 金币；成功返回 true 并写盘。
+    /// </summary>
+    public bool TryClaimCollectibleReward(int index, out int goldReward)
+    {
+        goldReward = 0;
+        if (!CollectionDefs.IsValidIndex(index))
+        {
+            return false;
+        }
+
+        EnsureData();
+        EnsureCollectibleArrays();
+        if (!_data.collectibleOwned[index] || _data.collectibleRewardClaimed[index])
+        {
+            return false;
+        }
+
+        _data.collectibleRewardClaimed[index] = true;
+        goldReward = CollectibleClickGold;
+        Save();
+        NotifyCollectiblesChanged();
+        AddGold(goldReward);
+        return true;
+    }
+
+    [ContextMenu("Debug Own All Collectibles (CP1-15)")]
+    public void DebugOwnAllCollectibles()
+    {
+        EnsureData();
+        EnsureCollectibleArrays();
+        for (int i = 0; i < CollectibleCount; i++)
+        {
+            _data.collectibleOwned[i] = true;
+        }
+
+        Save();
+        NotifyCollectiblesChanged();
+        Debug.Log("[LocalSaveManager] Debug: owned all collectibles.");
+    }
+
+    [ContextMenu("Debug Clear All Collectibles")]
+    public void DebugClearAllCollectibles()
+    {
+        EnsureData();
+        EnsureCollectibleArrays();
+        for (int i = 0; i < CollectibleCount; i++)
+        {
+            _data.collectibleOwned[i] = false;
+            _data.collectibleRewardClaimed[i] = false;
+        }
+
+        Save();
+        NotifyCollectiblesChanged();
+        Debug.Log("[LocalSaveManager] Debug: cleared all collectibles.");
+    }
+
+    private void EnsureCollectibleArrays()
+    {
+        if (_data.collectibleOwned == null || _data.collectibleOwned.Length != CollectibleCount)
+        {
+            bool[] next = new bool[CollectibleCount];
+            if (_data.collectibleOwned != null)
+            {
+                int copy = Mathf.Min(_data.collectibleOwned.Length, CollectibleCount);
+                for (int i = 0; i < copy; i++)
+                {
+                    next[i] = _data.collectibleOwned[i];
+                }
+            }
+
+            _data.collectibleOwned = next;
+        }
+
+        if (_data.collectibleRewardClaimed == null || _data.collectibleRewardClaimed.Length != CollectibleCount)
+        {
+            bool[] next = new bool[CollectibleCount];
+            if (_data.collectibleRewardClaimed != null)
+            {
+                int copy = Mathf.Min(_data.collectibleRewardClaimed.Length, CollectibleCount);
+                for (int i = 0; i < copy; i++)
+                {
+                    next[i] = _data.collectibleRewardClaimed[i];
+                }
+            }
+
+            _data.collectibleRewardClaimed = next;
+        }
+
+        // 未拥有则领奖标记无效
+        for (int i = 0; i < CollectibleCount; i++)
+        {
+            if (!_data.collectibleOwned[i] && _data.collectibleRewardClaimed[i])
+            {
+                _data.collectibleRewardClaimed[i] = false;
+            }
+        }
+    }
+
+    private static void NotifyCollectiblesChanged()
+    {
+        OnCollectiblesChanged?.Invoke();
+    }
+
     // ---------- 背包道具 ----------
 
     public int GetItemCount(string itemId)
@@ -722,6 +912,15 @@ public class LocalSaveManager : MonoBehaviour
     {
         bool changed = false;
 
+        int ownedLen = _data.collectibleOwned != null ? _data.collectibleOwned.Length : 0;
+        int claimedLen = _data.collectibleRewardClaimed != null ? _data.collectibleRewardClaimed.Length : 0;
+        if (ownedLen != CollectibleCount || claimedLen != CollectibleCount)
+        {
+            changed = true;
+        }
+
+        EnsureCollectibleArrays();
+
         if (_data.itemStacks == null)
         {
             _data.itemStacks = new List<ItemStackEntry>();
@@ -800,7 +999,9 @@ public class LocalSaveManager : MonoBehaviour
             itemStacks = new List<ItemStackEntry>(),
             characterLevel = CharacterUpgradeDefs.MinLevel,
             tutorialCompleted = false,
-            tutorialStep = 0
+            tutorialStep = 0,
+            collectibleOwned = new bool[CollectibleCount],
+            collectibleRewardClaimed = new bool[CollectibleCount]
         };
     }
 }

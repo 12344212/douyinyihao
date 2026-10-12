@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 /// <summary>
@@ -33,6 +33,12 @@ public class PlayerSaveData
 
     public bool tutorialCompleted;
     public int tutorialStep;
+
+    /// <summary>藏品 CP1–CP15 是否已拥有（长度 15）。</summary>
+    public bool[] collectibleOwned = new bool[15];
+
+    /// <summary>藏品点击金币奖励是否已领取（长度 15）。</summary>
+    public bool[] collectibleRewardClaimed = new bool[15];
 }
 
 [Serializable]
