@@ -3754,6 +3754,8 @@ MonoBehaviour:
   lockLabel: {fileID: 0}
   clearMarker: {fileID: 1321961213}
   clearLabel: {fileID: 0}
+  challengeMarker: {fileID: 770319777}
+  tintBackground: 0
   unlockedColor: {r: 0.25, g: 0.45, b: 0.72, a: 1}
   clearedColor: {r: 0.22, g: 0.55, b: 0.38, a: 1}
   lockedColor: {r: 0.32, g: 0.33, b: 0.36, a: 1}
@@ -5874,6 +5876,8 @@ MonoBehaviour:
   lockLabel: {fileID: 0}
   clearMarker: {fileID: 1291513662}
   clearLabel: {fileID: 0}
+  challengeMarker: {fileID: 1505933309}
+  tintBackground: 0
   unlockedColor: {r: 0.25, g: 0.45, b: 0.72, a: 1}
   clearedColor: {r: 0.22, g: 0.55, b: 0.38, a: 1}
   lockedColor: {r: 0.32, g: 0.33, b: 0.36, a: 1}
@@ -12282,6 +12286,8 @@ MonoBehaviour:
   lockLabel: {fileID: 0}
   clearMarker: {fileID: 1333380918}
   clearLabel: {fileID: 0}
+  challengeMarker: {fileID: 1857213572}
+  tintBackground: 0
   unlockedColor: {r: 0.25, g: 0.45, b: 0.72, a: 1}
   clearedColor: {r: 0.22, g: 0.55, b: 0.38, a: 1}
   lockedColor: {r: 0.32, g: 0.33, b: 0.36, a: 1}
@@ -13700,6 +13706,8 @@ MonoBehaviour:
   lockLabel: {fileID: 0}
   clearMarker: {fileID: 2104304491}
   clearLabel: {fileID: 0}
+  challengeMarker: {fileID: 858742132}
+  tintBackground: 0
   unlockedColor: {r: 0.25, g: 0.45, b: 0.72, a: 1}
   clearedColor: {r: 0.22, g: 0.55, b: 0.38, a: 1}
   lockedColor: {r: 0.32, g: 0.33, b: 0.36, a: 1}
@@ -18980,6 +18988,8 @@ MonoBehaviour:
   lockLabel: {fileID: 0}
   clearMarker: {fileID: 1655040901}
   clearLabel: {fileID: 0}
+  challengeMarker: {fileID: 350992543}
+  tintBackground: 0
   unlockedColor: {r: 0.25, g: 0.45, b: 0.72, a: 1}
   clearedColor: {r: 0.22, g: 0.55, b: 0.38, a: 1}
   lockedColor: {r: 0.32, g: 0.33, b: 0.36, a: 1}
@@ -19764,6 +19774,7 @@ MonoBehaviour:
   prevButton: {fileID: 252872455}
   nextButton: {fileID: 2119197965}
   pageLabel: {fileID: 0}
+  waterFloat: {fileID: 1836574890}
   battleSceneName: BattleScene
 --- !u!114 &1836574890
 MonoBehaviour:
@@ -19788,7 +19799,7 @@ MonoBehaviour:
     phaseOffset: 0.28
     amplitudeScale: 1
   - rect: {fileID: 1323225168}
-    phaseOffset: 0.42
+    phaseOffset: 0.42000002
     amplitudeScale: 1
   - rect: {fileID: 353359894}
     phaseOffset: 0.56
