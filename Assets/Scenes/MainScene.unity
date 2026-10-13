@@ -3754,8 +3754,6 @@ MonoBehaviour:
   lockLabel: {fileID: 0}
   clearMarker: {fileID: 1321961213}
   clearLabel: {fileID: 0}
-  challengeMarker: {fileID: 770319777}
-  tintBackground: 0
   unlockedColor: {r: 0.25, g: 0.45, b: 0.72, a: 1}
   clearedColor: {r: 0.22, g: 0.55, b: 0.38, a: 1}
   lockedColor: {r: 0.32, g: 0.33, b: 0.36, a: 1}
@@ -3823,7 +3821,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 8966fdfd3da67a34485f1639a4401970, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 17f5661b9af9fa9458bb80e0ff81987c, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -5876,8 +5874,6 @@ MonoBehaviour:
   lockLabel: {fileID: 0}
   clearMarker: {fileID: 1291513662}
   clearLabel: {fileID: 0}
-  challengeMarker: {fileID: 1505933309}
-  tintBackground: 0
   unlockedColor: {r: 0.25, g: 0.45, b: 0.72, a: 1}
   clearedColor: {r: 0.22, g: 0.55, b: 0.38, a: 1}
   lockedColor: {r: 0.32, g: 0.33, b: 0.36, a: 1}
@@ -5945,7 +5941,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 8966fdfd3da67a34485f1639a4401970, type: 3}
+  m_Sprite: {fileID: 21300000, guid: c866ec5c19bf70b46ad595c4b5ad14b9, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -12286,8 +12282,6 @@ MonoBehaviour:
   lockLabel: {fileID: 0}
   clearMarker: {fileID: 1333380918}
   clearLabel: {fileID: 0}
-  challengeMarker: {fileID: 1857213572}
-  tintBackground: 0
   unlockedColor: {r: 0.25, g: 0.45, b: 0.72, a: 1}
   clearedColor: {r: 0.22, g: 0.55, b: 0.38, a: 1}
   lockedColor: {r: 0.32, g: 0.33, b: 0.36, a: 1}
@@ -12355,7 +12349,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 8966fdfd3da67a34485f1639a4401970, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 4c2aba3b9a68de540842fa05b1ae3f96, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -13706,8 +13700,6 @@ MonoBehaviour:
   lockLabel: {fileID: 0}
   clearMarker: {fileID: 2104304491}
   clearLabel: {fileID: 0}
-  challengeMarker: {fileID: 858742132}
-  tintBackground: 0
   unlockedColor: {r: 0.25, g: 0.45, b: 0.72, a: 1}
   clearedColor: {r: 0.22, g: 0.55, b: 0.38, a: 1}
   lockedColor: {r: 0.32, g: 0.33, b: 0.36, a: 1}
@@ -13775,7 +13767,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 8966fdfd3da67a34485f1639a4401970, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 109451a82c827ad4fbee775775327956, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -18988,8 +18980,6 @@ MonoBehaviour:
   lockLabel: {fileID: 0}
   clearMarker: {fileID: 1655040901}
   clearLabel: {fileID: 0}
-  challengeMarker: {fileID: 350992543}
-  tintBackground: 0
   unlockedColor: {r: 0.25, g: 0.45, b: 0.72, a: 1}
   clearedColor: {r: 0.22, g: 0.55, b: 0.38, a: 1}
   lockedColor: {r: 0.32, g: 0.33, b: 0.36, a: 1}
@@ -19687,7 +19677,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1836574878
 RectTransform:
   m_ObjectHideFlags: 0
@@ -19774,7 +19764,6 @@ MonoBehaviour:
   prevButton: {fileID: 252872455}
   nextButton: {fileID: 2119197965}
   pageLabel: {fileID: 0}
-  waterFloat: {fileID: 1836574890}
   battleSceneName: BattleScene
 --- !u!114 &1836574890
 MonoBehaviour:
