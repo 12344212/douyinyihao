@@ -1,15 +1,19 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
 /// Shop list + Buy confirm (folded from BuyPanel). Slot BUY opens Buy panel:
 /// icon, description, +/- qty, total price, currency icon (ZJM-JB / ZJM-ZS).
 /// Equipment: purchasable once; owned items (persisted itemStacks) are omitted from the list.
+/// Buy +/- use EventTrigger so tips still show when Button.interactable is false.
 /// Purchase count drives progress 0..5; chests at 1/3/5 claim 50/150/300 gold.
+/// Claimable chests shake (DOTween) every 1.5s for 0.5s.
 /// </summary>
 public class ShopPanelController : MonoBehaviour
 {
@@ -65,6 +69,16 @@ public class ShopPanelController : MonoBehaviour
     private bool _buyOpen;
     private bool _buyUiBound;
     private float _refreshTick;
+    private EventTrigger _buyPlusTrigger;
+    private EventTrigger _buyMinusTrigger;
+    private readonly Tween[] _chestShakeTweens = new Tween[3];
+    private readonly Vector2[] _chestBaseAnchored = new Vector2[3];
+    private readonly bool[] _chestBaseCaptured = new bool[3];
+
+    private const float ChestShakeDuration = 0.5f;
+    private const float ChestShakePeriod = 1.5f;
+    private const float ChestShakeStrength = 10f;
+    private const int ChestShakeVibrato = 22;
 
     private static readonly Color ChestReady = Color.white;
     private static readonly Color ChestLocked = new Color(0.65f, 0.65f, 0.65f, 0.85f);
@@ -81,6 +95,7 @@ public class ShopPanelController : MonoBehaviour
         BindItemBuyButton(false);
         BindBuyUi(false);
         UnbindChestButtons();
+        StopAllChestShakes();
         LocalSaveManager.OnCurrencyChanged -= OnCurrencyChanged;
     }
 
@@ -105,17 +120,8 @@ public class ShopPanelController : MonoBehaviour
             return;
         }
 
-        if (buyMinusButton != null)
-        {
-            buyMinusButton.onClick.RemoveListener(OnBuyMinus);
-            if (bind) buyMinusButton.onClick.AddListener(OnBuyMinus);
-        }
-
-        if (buyPlusButton != null)
-        {
-            buyPlusButton.onClick.RemoveListener(OnBuyPlus);
-            if (bind) buyPlusButton.onClick.AddListener(OnBuyPlus);
-        }
+        BindQtyButton(buyMinusButton, OnBuyMinus, bind, ref _buyMinusTrigger);
+        BindQtyButton(buyPlusButton, OnBuyPlus, bind, ref _buyPlusTrigger);
 
         if (buyConfirmButton != null)
         {
@@ -162,6 +168,7 @@ public class ShopPanelController : MonoBehaviour
         BindItemBuyButton(false);
         LocalSaveManager.OnCurrencyChanged -= OnCurrencyChanged;
         UnbindChestButtons();
+        StopAllChestShakes();
     }
 
     private void Update()
@@ -446,6 +453,9 @@ public class ShopPanelController : MonoBehaviour
         {
             chestButtons[index].interactable = ready;
         }
+
+        // Claimable (ready, not claimed): shake every 1.5s, each shake 0.5s.
+        SetChestShake(index, ready && !claimed);
     }
 
     private void RefreshItemData()
@@ -680,6 +690,12 @@ public class ShopPanelController : MonoBehaviour
 
     private void OnBuyMinus()
     {
+        if (_buyDef != null && _buyDef.IsEquipment)
+        {
+            TipPanelUI.ShowTip("Equipment can only be bought once.");
+            return;
+        }
+
         if (_buyQty > 1)
         {
             _buyQty--;
@@ -691,6 +707,12 @@ public class ShopPanelController : MonoBehaviour
     {
         if (_buyDef == null)
         {
+            return;
+        }
+
+        if (_buyDef.IsEquipment)
+        {
+            TipPanelUI.ShowTip("Equipment can only be bought once.");
             return;
         }
 
@@ -826,13 +848,157 @@ public class ShopPanelController : MonoBehaviour
             buyTotalLabel.text = (_buyDef.price * _buyQty).ToString();
         }
 
+        // Visual disabled at afford/equipment cap; EventTrigger still receives clicks for tips.
         bool equipOnce = _buyDef != null && _buyDef.IsEquipment;
+        int affordMax = BuyMaxAllowed();
         if (buyMinusButton != null) buyMinusButton.interactable = !equipOnce && _buyQty > 1;
-        // Stay clickable at afford cap so OnBuyPlus can show Not enough gold/gems tip.
-        // Equipment once-buy: +/- locked (qty always 1).
-        if (buyPlusButton != null) buyPlusButton.interactable = !equipOnce && _buyQty < BuyAbsoluteMax;
+        if (buyPlusButton != null)
+        {
+            buyPlusButton.interactable = !equipOnce && _buyQty < affordMax && _buyQty < BuyAbsoluteMax;
+        }
 
         RefreshItemPrice();
+    }
+
+    /// <summary>
+    /// Wire +/- via EventTrigger.PointerClick so tips still fire when Button.interactable is false.
+    /// </summary>
+    private static void BindQtyButton(Button button, UnityEngine.Events.UnityAction handler, bool bind, ref EventTrigger trigger)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        // Keep Button.onClick cleared so we never double-fire with EventTrigger.
+        button.onClick.RemoveListener(handler);
+
+        if (!bind)
+        {
+            if (trigger != null)
+            {
+                trigger.triggers.RemoveAll(e => e.eventID == EventTriggerType.PointerClick);
+            }
+
+            return;
+        }
+
+        trigger = button.GetComponent<EventTrigger>();
+        if (trigger == null)
+        {
+            trigger = button.gameObject.AddComponent<EventTrigger>();
+        }
+
+        trigger.triggers.RemoveAll(e => e.eventID == EventTriggerType.PointerClick);
+        EventTrigger.Entry entry = new EventTrigger.Entry
+        {
+            eventID = EventTriggerType.PointerClick
+        };
+        entry.callback.AddListener(_ => handler());
+        trigger.triggers.Add(entry);
+    }
+
+    private void SetChestShake(int index, bool shouldShake)
+    {
+        if (index < 0 || index >= _chestShakeTweens.Length)
+        {
+            return;
+        }
+
+        RectTransform rt = null;
+        if (chestButtons != null && index < chestButtons.Length && chestButtons[index] != null)
+        {
+            rt = chestButtons[index].transform as RectTransform;
+        }
+        else if (chestImages != null && index < chestImages.Length && chestImages[index] != null)
+        {
+            rt = chestImages[index].rectTransform;
+        }
+
+        if (rt == null)
+        {
+            KillChestShake(index, null);
+            return;
+        }
+
+        if (!shouldShake)
+        {
+            KillChestShake(index, rt);
+            return;
+        }
+
+        if (_chestShakeTweens[index] != null && _chestShakeTweens[index].IsActive())
+        {
+            return;
+        }
+
+        if (!_chestBaseCaptured[index])
+        {
+            _chestBaseAnchored[index] = rt.anchoredPosition;
+            _chestBaseCaptured[index] = true;
+        }
+        else
+        {
+            rt.anchoredPosition = _chestBaseAnchored[index];
+        }
+
+        float rest = Mathf.Max(0f, ChestShakePeriod - ChestShakeDuration);
+        Sequence seq = DOTween.Sequence().SetUpdate(true).SetTarget(rt);
+        seq.Append(rt.DOShakeAnchorPos(
+            ChestShakeDuration,
+            ChestShakeStrength,
+            ChestShakeVibrato,
+            90f,
+            false,
+            true));
+        seq.AppendInterval(rest);
+        seq.SetLoops(-1, LoopType.Restart);
+        seq.OnKill(() =>
+        {
+            if (rt != null && _chestBaseCaptured[index])
+            {
+                rt.anchoredPosition = _chestBaseAnchored[index];
+            }
+        });
+        _chestShakeTweens[index] = seq;
+    }
+
+    private void KillChestShake(int index, RectTransform rt)
+    {
+        if (index < 0 || index >= _chestShakeTweens.Length)
+        {
+            return;
+        }
+
+        Tween tw = _chestShakeTweens[index];
+        _chestShakeTweens[index] = null;
+        if (tw != null && tw.IsActive())
+        {
+            tw.Kill();
+        }
+
+        if (rt != null && _chestBaseCaptured[index])
+        {
+            rt.anchoredPosition = _chestBaseAnchored[index];
+        }
+    }
+
+    private void StopAllChestShakes()
+    {
+        for (int i = 0; i < _chestShakeTweens.Length; i++)
+        {
+            RectTransform rt = null;
+            if (chestButtons != null && i < chestButtons.Length && chestButtons[i] != null)
+            {
+                rt = chestButtons[i].transform as RectTransform;
+            }
+            else if (chestImages != null && i < chestImages.Length && chestImages[i] != null)
+            {
+                rt = chestImages[i].rectTransform;
+            }
+
+            KillChestShake(i, rt);
+        }
     }
 
     private IEnumerator LoadBuyIcon(string location)
