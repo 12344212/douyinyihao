@@ -19828,16 +19828,13 @@ MonoBehaviour:
   - {fileID: 1170557580}
   - {fileID: 1289280096}
   boundsRoot: {fileID: 779781568}
-  flyInDurationRange: {x: 4, y: 6.5}
-  flyOutDurationRange: {x: 3, y: 4.8}
-  landHoldRange: {x: 1.4, y: 3}
+  speedRange: {x: 60, y: 110}
   restDelayRange: {x: 0.25, y: 1.1}
-  initialDelayRange: {x: 0, y: 1.4}
-  landMin: {x: -420, y: -70}
-  landMax: {x: 420, y: 110}
+  initialDelayRange: {x: 0, y: 0.35}
   edgePadding: 90
-  landBobAmplitude: 5
-  landBobPeriod: 2.5
+  yRange: {x: -70, y: 110}
+  bobAmplitude: 5
+  bobPeriodRange: {x: 2.2, y: 3.6}
 --- !u!1 &1847767730
 GameObject:
   m_ObjectHideFlags: 0

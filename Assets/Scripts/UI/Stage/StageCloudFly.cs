@@ -4,14 +4,15 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// StagePanel yun1/yun2/yun3: on panel enter each cloud starts at a random on-screen X,
-/// then drifts right at constant speed. When off the right edge, respawn left and loop.
+/// StagePanel yun1/yun2/yun3: on panel enter each cloud starts at a random on-screen X/Y,
+/// then drifts right at constant speed. Loops only after the entire sprite (rect width,
+/// pivot-aware) is outside the canvas/view. Respawn on the left starts fully off-screen.
 /// Soft bob while flying. No land/hold.
 /// </summary>
 public class StageCloudFly : MonoBehaviour
 {
     [SerializeField] private RectTransform[] clouds;
-    [Tooltip("Usually SlotRow. Used to measure Y band and off-screen edges.")]
+    [Tooltip("Usually SlotRow. Used for Y band; horizontal edges use the canvas/view.")]
     [SerializeField] private RectTransform boundsRoot;
 
     [Header("Motion")]
@@ -152,25 +153,45 @@ public class StageCloudFly : MonoBehaviour
                 measure = boundsRoot != null ? boundsRoot : rt.parent as RectTransform;
             }
 
-            float halfW = measure != null ? measure.rect.width * 0.5f : 600f;
-            float cloudHalfW = Mathf.Abs(rt.rect.width * rt.localScale.x) * 0.5f;
-            if (cloudHalfW < 1f)
+            RectTransform localSpace = rt.parent as RectTransform;
+            if (localSpace == null)
             {
-                cloudHalfW = 200f;
+                localSpace = measure != null ? measure : rt;
             }
 
-            // Always drift left -> right. First enter: random on-screen X; later: spawn left.
-            float endX = halfW + cloudHalfW + edgePadding;
+            float viewMinX;
+            float viewMaxX;
+            if (!TryGetViewLocalX(localSpace, out viewMinX, out viewMaxX))
+            {
+                float halfW = measure != null ? measure.rect.width * 0.5f : 600f;
+                viewMinX = -halfW;
+                viewMaxX = halfW;
+            }
+
+            // Full sprite width in local units; extents from pivot (not assuming center).
+            float cloudW = Mathf.Abs(rt.rect.width * rt.localScale.x);
+            if (cloudW < 1f)
+            {
+                cloudW = 400f;
+            }
+
+            float toLeft = cloudW * rt.pivot.x;
+            float toRight = cloudW * (1f - rt.pivot.x);
+
+            // Entire sprite past the right view edge (left edge clears viewMax).
+            float endX = viewMaxX + toLeft + edgePadding;
             float startX;
             bool onScreenStart = _useOnScreenStart != null && index < _useOnScreenStart.Length && _useOnScreenStart[index];
             if (onScreenStart)
             {
-                float xMin = -halfW + cloudHalfW + edgePadding * 0.25f;
-                float xMax = halfW - cloudHalfW - edgePadding * 0.25f;
+                float xMin = viewMinX + toLeft + edgePadding * 0.25f;
+                float xMax = viewMaxX - toRight - edgePadding * 0.25f;
                 if (xMax < xMin)
                 {
-                    xMin = -halfW * 0.4f;
-                    xMax = halfW * 0.4f;
+                    float mid = (viewMinX + viewMaxX) * 0.5f;
+                    float span = Mathf.Max(40f, (viewMaxX - viewMinX) * 0.2f);
+                    xMin = mid - span;
+                    xMax = mid + span;
                 }
 
                 startX = Random.Range(xMin, xMax);
@@ -178,7 +199,8 @@ public class StageCloudFly : MonoBehaviour
             }
             else
             {
-                startX = -halfW - cloudHalfW - edgePadding;
+                // Entire sprite starts left of view (right edge clears viewMin).
+                startX = viewMinX - toRight - edgePadding;
             }
 
             float baseY = Random.Range(yRange.x, yRange.y);
@@ -233,5 +255,40 @@ public class StageCloudFly : MonoBehaviour
                 yield return new WaitForSecondsRealtime(rest);
             }
         }
+    }
+
+    /// <summary>
+    /// Canvas/view left-right edges in <paramref name="localSpace"/> local X.
+    /// Prefer root canvas so SlotRow (narrow) does not cause early wrap while still on screen.
+    /// </summary>
+    private static bool TryGetViewLocalX(RectTransform localSpace, out float minX, out float maxX)
+    {
+        minX = -600f;
+        maxX = 600f;
+        if (localSpace == null)
+        {
+            return false;
+        }
+
+        Canvas canvas = localSpace.GetComponentInParent<Canvas>();
+        RectTransform view = null;
+        if (canvas != null)
+        {
+            Canvas root = canvas.rootCanvas != null ? canvas.rootCanvas : canvas;
+            view = root.transform as RectTransform;
+        }
+
+        if (view == null)
+        {
+            return false;
+        }
+
+        Vector3[] corners = new Vector3[4];
+        view.GetWorldCorners(corners);
+        float x0 = localSpace.InverseTransformPoint(corners[0]).x;
+        float x1 = localSpace.InverseTransformPoint(corners[2]).x;
+        minX = Mathf.Min(x0, x1);
+        maxX = Mathf.Max(x0, x1);
+        return (maxX - minX) > 8f;
     }
 }
