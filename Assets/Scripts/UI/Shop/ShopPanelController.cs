@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -669,12 +669,31 @@ public class ShopPanelController : MonoBehaviour
 
     private void OnBuyPlus()
     {
-        int max = BuyMaxAllowed();
-        if (_buyQty < max)
+        if (_buyDef == null)
         {
-            _buyQty++;
-            ApplyBuyQty();
+            return;
         }
+
+        int next = _buyQty + 1;
+        if (next > BuyAbsoluteMax)
+        {
+            return;
+        }
+
+        LocalSaveManager save = LocalSaveManager.Instance;
+        if (_buyDef.price > 0 && save != null)
+        {
+            int total = _buyDef.price * next;
+            if (save.GetCurrency(_buyDef.currency) < total)
+            {
+                bool gems = _buyDef.currency == CurrencyType.Gems;
+                TipPanelUI.ShowTip(gems ? "Not enough gems." : "Not enough gold.");
+                return;
+            }
+        }
+
+        _buyQty = next;
+        ApplyBuyQty();
     }
 
     private void OnBuyConfirm()
@@ -749,7 +768,8 @@ public class ShopPanelController : MonoBehaviour
         }
 
         if (buyMinusButton != null) buyMinusButton.interactable = _buyQty > 1;
-        if (buyPlusButton != null) buyPlusButton.interactable = _buyQty < max;
+        // Stay clickable at afford cap so OnBuyPlus can show Not enough gold/gems tip.
+        if (buyPlusButton != null) buyPlusButton.interactable = _buyQty < BuyAbsoluteMax;
 
         RefreshItemPrice();
     }
