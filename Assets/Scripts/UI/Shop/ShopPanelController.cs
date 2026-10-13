@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -40,6 +41,7 @@ public class ShopPanelController : MonoBehaviour
     private Coroutine _iconLoad;
     private int _previewQty = 1;
     private bool _buyEventsBound;
+    private float _refreshTick;
 
     private static readonly Color ChestReady = Color.white;
     private static readonly Color ChestLocked = new Color(0.65f, 0.65f, 0.65f, 0.85f);
@@ -74,6 +76,7 @@ public class ShopPanelController : MonoBehaviour
     private void OnEnable()
     {
         BindItemBuyButton(true);
+        EnsureItemDataActive();
         UnbindChestButtons();
         BindChestButtons();
         BindBuyPanelEvents();
@@ -82,10 +85,8 @@ public class ShopPanelController : MonoBehaviour
             buyPanel.EnsureHidden();
         }
 
-        if (refreshTimerLabel != null)
-        {
-            refreshTimerLabel.text = "Refresh in 24:00:00";
-        }
+        _refreshTick = 0f;
+        UpdateRefreshTimerLabel();
 
         _previewQty = 1;
         Rebuild();
@@ -97,6 +98,69 @@ public class ShopPanelController : MonoBehaviour
         BindItemBuyButton(false);
         UnbindBuyPanelEvents();
         UnbindChestButtons();
+    }
+
+    private void Update()
+    {
+        if (refreshTimerLabel == null)
+        {
+            return;
+        }
+
+        _refreshTick -= Time.unscaledDeltaTime;
+        if (_refreshTick > 0f)
+        {
+            return;
+        }
+
+        _refreshTick = 1f;
+        UpdateRefreshTimerLabel();
+    }
+
+    /// <summary>
+    /// ItemBUY lives under ItemData; keep that root active so the Buy button receives clicks.
+    /// </summary>
+    private void EnsureItemDataActive()
+    {
+        if (itemBuyButton == null)
+        {
+            return;
+        }
+
+        Transform parent = itemBuyButton.transform.parent;
+        if (parent != null && !parent.gameObject.activeSelf)
+        {
+            parent.gameObject.SetActive(true);
+        }
+
+        if (!itemBuyButton.gameObject.activeSelf)
+        {
+            itemBuyButton.gameObject.SetActive(true);
+        }
+    }
+
+    /// <summary>Countdown to next local midnight as Refresh in HH:MM:SS.</summary>
+    private void UpdateRefreshTimerLabel()
+    {
+        if (refreshTimerLabel == null)
+        {
+            return;
+        }
+
+        DateTime now = DateTime.Now;
+        DateTime nextMidnight = now.Date.AddDays(1);
+        TimeSpan remain = nextMidnight - now;
+        if (remain.TotalSeconds < 0)
+        {
+            remain = TimeSpan.Zero;
+        }
+
+        int hours = (int)remain.TotalHours;
+        refreshTimerLabel.text = string.Format(
+            "Refresh in {0:00}:{1:00}:{2:00}",
+            hours,
+            remain.Minutes,
+            remain.Seconds);
     }
 
     private void BindBuyPanelEvents()
