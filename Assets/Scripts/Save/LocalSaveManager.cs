@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -32,6 +32,9 @@ public class LocalSaveManager : MonoBehaviour
 
     /// <summary>藏品拥有 / 领奖状态变化后触发，供 Collection 面板刷新。</summary>
     public static event Action OnCollectiblesChanged;
+
+    /// <summary>Equipped gear changed; UpgradePanel / battle UI refresh.</summary>
+    public static event Action OnEquipmentChanged;
 
     public static LocalSaveManager Instance { get; private set; }
 
@@ -154,6 +157,7 @@ public class LocalSaveManager : MonoBehaviour
         NotifyCurrencyChanged();
         NotifyItemsChanged();
         NotifyCollectiblesChanged();
+        NotifyEquipmentChanged();
     }
 
     /// <summary>立即写盘（临时文件 + 替换）。成功返回 true。</summary>
@@ -215,6 +219,7 @@ public class LocalSaveManager : MonoBehaviour
         NotifyCurrencyChanged();
         NotifyItemsChanged();
         NotifyCollectiblesChanged();
+        NotifyEquipmentChanged();
     }
 
     // ---------- 货币 ----------
@@ -794,8 +799,205 @@ public class LocalSaveManager : MonoBehaviour
         }
 
         Save();
+        if (NormalizeEquippedSlots())
+        {
+            NotifyEquipmentChanged();
+        }
+
         NotifyItemsChanged();
         return true;
+    }
+
+
+    // ---------- Equipment (equipped item ids by EquipItemType) ----------
+
+    /// <summary>Equipped gear changed; UpgradePanel refresh.</summary>
+    private static void NotifyEquipmentChanged()
+    {
+        OnEquipmentChanged?.Invoke();
+    }
+
+    /// <summary>UI slot index 1..4 maps to Shoes / Armor / Spear / Hood.</summary>
+    public static EquipItemType EquipTypeForSlotIndex(int slotIndex)
+    {
+        switch (slotIndex)
+        {
+            case 1: return EquipItemType.Shoes;
+            case 2: return EquipItemType.Armor;
+            case 3: return EquipItemType.Spear;
+            case 4: return EquipItemType.Hood;
+            default: return EquipItemType.None;
+        }
+    }
+
+    public string GetEquippedItemId(EquipItemType type)
+    {
+        EnsureData();
+        switch (type)
+        {
+            case EquipItemType.Spear: return _data.equippedSpearId ?? string.Empty;
+            case EquipItemType.Hood: return _data.equippedHoodId ?? string.Empty;
+            case EquipItemType.Shoes: return _data.equippedShoesId ?? string.Empty;
+            case EquipItemType.Armor: return _data.equippedArmorId ?? string.Empty;
+            default: return string.Empty;
+        }
+    }
+
+    public string GetEquippedItemIdForSlot(int slotIndex)
+    {
+        return GetEquippedItemId(EquipTypeForSlotIndex(slotIndex));
+    }
+
+    public bool IsItemEquipped(string itemId)
+    {
+        if (string.IsNullOrEmpty(itemId))
+        {
+            return false;
+        }
+
+        return GetEquippedItemId(EquipItemType.Spear) == itemId
+            || GetEquippedItemId(EquipItemType.Hood) == itemId
+            || GetEquippedItemId(EquipItemType.Shoes) == itemId
+            || GetEquippedItemId(EquipItemType.Armor) == itemId;
+    }
+
+    /// <summary>Equip owned item into its type slot. Replaces previous of same type. Returns false if invalid.</summary>
+    public bool TryEquipItem(string itemId)
+    {
+        if (string.IsNullOrEmpty(itemId))
+        {
+            return false;
+        }
+
+        GameItemDefs.Def def = GameItemDefs.Get(itemId);
+        if (def == null || def.equipType == EquipItemType.None)
+        {
+            Debug.LogWarning("[LocalSaveManager] TryEquipItem: not equipment '" + itemId + "'");
+            return false;
+        }
+
+        EnsureData();
+        if (GetItemCount(itemId) <= 0)
+        {
+            return false;
+        }
+
+        string current = GetEquippedItemId(def.equipType);
+        if (current == itemId)
+        {
+            return true;
+        }
+
+        SetEquippedField(def.equipType, itemId);
+        Save();
+        NotifyEquipmentChanged();
+        return true;
+    }
+
+    /// <summary>Clear equipped item for a type slot.</summary>
+    public bool UnequipType(EquipItemType type)
+    {
+        if (type == EquipItemType.None)
+        {
+            return false;
+        }
+
+        EnsureData();
+        string current = GetEquippedItemId(type);
+        if (string.IsNullOrEmpty(current))
+        {
+            return true;
+        }
+
+        SetEquippedField(type, string.Empty);
+        Save();
+        NotifyEquipmentChanged();
+        return true;
+    }
+
+    /// <summary>Unequip by item id if currently equipped.</summary>
+    public bool UnequipItem(string itemId)
+    {
+        if (string.IsNullOrEmpty(itemId))
+        {
+            return false;
+        }
+
+        GameItemDefs.Def def = GameItemDefs.Get(itemId);
+        if (def == null || def.equipType == EquipItemType.None)
+        {
+            return false;
+        }
+
+        if (GetEquippedItemId(def.equipType) != itemId)
+        {
+            return false;
+        }
+
+        return UnequipType(def.equipType);
+    }
+
+    private void SetEquippedField(EquipItemType type, string itemId)
+    {
+        string value = itemId ?? string.Empty;
+        switch (type)
+        {
+            case EquipItemType.Spear: _data.equippedSpearId = value; break;
+            case EquipItemType.Hood: _data.equippedHoodId = value; break;
+            case EquipItemType.Shoes: _data.equippedShoesId = value; break;
+            case EquipItemType.Armor: _data.equippedArmorId = value; break;
+        }
+    }
+
+    /// <summary>Drop equipped ids that are missing from inventory or wrong type. Returns true if changed.</summary>
+    private bool NormalizeEquippedSlots()
+    {
+        bool changed = false;
+        changed |= NormalizeOneEquipped(EquipItemType.Spear, ref _data.equippedSpearId);
+        changed |= NormalizeOneEquipped(EquipItemType.Hood, ref _data.equippedHoodId);
+        changed |= NormalizeOneEquipped(EquipItemType.Shoes, ref _data.equippedShoesId);
+        changed |= NormalizeOneEquipped(EquipItemType.Armor, ref _data.equippedArmorId);
+        return changed;
+    }
+
+    private bool NormalizeOneEquipped(EquipItemType expectedType, ref string equippedId)
+    {
+        if (string.IsNullOrEmpty(equippedId))
+        {
+            if (equippedId != null && equippedId.Length == 0)
+            {
+                return false;
+            }
+
+            if (equippedId == null)
+            {
+                equippedId = string.Empty;
+                return true;
+            }
+
+            return false;
+        }
+
+        if (GetItemCount(equippedId) <= 0)
+        {
+            equippedId = string.Empty;
+            return true;
+        }
+
+        GameItemDefs.Def def = GameItemDefs.Get(equippedId);
+        if (def == null || def.equipType != expectedType)
+        {
+            // Config may not be bound yet at first load; keep id if GameItemDefs empty.
+            if (GameItemDefs.Current == null)
+            {
+                return false;
+            }
+
+            equippedId = string.Empty;
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>返回所有数量大于 0 的道具（副本，修改不会影响存档）。</summary>
@@ -982,6 +1184,12 @@ public class LocalSaveManager : MonoBehaviour
                 seen.Add(stack.itemId, stack);
             }
         }
+        if (NormalizeEquippedSlots())
+        {
+            changed = true;
+        }
+
+
 
         return changed;
     }

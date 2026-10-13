@@ -3,8 +3,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// UpgradePanel 逻辑：按存档等级刷新 Attack / Range / Net Speed、进度条与升级花费。
-/// 装备槽仅装饰，不在此处理。
+/// UpgradePanel stats: Attack / Range / Net Speed / Hp fills, cost, upgrade button.
+/// Equipment slots: UpgradeEquipController.
 /// </summary>
 [DisallowMultipleComponent]
 public class UpgradePanelController : MonoBehaviour

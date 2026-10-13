@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 /// <summary>
@@ -39,6 +39,12 @@ public class PlayerSaveData
 
     /// <summary>藏品点击金币奖励是否已领取（长度 15）。</summary>
     public bool[] collectibleRewardClaimed = new bool[15];
+
+    /// <summary>Equipped equipment item ids by type (empty = none). Must be owned stacks.</summary>
+    public string equippedSpearId;
+    public string equippedHoodId;
+    public string equippedShoesId;
+    public string equippedArmorId;
 }
 
 [Serializable]
