@@ -6,6 +6,7 @@ using UnityEngine;
 /// Attack: 10+(L-1)*2（整数，满级 108）
 /// Range: 2.0+(L-1)*0.1（一位小数，满级 6.9）
 /// Net Speed: 1.0+(L-1)*0.2 /S（一位小数，满级 10.8）
+/// Hp: 50+(L-1)*20（整数，满级 1030）
 /// Cost(L→L+1) = 100+(L-1)*40
 /// </summary>
 public static class CharacterUpgradeDefs
@@ -22,10 +23,9 @@ public static class CharacterUpgradeDefs
     public const float NetSpeedBase = 1.0f;
     public const float NetSpeedPerLevel = 0.2f;
 
-    /// <summary>Hp: base 50, +1 per upgrade, max bonus +20 (display 50..70).</summary>
+    /// <summary>Hp: base 50, +20 per upgrade level (aligned with characterLevel like other attrs).</summary>
     public const int HpBase = 50;
-    public const int HpPerLevel = 1;
-    public const int HpMaxBonus = 20;
+    public const int HpPerLevel = 20;
 
     public const int BaseCost = 100;
     public const int CostPerLevel = 40;
@@ -64,11 +64,10 @@ public static class CharacterUpgradeDefs
     public static int HpAtLevel(int level)
     {
         level = ClampLevel(level);
-        int bonus = Mathf.Min((level - 1) * HpPerLevel, HpMaxBonus);
-        return HpBase + bonus;
+        return HpBase + (level - 1) * HpPerLevel;
     }
 
-    public static int HpMax => HpBase + HpMaxBonus;
+    public static int HpMax => HpAtLevel(MaxLevel);
 
     public static int CostToNext(int currentLevel)
     {
