@@ -417,6 +417,7 @@ MonoBehaviour:
   nameLabel: {fileID: 3143876565139788960}
   priceLabel: {fileID: 8442870411188033173}
   clickButton: {fileID: 7691791002231530442}
+  buyButton: {fileID: 5262712802252994526}
   placeholderColor: {r: 0.55, g: 0.4, b: 0.85, a: 1}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   selectedColor: {r: 1, g: 0.95, b: 0.75, a: 1}

@@ -6,26 +6,43 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Shop: list select fills ItemData (name/desc/icon/price). ItemBUY opens BuyPanel (qty + CANCEL/BUY).
+/// Shop list + Buy confirm (folded from BuyPanel). Slot BUY opens Buy panel:
+/// icon, description, +/- qty, total price, currency icon (ZJM-JB / ZJM-ZS).
 /// Purchase count drives progress 0..5; chests at 1/3/5 claim 50/150/300 gold.
 /// </summary>
 public class ShopPanelController : MonoBehaviour
 {
+    public const int BuyAbsoluteMax = 99;
+    private const string GoldIconAddress = "ZJM-JB";
+    private const string GemsIconAddress = "ZJM-ZS";
+
     [Header("List")]
     [SerializeField] private RectTransform listRoot;
     [SerializeField] private ShopItemSlot slotPrefab;
-    [SerializeField] private BuyPanelController buyPanel;
     [SerializeField] private ItemConfig itemConfig;
 
-    [Header("ItemData")]
+    [Header("ItemData (optional detail)")]
     [SerializeField] private Image itemIcon;
     [SerializeField] private TMP_Text itemName;
     [SerializeField] private TMP_Text itemDescription;
     [SerializeField] private TMP_Text itemPrice;
     [SerializeField] private Color placeholderColor = new Color(0.55f, 0.40f, 0.85f, 1f);
 
-    [Header("ItemBUY")]
+    [Header("ItemBUY (optional legacy)")]
     [SerializeField] private Button itemBuyButton;
+
+    [Header("Buy panel (ShopPanel/Buy)")]
+    [SerializeField] private UIPanel buyPanel;
+    [SerializeField] private GameObject buyRoot;
+    [SerializeField] private Image buyIconImage;
+    [SerializeField] private TMP_Text buyDescLabel;
+    [SerializeField] private TMP_Text buyQtyLabel;
+    [SerializeField] private TMP_Text buyTotalLabel;
+    [SerializeField] private Image buyCurrencyIcon;
+    [SerializeField] private Button buyMinusButton;
+    [SerializeField] private Button buyPlusButton;
+    [SerializeField] private Button buyConfirmButton;
+    [SerializeField] private Button buyCancelButton;
 
     [Header("Progress")]
     [SerializeField] private Image progressFill;
@@ -38,9 +55,14 @@ public class ShopPanelController : MonoBehaviour
 
     private readonly List<ShopItemSlot> _slots = new List<ShopItemSlot>(8);
     private GameItemDefs.Def _selected;
+    private GameItemDefs.Def _buyDef;
     private Coroutine _iconLoad;
+    private Coroutine _buyIconLoad;
+    private Coroutine _currencyIconLoad;
     private int _previewQty = 1;
-    private bool _buyEventsBound;
+    private int _buyQty = 1;
+    private bool _buyOpen;
+    private bool _buyUiBound;
     private float _refreshTick;
 
     private static readonly Color ChestReady = Color.white;
@@ -50,13 +72,15 @@ public class ShopPanelController : MonoBehaviour
     private void Awake()
     {
         BindItemBuyButton(true);
+        BindBuyUi(true);
     }
 
     private void OnDestroy()
     {
         BindItemBuyButton(false);
-        UnbindBuyPanelEvents();
+        BindBuyUi(false);
         UnbindChestButtons();
+        LocalSaveManager.OnCurrencyChanged -= OnCurrencyChanged;
     }
 
     private void BindItemBuyButton(bool bind)
@@ -73,17 +97,56 @@ public class ShopPanelController : MonoBehaviour
         }
     }
 
+    private void BindBuyUi(bool bind)
+    {
+        if (_buyUiBound == bind)
+        {
+            return;
+        }
+
+        if (buyMinusButton != null)
+        {
+            buyMinusButton.onClick.RemoveListener(OnBuyMinus);
+            if (bind) buyMinusButton.onClick.AddListener(OnBuyMinus);
+        }
+
+        if (buyPlusButton != null)
+        {
+            buyPlusButton.onClick.RemoveListener(OnBuyPlus);
+            if (bind) buyPlusButton.onClick.AddListener(OnBuyPlus);
+        }
+
+        if (buyConfirmButton != null)
+        {
+            buyConfirmButton.onClick.RemoveListener(OnBuyConfirm);
+            if (bind) buyConfirmButton.onClick.AddListener(OnBuyConfirm);
+        }
+
+        if (buyCancelButton != null)
+        {
+            buyCancelButton.onClick.RemoveListener(HideBuy);
+            if (bind) buyCancelButton.onClick.AddListener(HideBuy);
+        }
+
+        if (buyPanel != null)
+        {
+            buyPanel.Hidden -= OnBuyPanelHidden;
+            if (bind) buyPanel.Hidden += OnBuyPanelHidden;
+        }
+
+        _buyUiBound = bind;
+    }
+
     private void OnEnable()
     {
         BindItemBuyButton(true);
+        BindBuyUi(true);
         EnsureItemDataActive();
         UnbindChestButtons();
         BindChestButtons();
-        BindBuyPanelEvents();
-        if (buyPanel != null)
-        {
-            buyPanel.EnsureHidden();
-        }
+        LocalSaveManager.OnCurrencyChanged -= OnCurrencyChanged;
+        LocalSaveManager.OnCurrencyChanged += OnCurrencyChanged;
+        EnsureBuyHidden();
 
         _refreshTick = 0f;
         UpdateRefreshTimerLabel();
@@ -96,7 +159,7 @@ public class ShopPanelController : MonoBehaviour
     private void OnDisable()
     {
         BindItemBuyButton(false);
-        UnbindBuyPanelEvents();
+        LocalSaveManager.OnCurrencyChanged -= OnCurrencyChanged;
         UnbindChestButtons();
     }
 
@@ -163,32 +226,6 @@ public class ShopPanelController : MonoBehaviour
             remain.Seconds);
     }
 
-    private void BindBuyPanelEvents()
-    {
-        if (buyPanel == null || _buyEventsBound)
-        {
-            return;
-        }
-
-        buyPanel.QtyChanged += OnBuyQtyChanged;
-        buyPanel.PurchaseSucceeded += OnPurchaseSucceeded;
-        buyPanel.Closed += OnBuyClosed;
-        _buyEventsBound = true;
-    }
-
-    private void UnbindBuyPanelEvents()
-    {
-        if (buyPanel == null || !_buyEventsBound)
-        {
-            return;
-        }
-
-        buyPanel.QtyChanged -= OnBuyQtyChanged;
-        buyPanel.PurchaseSucceeded -= OnPurchaseSucceeded;
-        buyPanel.Closed -= OnBuyClosed;
-        _buyEventsBound = false;
-    }
-
     private void BindChestButtons()
     {
         if (chestButtons == null)
@@ -241,7 +278,7 @@ public class ShopPanelController : MonoBehaviour
         {
             ShopItemSlot slot = Instantiate(slotPrefab, listRoot);
             slot.gameObject.SetActive(true);
-            slot.Bind(defs[i], SelectItem);
+            slot.Bind(defs[i], SelectItem, OpenBuy);
             _slots.Add(slot);
         }
 
@@ -272,7 +309,7 @@ public class ShopPanelController : MonoBehaviour
 
     public void OpenBuy(GameItemDefs.Def def)
     {
-        if (buyPanel == null)
+        if (buyPanel == null && buyRoot == null)
         {
             Debug.LogWarning("[ShopPanelController] Buy panel is not assigned.");
             TipPanelUI.ShowTip("Buy panel missing.");
@@ -285,7 +322,8 @@ public class ShopPanelController : MonoBehaviour
             return;
         }
 
-        buyPanel.Open(def);
+        SelectItem(def);
+        OpenBuyInternal(def);
     }
 
     private void OnItemBuyClicked()
@@ -297,29 +335,6 @@ public class ShopPanelController : MonoBehaviour
         }
 
         OpenBuy(_selected);
-    }
-
-    private void OnBuyQtyChanged(int qty)
-    {
-        _previewQty = Mathf.Max(1, qty);
-        RefreshItemPrice();
-    }
-
-    private void OnBuyClosed()
-    {
-        _previewQty = 1;
-        RefreshItemPrice();
-    }
-
-    private void OnPurchaseSucceeded(int qty)
-    {
-        LocalSaveManager save = LocalSaveManager.Instance;
-        if (save != null)
-        {
-            save.AddShopPurchaseCount(qty);
-        }
-
-        RefreshProgressAndChests();
     }
 
     private void OnChestClicked(int index)
@@ -460,9 +475,9 @@ public class ShopPanelController : MonoBehaviour
         }
 
         int qty = _previewQty;
-        if (buyPanel != null && buyPanel.IsOpen)
+        if (_buyOpen)
         {
-            qty = buyPanel.CurrentQty;
+            qty = _buyQty;
         }
 
         itemPrice.text = ShopItemSlot.FormatPrice(_selected.price * Mathf.Max(1, qty), _selected.currency);
@@ -517,5 +532,273 @@ public class ShopPanelController : MonoBehaviour
 
         _slots.Clear();
         _selected = null;
+    }
+
+    // ---------- Buy panel (was BuyPanelController) ----------
+
+    private void OpenBuyInternal(GameItemDefs.Def def)
+    {
+        _buyDef = def;
+        _buyQty = 1;
+        _buyOpen = true;
+        _previewQty = 1;
+
+        GameObject root = buyRoot != null ? buyRoot : (buyPanel != null ? buyPanel.gameObject : null);
+        if (root != null && !root.activeSelf)
+        {
+            root.SetActive(true);
+        }
+
+        if (root != null)
+        {
+            root.transform.SetAsLastSibling();
+        }
+
+        if (buyPanel != null)
+        {
+            buyPanel.Show();
+        }
+
+        CanvasGroup group = root != null ? root.GetComponent<CanvasGroup>() : null;
+        if (group != null)
+        {
+            group.alpha = 1f;
+            group.interactable = true;
+            group.blocksRaycasts = true;
+        }
+
+        if (buyDescLabel != null)
+        {
+            buyDescLabel.text = def.FormatDetailText();
+            buyDescLabel.enableWordWrapping = true;
+        }
+
+        if (buyIconImage != null)
+        {
+            buyIconImage.sprite = null;
+            buyIconImage.color = placeholderColor;
+            if (_buyIconLoad != null)
+            {
+                StopCoroutine(_buyIconLoad);
+            }
+
+            _buyIconLoad = StartCoroutine(LoadBuyIcon(def.iconLocation));
+        }
+
+        if (_currencyIconLoad != null)
+        {
+            StopCoroutine(_currencyIconLoad);
+        }
+
+        _currencyIconLoad = StartCoroutine(LoadBuyCurrencyIcon(def.currency));
+        ApplyBuyQty();
+    }
+
+    public void HideBuy()
+    {
+        GameObject root = buyRoot != null ? buyRoot : (buyPanel != null ? buyPanel.gameObject : null);
+        if (buyPanel != null)
+        {
+            if (root != null && !root.activeSelf)
+            {
+                FinishBuyClose();
+                return;
+            }
+
+            buyPanel.Hide();
+            return;
+        }
+
+        if (root != null && root.activeSelf)
+        {
+            root.SetActive(false);
+        }
+
+        FinishBuyClose();
+    }
+
+    /// <summary>Shop open: force Buy closed without relying on inactive UIPanel.Hide early-out.</summary>
+    public void EnsureBuyHidden()
+    {
+        _buyOpen = false;
+        if (buyPanel != null)
+        {
+            buyPanel.HideImmediate();
+        }
+
+        GameObject root = buyRoot != null ? buyRoot : (buyPanel != null ? buyPanel.gameObject : null);
+        if (root != null && root.activeSelf)
+        {
+            root.SetActive(false);
+        }
+    }
+
+    private void OnBuyPanelHidden(UIPanel _)
+    {
+        FinishBuyClose();
+    }
+
+    private void FinishBuyClose()
+    {
+        if (!_buyOpen)
+        {
+            return;
+        }
+
+        _buyOpen = false;
+        _previewQty = 1;
+        RefreshItemPrice();
+    }
+
+    private void OnCurrencyChanged()
+    {
+        if (_buyOpen)
+        {
+            ApplyBuyQty();
+        }
+    }
+
+    private void OnBuyMinus()
+    {
+        if (_buyQty > 1)
+        {
+            _buyQty--;
+            ApplyBuyQty();
+        }
+    }
+
+    private void OnBuyPlus()
+    {
+        int max = BuyMaxAllowed();
+        if (_buyQty < max)
+        {
+            _buyQty++;
+            ApplyBuyQty();
+        }
+    }
+
+    private void OnBuyConfirm()
+    {
+        if (_buyDef == null)
+        {
+            return;
+        }
+
+        LocalSaveManager save = LocalSaveManager.Instance;
+        int total = _buyDef.price * _buyQty;
+        bool gems = _buyDef.currency == CurrencyType.Gems;
+        if (save == null || !save.TrySpend(_buyDef.currency, total))
+        {
+            TipPanelUI.ShowTip(gems ? "Not enough gems." : "Not enough gold.");
+            return;
+        }
+
+        int bought = _buyQty;
+        if (!save.AddItem(_buyDef.id, bought))
+        {
+            save.AddCurrency(_buyDef.currency, total);
+            Debug.LogWarning("[ShopPanelController] AddItem failed, currency refunded.");
+            return;
+        }
+
+        GetPanelController.Show(new GetPanelController.Reward
+        {
+            iconLocation = _buyDef.iconLocation,
+            displayName = _buyDef.displayName,
+            count = bought
+        });
+
+        save.AddShopPurchaseCount(bought);
+        RefreshProgressAndChests();
+        HideBuy();
+    }
+
+    private int BuyMaxAllowed()
+    {
+        int cap = BuyAbsoluteMax;
+        LocalSaveManager save = LocalSaveManager.Instance;
+        if (save != null && _buyDef != null && _buyDef.price > 0)
+        {
+            int afford = save.GetCurrency(_buyDef.currency) / _buyDef.price;
+            if (afford <= 0)
+            {
+                return 1;
+            }
+
+            cap = Mathf.Min(BuyAbsoluteMax, afford);
+        }
+
+        return Mathf.Max(1, cap);
+    }
+
+    private void ApplyBuyQty()
+    {
+        int max = BuyMaxAllowed();
+        _buyQty = Mathf.Clamp(_buyQty, 1, max);
+        _previewQty = _buyQty;
+
+        if (buyQtyLabel != null)
+        {
+            buyQtyLabel.text = _buyQty.ToString();
+        }
+
+        if (buyTotalLabel != null && _buyDef != null)
+        {
+            // Number only; currency shown via buyCurrencyIcon (ZJM-JB / ZJM-ZS).
+            buyTotalLabel.text = (_buyDef.price * _buyQty).ToString();
+        }
+
+        if (buyMinusButton != null) buyMinusButton.interactable = _buyQty > 1;
+        if (buyPlusButton != null) buyPlusButton.interactable = _buyQty < max;
+
+        RefreshItemPrice();
+    }
+
+    private IEnumerator LoadBuyIcon(string location)
+    {
+        YooAssetManager yoo = YooAssetManager.Instance;
+        if (buyIconImage == null || yoo == null || !yoo.IsReady || string.IsNullOrEmpty(location) || !yoo.HasLocation(location))
+        {
+            _buyIconLoad = null;
+            yield break;
+        }
+
+        Sprite sprite = null;
+        yield return yoo.LoadSpriteAsync(location, s => sprite = s);
+        if (sprite != null && buyIconImage != null)
+        {
+            buyIconImage.sprite = sprite;
+            buyIconImage.color = Color.white;
+        }
+
+        _buyIconLoad = null;
+    }
+
+    private IEnumerator LoadBuyCurrencyIcon(CurrencyType currency)
+    {
+        if (buyCurrencyIcon == null)
+        {
+            _currencyIconLoad = null;
+            yield break;
+        }
+
+        string location = currency == CurrencyType.Gems ? GemsIconAddress : GoldIconAddress;
+        YooAssetManager yoo = YooAssetManager.Instance;
+        if (yoo == null || !yoo.IsReady || string.IsNullOrEmpty(location) || !yoo.HasLocation(location))
+        {
+            _currencyIconLoad = null;
+            yield break;
+        }
+
+        Sprite sprite = null;
+        yield return yoo.LoadSpriteAsync(location, s => sprite = s);
+        if (sprite != null && buyCurrencyIcon != null)
+        {
+            buyCurrencyIcon.sprite = sprite;
+            buyCurrencyIcon.color = Color.white;
+            buyCurrencyIcon.preserveAspect = true;
+        }
+
+        _currencyIconLoad = null;
     }
 }

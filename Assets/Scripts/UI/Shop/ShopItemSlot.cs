@@ -5,8 +5,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 商店列表行：图标、英文名、价格。整行点击回调（选中），不含直接购买。
-/// 图标按 GameItemDefs 地址走 YooAsset。
+/// Shop list row: icon, English name, price. Row click selects; BUY opens Buy panel.
+/// Icon from GameItemDefs address via YooAsset.
 /// </summary>
 public class ShopItemSlot : MonoBehaviour
 {
@@ -14,12 +14,14 @@ public class ShopItemSlot : MonoBehaviour
     [SerializeField] private TMP_Text nameLabel;
     [SerializeField] private TMP_Text priceLabel;
     [SerializeField] private Button clickButton;
+    [SerializeField] private Button buyButton;
     [SerializeField] private Color placeholderColor = new Color(0.55f, 0.40f, 0.85f, 1f);
     [SerializeField] private Color normalColor = Color.white;
     [SerializeField] private Color selectedColor = new Color(1f, 0.95f, 0.75f, 1f);
 
     private GameItemDefs.Def _def;
     private Action<GameItemDefs.Def> _onClick;
+    private Action<GameItemDefs.Def> _onBuy;
     private Image _bg;
 
     private void Awake()
@@ -29,6 +31,11 @@ public class ShopItemSlot : MonoBehaviour
         {
             clickButton.onClick.AddListener(OnClick);
         }
+
+        if (buyButton != null)
+        {
+            buyButton.onClick.AddListener(OnBuyClick);
+        }
     }
 
     private void OnDestroy()
@@ -37,12 +44,18 @@ public class ShopItemSlot : MonoBehaviour
         {
             clickButton.onClick.RemoveListener(OnClick);
         }
+
+        if (buyButton != null)
+        {
+            buyButton.onClick.RemoveListener(OnBuyClick);
+        }
     }
 
-    public void Bind(GameItemDefs.Def def, Action<GameItemDefs.Def> onClick)
+    public void Bind(GameItemDefs.Def def, Action<GameItemDefs.Def> onClick, Action<GameItemDefs.Def> onBuy = null)
     {
         _def = def;
         _onClick = onClick;
+        _onBuy = onBuy;
         if (nameLabel != null)
         {
             nameLabel.text = def != null ? def.displayName : string.Empty;
@@ -57,6 +70,11 @@ public class ShopItemSlot : MonoBehaviour
         {
             iconImage.sprite = null;
             iconImage.color = placeholderColor;
+        }
+
+        if (buyButton != null)
+        {
+            buyButton.interactable = def != null;
         }
 
         SetSelected(false);
@@ -105,5 +123,20 @@ public class ShopItemSlot : MonoBehaviour
             _onClick?.Invoke(_def);
         }
     }
+
+    private void OnBuyClick()
+    {
+        if (_def == null)
+        {
+            return;
+        }
+
+        if (_onBuy != null)
+        {
+            _onBuy.Invoke(_def);
+            return;
+        }
+
+        _onClick?.Invoke(_def);
+    }
 }
-// empty-refs cleanup: dropped unused selectedHighlight

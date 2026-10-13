@@ -102,7 +102,7 @@ public static class ShopPanelSetup
         layout.childForceExpandHeight = false;
 
         ShopItemSlot template = EnsureShopPrefab(font);
-        BuyPanelController buy = CreateBuyPanel(shopPanel.transform, font);
+        UIPanel buy = null; // BuyPanelController removed
 
         ShopPanelController ctrl = shopPanel.GetComponent<ShopPanelController>();
         if (ctrl == null)
@@ -113,7 +113,7 @@ public static class ShopPanelSetup
         SerializedObject so = new SerializedObject(ctrl);
         SetRef(so, "listRoot", list);
         SetRef(so, "slotPrefab", template);
-        SetRef(so, "buyPanel", buy);
+        // buyPanel UIPanel wired by ShopBuyFoldWireSetup
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 
@@ -319,81 +319,10 @@ public static class ShopPanelSetup
         return slot;
     }
 
-    private static BuyPanelController CreateBuyPanel(Transform parent, TMP_FontAsset font)
+    private static UIPanel CreateBuyPanelObsolete(Transform parent, TMP_FontAsset font)
     {
-        GameObject root = CreateRect("BuyPanel", parent).gameObject;
-        Stretch(((RectTransform)root.transform), 0f);
-        CanvasGroup group = root.AddComponent<CanvasGroup>();
-        UIPanel panel = root.AddComponent<UIPanel>();
-        BuyPanelController ctrl = root.AddComponent<BuyPanelController>();
-
-        Image dim = CreateImage("Dim", root.transform, DimColor, true);
-        Stretch(dim.rectTransform, 0f);
-
-        Image window = CreateImage("Window", root.transform, WindowColor, true);
-        SetRect(window.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(860f, 560f));
-
-        Image header = CreateImage("Header", window.transform, HeaderColor, false);
-        RectTransform hrt = header.rectTransform;
-        hrt.anchorMin = new Vector2(0f, 1f);
-        hrt.anchorMax = new Vector2(1f, 1f);
-        hrt.pivot = new Vector2(0.5f, 1f);
-        hrt.anchoredPosition = Vector2.zero;
-        hrt.sizeDelta = new Vector2(0f, 90f);
-        TMP_Text title = CreateText("Title", header.transform, "Confirm Purchase", 40f, Color.white, font, TextAlignmentOptions.Center);
-        title.fontStyle = FontStyles.Bold;
-        Stretch(title.rectTransform, 0f);
-
-        Image icon = CreateImage("Icon", window.transform, IconColor, false);
-        SetRect(icon.rectTransform, new Vector2(0f, 1f), new Vector2(120f, -190f), new Vector2(140f, 140f));
-
-        TMP_Text name = CreateText("Name", window.transform, "Item", 36f, new Color(0.2f, 0.15f, 0.1f, 1f), font, TextAlignmentOptions.Left);
-        name.fontStyle = FontStyles.Bold;
-        SetRect(name.rectTransform, new Vector2(0f, 1f), new Vector2(500f, -150f), new Vector2(560f, 50f));
-
-        TMP_Text desc = CreateText("Description", window.transform, "Description", 26f, new Color(0.35f, 0.30f, 0.24f, 1f), font, TextAlignmentOptions.Left);
-        SetRect(desc.rectTransform, new Vector2(0f, 1f), new Vector2(500f, -210f), new Vector2(560f, 70f));
-
-        Button minus = CreateButton("Minus", window.transform, "-", 40f, StepColor, font);
-        SetRect((RectTransform)minus.transform, new Vector2(0.5f, 0.5f), new Vector2(-160f, -40f), new Vector2(80f, 72f));
-        TMP_Text qty = CreateText("Quantity", window.transform, "1", 40f, new Color(0.15f, 0.12f, 0.08f, 1f), font, TextAlignmentOptions.Center);
-        qty.fontStyle = FontStyles.Bold;
-        SetRect(qty.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, -40f), new Vector2(160f, 72f));
-        Button plus = CreateButton("Plus", window.transform, "+", 40f, StepColor, font);
-        SetRect((RectTransform)plus.transform, new Vector2(0.5f, 0.5f), new Vector2(160f, -40f), new Vector2(80f, 72f));
-
-        TMP_Text total = CreateText("Total", window.transform, "Total: 150 Gold", 32f, new Color(0.45f, 0.32f, 0.12f, 1f), font, TextAlignmentOptions.Center);
-        total.fontStyle = FontStyles.Bold;
-        SetRect(total.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 150f), new Vector2(700f, 48f));
-
-        Button confirm = CreateButton("Confirm", window.transform, "Confirm", 32f, BuyColor, font);
-        SetRect((RectTransform)confirm.transform, new Vector2(0.5f, 0f), new Vector2(150f, 70f), new Vector2(240f, 72f));
-        Button cancel = CreateButton("Cancel", window.transform, "Cancel", 32f, CancelColor, font);
-        SetRect((RectTransform)cancel.transform, new Vector2(0.5f, 0f), new Vector2(-150f, 70f), new Vector2(240f, 72f));
-
-        SerializedObject panelSo = new SerializedObject(panel);
-        SetRef(panelSo, "canvasGroup", group);
-        SetRef(panelSo, "window", window.rectTransform);
-        SetRef(panelSo, "closeButton", cancel);
-        SetRef(panelSo, "titleText", title);
-        SetRef(panelSo, "content", window.rectTransform);
-        panelSo.ApplyModifiedPropertiesWithoutUndo();
-
-        SerializedObject so = new SerializedObject(ctrl);
-        SetRef(so, "panel", panel);
-        SetRef(so, "iconImage", icon);
-        SetRef(so, "nameLabel", name);
-        SetRef(so, "descLabel", desc);
-        SetRef(so, "qtyLabel", qty);
-        SetRef(so, "totalLabel", total);
-        SetRef(so, "minusButton", minus);
-        SetRef(so, "plusButton", plus);
-        SetRef(so, "confirmButton", confirm);
-        so.ApplyModifiedPropertiesWithoutUndo();
-
-        root.transform.SetAsLastSibling();
-        root.SetActive(false);
-        return ctrl;
+        Debug.LogWarning("[Editor] CreateBuyPanel obsolete; Buy folded into ShopPanelController. Use ShopBuyFoldWireSetup.");
+        return null;
     }
 
     private static void SetRef(SerializedObject so, string field, UnityEngine.Object value)

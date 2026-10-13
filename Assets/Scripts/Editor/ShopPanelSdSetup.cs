@@ -194,7 +194,7 @@ public static class ShopPanelSdSetup
         backBtn.transition = Selectable.Transition.None;
 
         ShopItemSlot prefab = EnsureShopPrefab(font);
-        BuyPanelController buy = CreateBuyPanel(shopPanel.transform, font);
+        UIPanel buy = null; // BuyPanelController removed
 
         ShopPanelController ctrl = shopPanel.GetComponent<ShopPanelController>();
         if (ctrl == null)
@@ -210,7 +210,7 @@ public static class ShopPanelSdSetup
             SetRef(so, "itemConfig", itemConfig);
         }
         SetRef(so, "slotPrefab", prefab);
-        SetRef(so, "buyPanel", buy);
+        // buyPanel UIPanel wired by ShopBuyFoldWireSetup
         SetRef(so, "itemIcon", itemIcon);
         SetRef(so, "itemName", itemName);
         SetRef(so, "itemDescription", itemDesc);
@@ -306,98 +306,10 @@ public static class ShopPanelSdSetup
         }
     }
 
-    private static BuyPanelController CreateBuyPanel(Transform parent, TMP_FontAsset font)
+    private static UIPanel CreateBuyPanelObsolete(Transform parent, TMP_FontAsset font)
     {
-        Sprite frame = LoadSprite(GuidConfirmFrame, "SD-GMDK");
-        Sprite buySp = LoadSprite(GuidBuy, "SD-GMANN");
-        Sprite cancelSp = LoadSprite(GuidCancel, "SD-QXANN");
-        Sprite qtySp = LoadSprite(GuidQtyFrame, "SD-SLK");
-        Sprite minusSp = LoadSprite(GuidMinus, "SD-JH");
-        Sprite plusSp = LoadSprite(GuidPlus, "SD-JH1");
-        Sprite gold = LoadSprite(GuidGold, "ZJM-JB");
-
-        GameObject root = CreateRect("BuyPanel", parent).gameObject;
-        StretchFull(root.transform as RectTransform);
-        CanvasGroup group = root.AddComponent<CanvasGroup>();
-        UIPanel panel = root.AddComponent<UIPanel>();
-        BuyPanelController ctrl = root.AddComponent<BuyPanelController>();
-
-        Image dim = CreateImage("Dim", root.transform, new Color(0f, 0f, 0f, 0.55f), true);
-        StretchFull(dim.rectTransform);
-
-        Image window = CreateSprite("Window", root.transform, frame, true);
-        SetRect(window.rectTransform, new Vector2(0f, 40f), new Vector2(1100f, 580f));
-
-        Image icon = CreateImage("Icon", window.transform, new Color(0.55f, 0.40f, 0.85f, 1f), false);
-        SetRect(icon.rectTransform, new Vector2(-360f, 80f), new Vector2(160f, 160f));
-
-        TMP_Text name = CreateText("Name", window.transform, "Item", 40f, LabelDark, font, TextAlignmentOptions.Left);
-        SetRect(name.rectTransform, new Vector2(40f, 160f), new Vector2(520f, 50f));
-
-        TMP_Text desc = CreateText("Description", window.transform, "Description", 26f, LabelDark, font, TextAlignmentOptions.TopLeft);
-        SetRect(desc.rectTransform, new Vector2(80f, 40f), new Vector2(560f, 140f));
-        desc.enableWordWrapping = true;
-
-        Image goldIcon = CreateSprite("UnitGold", window.transform, gold, false);
-        SetRect(goldIcon.rectTransform, new Vector2(-80f, -40f), new Vector2(56f, 56f));
-        TMP_Text unitPrice = CreateText("UnitPrice", window.transform, "150 Gold", 30f, LabelDark, font, TextAlignmentOptions.Left);
-        SetRect(unitPrice.rectTransform, new Vector2(60f, -40f), new Vector2(280f, 50f));
-
-        Image minusImg = CreateSprite("Minus", window.transform, minusSp, true);
-        SetRect(minusImg.rectTransform, new Vector2(-120f, -130f), new Vector2(90f, 90f));
-        Button minus = minusImg.gameObject.AddComponent<Button>();
-        minus.targetGraphic = minusImg;
-        minus.transition = Selectable.Transition.None;
-
-        Image qtyBg = CreateSprite("QtyFrame", window.transform, qtySp, false);
-        SetRect(qtyBg.rectTransform, new Vector2(0f, -130f), new Vector2(200f, 76f));
-        TMP_Text qty = CreateText("Quantity", qtyBg.transform, "1", 36f, LabelDark, font, TextAlignmentOptions.Center);
-        StretchFull(qty.rectTransform);
-
-        Image plusImg = CreateSprite("Plus", window.transform, plusSp, true);
-        SetRect(plusImg.rectTransform, new Vector2(120f, -130f), new Vector2(90f, 90f));
-        Button plus = plusImg.gameObject.AddComponent<Button>();
-        plus.targetGraphic = plusImg;
-        plus.transition = Selectable.Transition.None;
-
-        TMP_Text total = CreateText("Total", window.transform, "150 Gold", 28f, LabelDark, font, TextAlignmentOptions.Center);
-        SetRect(total.rectTransform, new Vector2(0f, -200f), new Vector2(400f, 40f));
-
-        Image cancelImg = CreateSprite("Cancel", window.transform, cancelSp, true);
-        SetRect(cancelImg.rectTransform, new Vector2(-260f, -260f), new Vector2(360f, 130f));
-        Button cancel = cancelImg.gameObject.AddComponent<Button>();
-        cancel.targetGraphic = cancelImg;
-        cancel.transition = Selectable.Transition.None;
-
-        Image confirmImg = CreateSprite("Confirm", window.transform, buySp, true);
-        SetRect(confirmImg.rectTransform, new Vector2(260f, -260f), new Vector2(360f, 130f));
-        Button confirm = confirmImg.gameObject.AddComponent<Button>();
-        confirm.targetGraphic = confirmImg;
-        confirm.transition = Selectable.Transition.None;
-
-        SerializedObject panelSo = new SerializedObject(panel);
-        SetRef(panelSo, "canvasGroup", group);
-        SetRef(panelSo, "window", window.rectTransform);
-        SetRef(panelSo, "closeButton", cancel);
-        SetRef(panelSo, "content", window.rectTransform);
-        panelSo.ApplyModifiedPropertiesWithoutUndo();
-
-        SerializedObject so = new SerializedObject(ctrl);
-        SetRef(so, "panel", panel);
-        SetRef(so, "iconImage", icon);
-        SetRef(so, "nameLabel", name);
-        SetRef(so, "descLabel", desc);
-        SetRef(so, "unitPriceLabel", unitPrice);
-        SetRef(so, "qtyLabel", qty);
-        SetRef(so, "totalLabel", total);
-        SetRef(so, "minusButton", minus);
-        SetRef(so, "plusButton", plus);
-        SetRef(so, "confirmButton", confirm);
-        SetRef(so, "cancelButton", cancel);
-        so.ApplyModifiedPropertiesWithoutUndo();
-
-        root.SetActive(false);
-        return ctrl;
+        Debug.LogWarning("[Editor] CreateBuyPanel obsolete; Buy folded into ShopPanelController. Use ShopBuyFoldWireSetup.");
+        return null;
     }
 
     private static ShopItemSlot EnsureShopPrefab(TMP_FontAsset font)
