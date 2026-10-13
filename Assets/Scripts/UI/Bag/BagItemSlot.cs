@@ -18,6 +18,7 @@ public class BagItemSlot : MonoBehaviour
 
     private string _itemId;
     private Action<string> _onClick;
+    private bool _setNativeSize;
 
     public string ItemId => _itemId;
 
@@ -39,10 +40,11 @@ public class BagItemSlot : MonoBehaviour
         }
     }
 
-    public void Bind(string itemId, string displayName, int count, string iconLocation, Action<string> onClick)
+    public void Bind(string itemId, string displayName, int count, string iconLocation, Action<string> onClick, bool showCount = true, bool setNativeSize = false)
     {
         _itemId = itemId;
         _onClick = onClick;
+        _setNativeSize = setNativeSize;
         if (nameLabel != null)
         {
             nameLabel.text = string.IsNullOrEmpty(displayName) ? itemId : displayName;
@@ -50,7 +52,11 @@ public class BagItemSlot : MonoBehaviour
 
         if (countLabel != null)
         {
-            countLabel.text = "x" + Mathf.Max(0, count);
+            countLabel.gameObject.SetActive(showCount);
+            if (showCount)
+            {
+                countLabel.text = "x" + Mathf.Max(0, count);
+            }
         }
 
         if (iconImage != null)
@@ -88,6 +94,10 @@ public class BagItemSlot : MonoBehaviour
         {
             iconImage.sprite = sprite;
             iconImage.color = Color.white;
+            if (_setNativeSize)
+            {
+                iconImage.SetNativeSize();
+            }
         }
     }
 

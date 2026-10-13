@@ -5,8 +5,9 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// UpgradePanel equipment UI: EquipSlots open Equit list by type; EquitInfo equip/unequip;
-/// slot bg shows equipped icon. Inspector drag refs. English player text.
+/// UpgradePanel equipment UI: EquipSlots open Equit list (all owned equipment);
+/// EquitInfo equip/unequip with slot-type validation; slot bg shows equipped icon.
+/// Inspector drag refs. English player text.
 /// Slot map: 1=Shoes(ZB-XZ), 2=Armor(ZB-YF), 3=Spear(ZB-BQ), 4=Hood(ZB-MZ).
 /// </summary>
 [DisallowMultipleComponent]
@@ -143,7 +144,7 @@ public class UpgradeEquipController : MonoBehaviour
         RefreshSlotVisuals();
         if (equitRoot != null && equitRoot.activeSelf && _openType != EquipItemType.None)
         {
-            RebuildEquitList(_openType);
+            RebuildEquitList();
         }
 
         if (equitInfoRoot != null && equitInfoRoot.activeSelf && !string.IsNullOrEmpty(_infoItemId))
@@ -193,7 +194,7 @@ public class UpgradeEquipController : MonoBehaviour
             equitRoot.SetActive(true);
         }
 
-        RebuildEquitList(type);
+        RebuildEquitList();
     }
 
     private void HideEquit()
@@ -206,13 +207,13 @@ public class UpgradeEquipController : MonoBehaviour
         }
     }
 
-    private void RebuildEquitList(EquipItemType type)
+    private void RebuildEquitList()
     {
         ClearListSlots();
 
         if (emptyHint != null)
         {
-            emptyHint.text = "No corresponding equipment yet. Head to the shop to buy some.";
+            emptyHint.text = "No equipment yet. Head to the shop to buy some.";
         }
 
         LocalSaveManager save = LocalSaveManager.Instance;
@@ -234,7 +235,6 @@ public class UpgradeEquipController : MonoBehaviour
             return;
         }
 
-        string equippedId = save.GetEquippedItemId(type);
         List<ItemStackEntry> items = save.GetAllItems();
         int shown = 0;
         for (int i = 0; i < items.Count; i++)
@@ -246,7 +246,7 @@ public class UpgradeEquipController : MonoBehaviour
             }
 
             GameItemDefs.Def def = GameItemDefs.Get(stack.itemId);
-            if (def == null || def.equipType != type)
+            if (def == null || !def.IsEquipment)
             {
                 continue;
             }
@@ -258,8 +258,10 @@ public class UpgradeEquipController : MonoBehaviour
                 def.displayName,
                 stack.count,
                 def.iconLocation,
-                OnBagItemClicked);
-            slot.SetSelected(stack.itemId == equippedId);
+                OnBagItemClicked,
+                showCount: false,
+                setNativeSize: true);
+            slot.SetSelected(save.IsItemEquipped(stack.itemId));
             _slots.Add(slot);
             shown++;
         }
@@ -355,6 +357,19 @@ public class UpgradeEquipController : MonoBehaviour
             return;
         }
 
+        GameItemDefs.Def def = GameItemDefs.Get(_infoItemId);
+        if (def == null || !def.IsEquipment)
+        {
+            TipPanelUI.ShowTip("Cannot equip.");
+            return;
+        }
+
+        if (_openType != EquipItemType.None && def.equipType != _openType)
+        {
+            TipPanelUI.ShowTip("This equipment does not match the selected slot.");
+            return;
+        }
+
         if (!save.TryEquipItem(_infoItemId))
         {
             TipPanelUI.ShowTip("Cannot equip.");
@@ -366,7 +381,7 @@ public class UpgradeEquipController : MonoBehaviour
         RefreshSlotVisuals();
         if (_openType != EquipItemType.None)
         {
-            RebuildEquitList(_openType);
+            RebuildEquitList();
         }
     }
 
@@ -395,7 +410,7 @@ public class UpgradeEquipController : MonoBehaviour
         RefreshSlotVisuals();
         if (_openType != EquipItemType.None)
         {
-            RebuildEquitList(_openType);
+            RebuildEquitList();
         }
     }
 
