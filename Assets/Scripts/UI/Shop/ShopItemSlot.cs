@@ -7,9 +7,12 @@ using UnityEngine.UI;
 /// <summary>
 /// Shop list row: icon, English name, price. Row click selects; BUY opens Buy panel.
 /// Icon from GameItemDefs address via YooAsset.
+/// Price label is digits only; BUY/Image shows currency (ZJM-ZS for gems, keep gold for gold).
 /// </summary>
 public class ShopItemSlot : MonoBehaviour
 {
+    private const string GemsIconAddress = "ZJM-ZS";
+
     [SerializeField] private Image iconImage;
     [SerializeField] private TMP_Text nameLabel;
     [SerializeField] private TMP_Text priceLabel;
@@ -23,10 +26,15 @@ public class ShopItemSlot : MonoBehaviour
     private Action<GameItemDefs.Def> _onClick;
     private Action<GameItemDefs.Def> _onBuy;
     private Image _bg;
+    private Image _currencyIcon;
+    private Sprite _defaultCurrencySprite;
+    private bool _currencyIconResolved;
+    private Coroutine _currencyIconLoad;
 
     private void Awake()
     {
         _bg = GetComponent<Image>();
+        ResolveCurrencyIcon();
         if (clickButton != null)
         {
             clickButton.onClick.AddListener(OnClick);
@@ -77,6 +85,7 @@ public class ShopItemSlot : MonoBehaviour
             buyButton.interactable = def != null;
         }
 
+        ApplyCurrencyIcon(def);
         SetSelected(false);
         if (isActiveAndEnabled && def != null)
         {
@@ -94,9 +103,89 @@ public class ShopItemSlot : MonoBehaviour
 
     public GameItemDefs.Def Def => _def;
 
+    /// <summary>Digits only; currency shown via BUY/Image (ZJM-JB / ZJM-ZS).</summary>
     public static string FormatPrice(int price, CurrencyType currency)
     {
-        return price + (currency == CurrencyType.Gems ? " Gems" : " Gold");
+        return price.ToString();
+    }
+
+    private void ResolveCurrencyIcon()
+    {
+        if (_currencyIconResolved)
+        {
+            return;
+        }
+
+        _currencyIconResolved = true;
+        if (buyButton == null)
+        {
+            return;
+        }
+
+        Transform imageT = buyButton.transform.Find("Image");
+        if (imageT == null)
+        {
+            return;
+        }
+
+        _currencyIcon = imageT.GetComponent<Image>();
+        if (_currencyIcon != null)
+        {
+            _defaultCurrencySprite = _currencyIcon.sprite;
+        }
+    }
+
+    private void ApplyCurrencyIcon(GameItemDefs.Def def)
+    {
+        ResolveCurrencyIcon();
+        if (_currencyIconLoad != null)
+        {
+            StopCoroutine(_currencyIconLoad);
+            _currencyIconLoad = null;
+        }
+
+        if (_currencyIcon == null || def == null)
+        {
+            return;
+        }
+
+        if (def.currency == CurrencyType.Gems)
+        {
+            if (isActiveAndEnabled)
+            {
+                _currencyIconLoad = StartCoroutine(LoadCurrencyIcon(GemsIconAddress));
+            }
+            return;
+        }
+
+        // Gold: keep prefab gold icon if any.
+        if (_defaultCurrencySprite != null)
+        {
+            _currencyIcon.sprite = _defaultCurrencySprite;
+            _currencyIcon.color = Color.white;
+            _currencyIcon.preserveAspect = true;
+        }
+    }
+
+    private IEnumerator LoadCurrencyIcon(string location)
+    {
+        YooAssetManager yoo = YooAssetManager.Instance;
+        if (_currencyIcon == null || yoo == null || !yoo.IsReady || string.IsNullOrEmpty(location) || !yoo.HasLocation(location))
+        {
+            _currencyIconLoad = null;
+            yield break;
+        }
+
+        Sprite sprite = null;
+        yield return yoo.LoadSpriteAsync(location, s => sprite = s);
+        if (sprite != null && _currencyIcon != null)
+        {
+            _currencyIcon.sprite = sprite;
+            _currencyIcon.color = Color.white;
+            _currencyIcon.preserveAspect = true;
+        }
+
+        _currencyIconLoad = null;
     }
 
     private IEnumerator LoadIcon(string location)
