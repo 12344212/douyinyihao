@@ -4,36 +4,34 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// StagePanel yun1/yun2/yun3: all three clouds share one fly direction (left->right
-/// or right->left). Each flies in from off-screen, lands at a random position,
-/// holds briefly (soft bob), then flies out the far side and loops via DOTween.
+/// StagePanel yun1/yun2/yun3: on panel enter each cloud starts at a random on-screen X,
+/// then drifts right at constant speed. When off the right edge, respawn left and loop.
+/// Soft bob while flying. No land/hold.
 /// </summary>
 public class StageCloudFly : MonoBehaviour
 {
     [SerializeField] private RectTransform[] clouds;
-    [Tooltip("Usually SlotRow. Used to measure land area and off-screen edges.")]
+    [Tooltip("Usually SlotRow. Used to measure Y band and off-screen edges.")]
     [SerializeField] private RectTransform boundsRoot;
 
-    [Header("Timing")]
-    [SerializeField] private Vector2 flyInDurationRange = new Vector2(4.0f, 6.5f);
-    [SerializeField] private Vector2 flyOutDurationRange = new Vector2(3.0f, 4.8f);
-    [SerializeField] private Vector2 landHoldRange = new Vector2(1.4f, 3.0f);
+    [Header("Motion")]
+    [Tooltip("Anchored-position units per second. Duration = distance / speed.")]
+    [SerializeField] private Vector2 speedRange = new Vector2(60f, 110f);
     [SerializeField] private Vector2 restDelayRange = new Vector2(0.25f, 1.1f);
-    [SerializeField] private Vector2 initialDelayRange = new Vector2(0f, 1.4f);
-
-    [Header("Land Area (local anchored, relative to boundsRoot center)")]
-    [SerializeField] private Vector2 landMin = new Vector2(-420f, -70f);
-    [SerializeField] private Vector2 landMax = new Vector2(420f, 110f);
+    [SerializeField] private Vector2 initialDelayRange = new Vector2(0f, 0.35f);
     [SerializeField] private float edgePadding = 90f;
 
-    [Header("Soft Bob After Land")]
-    [SerializeField] private float landBobAmplitude = 5f;
-    [SerializeField] private float landBobPeriod = 2.5f;
+    [Header("Y Band (local anchored, relative to boundsRoot center)")]
+    [SerializeField] private Vector2 yRange = new Vector2(-70f, 110f);
+
+    [Header("Soft Bob While Flying")]
+    [SerializeField] private float bobAmplitude = 5f;
+    [SerializeField] private Vector2 bobPeriodRange = new Vector2(2.2f, 3.6f);
 
     private Coroutine[] _loops;
     private Vector2[] _restorePos;
-    /// <summary>Shared by all clouds for the whole enabled session.</summary>
-    private bool _sharedFromLeft;
+    /// <summary>True for first pass after panel enter: start at random on-screen X.</summary>
+    private bool[] _useOnScreenStart;
 
     private void OnEnable()
     {
@@ -69,11 +67,9 @@ public class StageCloudFly : MonoBehaviour
             return;
         }
 
-        // One direction for all three yun for this session.
-        _sharedFromLeft = Random.value > 0.5f;
-
         _restorePos = new Vector2[clouds.Length];
         _loops = new Coroutine[clouds.Length];
+        _useOnScreenStart = new bool[clouds.Length];
         for (int i = 0; i < clouds.Length; i++)
         {
             RectTransform rt = clouds[i];
@@ -83,6 +79,7 @@ public class StageCloudFly : MonoBehaviour
             }
 
             _restorePos[i] = rt.anchoredPosition;
+            _useOnScreenStart[i] = true;
             Image img = rt.GetComponent<Image>();
             if (img != null)
             {
@@ -108,6 +105,8 @@ public class StageCloudFly : MonoBehaviour
 
             _loops = null;
         }
+
+        _useOnScreenStart = null;
 
         if (clouds == null)
         {
@@ -160,82 +159,74 @@ public class StageCloudFly : MonoBehaviour
                 cloudHalfW = 200f;
             }
 
-            Vector2 land = new Vector2(
-                Random.Range(landMin.x, landMax.x),
-                Random.Range(landMin.y, landMax.y));
+            // Always drift left -> right. First enter: random on-screen X; later: spawn left.
+            float endX = halfW + cloudHalfW + edgePadding;
+            float startX;
+            bool onScreenStart = _useOnScreenStart != null && index < _useOnScreenStart.Length && _useOnScreenStart[index];
+            if (onScreenStart)
+            {
+                float xMin = -halfW + cloudHalfW + edgePadding * 0.25f;
+                float xMax = halfW - cloudHalfW - edgePadding * 0.25f;
+                if (xMax < xMin)
+                {
+                    xMin = -halfW * 0.4f;
+                    xMax = halfW * 0.4f;
+                }
 
-            // All clouds use the same enter/exit direction (fly through).
-            bool fromLeft = _sharedFromLeft;
-            float startX = fromLeft
-                ? -halfW - cloudHalfW - edgePadding
-                : halfW + cloudHalfW + edgePadding;
-            float startY = land.y + Random.Range(-24f, 24f);
+                startX = Random.Range(xMin, xMax);
+                _useOnScreenStart[index] = false;
+            }
+            else
+            {
+                startX = -halfW - cloudHalfW - edgePadding;
+            }
 
-            bool exitLeft = !fromLeft;
-            float endX = exitLeft
-                ? -halfW - cloudHalfW - edgePadding
-                : halfW + cloudHalfW + edgePadding;
-            float endY = land.y + Random.Range(-30f, 30f);
+            float baseY = Random.Range(yRange.x, yRange.y);
 
             rt.DOKill();
-            rt.anchoredPosition = new Vector2(startX, startY);
+            rt.anchoredPosition = new Vector2(startX, baseY);
             rt.localEulerAngles = Vector3.zero;
             if (!rt.gameObject.activeSelf)
             {
                 rt.gameObject.SetActive(true);
             }
 
-            float flyIn = Random.Range(flyInDurationRange.x, flyInDurationRange.y);
-            bool arrived = false;
-            rt.DOAnchorPos(land, Mathf.Max(0.35f, flyIn))
-                .SetEase(Ease.OutCubic)
+            float speed = Random.Range(speedRange.x, speedRange.y);
+            float distance = Mathf.Abs(endX - startX);
+            float duration = Mathf.Max(0.8f, distance / Mathf.Max(1f, speed));
+
+            float bobAmp = Mathf.Max(0f, bobAmplitude);
+            float bobPeriod = Random.Range(bobPeriodRange.x, bobPeriodRange.y);
+            float bobPhase = Random.Range(0f, Mathf.PI * 2f);
+            float bobOmega = (Mathf.PI * 2f) / Mathf.Max(0.2f, bobPeriod);
+
+            bool finished = false;
+            float x = startX;
+
+            DOTween.To(() => x, v =>
+                {
+                    x = v;
+                    float bob = bobAmp > 0.01f
+                        ? Mathf.Sin(Time.unscaledTime * bobOmega + bobPhase) * bobAmp
+                        : 0f;
+                    rt.anchoredPosition = new Vector2(x, baseY + bob);
+                }, endX, duration)
+                .SetEase(Ease.Linear)
                 .SetUpdate(true)
                 .SetTarget(rt)
-                .OnComplete(() => { arrived = true; });
+                .OnComplete(() => { finished = true; });
 
-            while (!arrived && enabled)
+            while (!finished && enabled)
             {
                 yield return null;
             }
 
+            rt.DOKill();
             if (!enabled)
             {
                 yield break;
             }
 
-            float hold = Random.Range(landHoldRange.x, landHoldRange.y);
-            if (landBobAmplitude > 0.01f && hold > 0.05f)
-            {
-                float bobDur = Mathf.Max(0.25f, landBobPeriod);
-                rt.DOAnchorPosY(land.y + landBobAmplitude, bobDur * 0.5f)
-                    .SetEase(Ease.InOutSine)
-                    .SetLoops(-1, LoopType.Yoyo)
-                    .SetUpdate(true)
-                    .SetTarget(rt);
-            }
-
-            if (hold > 0f)
-            {
-                yield return new WaitForSecondsRealtime(hold);
-            }
-
-            rt.DOKill();
-            rt.anchoredPosition = land;
-
-            float flyOut = Random.Range(flyOutDurationRange.x, flyOutDurationRange.y);
-            bool left = false;
-            rt.DOAnchorPos(new Vector2(endX, endY), Mathf.Max(0.25f, flyOut))
-                .SetEase(Ease.InCubic)
-                .SetUpdate(true)
-                .SetTarget(rt)
-                .OnComplete(() => { left = true; });
-
-            while (!left && enabled)
-            {
-                yield return null;
-            }
-
-            rt.DOKill();
             float rest = Random.Range(restDelayRange.x, restDelayRange.y);
             if (rest > 0f)
             {
