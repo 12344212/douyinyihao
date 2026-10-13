@@ -3634,7 +3634,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &350992544
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3754,6 +3754,8 @@ MonoBehaviour:
   lockLabel: {fileID: 0}
   clearMarker: {fileID: 1321961213}
   clearLabel: {fileID: 0}
+  challengeMarker: {fileID: 770319777}
+  tintBackground: 0
   unlockedColor: {r: 0.25, g: 0.45, b: 0.72, a: 1}
   clearedColor: {r: 0.22, g: 0.55, b: 0.38, a: 1}
   lockedColor: {r: 0.32, g: 0.33, b: 0.36, a: 1}
@@ -5874,6 +5876,8 @@ MonoBehaviour:
   lockLabel: {fileID: 0}
   clearMarker: {fileID: 1291513662}
   clearLabel: {fileID: 0}
+  challengeMarker: {fileID: 1505933309}
+  tintBackground: 0
   unlockedColor: {r: 0.25, g: 0.45, b: 0.72, a: 1}
   clearedColor: {r: 0.22, g: 0.55, b: 0.38, a: 1}
   lockedColor: {r: 0.32, g: 0.33, b: 0.36, a: 1}
@@ -7847,7 +7851,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &770319778
 RectTransform:
   m_ObjectHideFlags: 0
@@ -8928,7 +8932,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &858742133
 RectTransform:
   m_ObjectHideFlags: 0
@@ -12282,6 +12286,8 @@ MonoBehaviour:
   lockLabel: {fileID: 0}
   clearMarker: {fileID: 1333380918}
   clearLabel: {fileID: 0}
+  challengeMarker: {fileID: 1857213572}
+  tintBackground: 0
   unlockedColor: {r: 0.25, g: 0.45, b: 0.72, a: 1}
   clearedColor: {r: 0.22, g: 0.55, b: 0.38, a: 1}
   lockedColor: {r: 0.32, g: 0.33, b: 0.36, a: 1}
@@ -13700,6 +13706,8 @@ MonoBehaviour:
   lockLabel: {fileID: 0}
   clearMarker: {fileID: 2104304491}
   clearLabel: {fileID: 0}
+  challengeMarker: {fileID: 858742132}
+  tintBackground: 0
   unlockedColor: {r: 0.25, g: 0.45, b: 0.72, a: 1}
   clearedColor: {r: 0.22, g: 0.55, b: 0.38, a: 1}
   lockedColor: {r: 0.32, g: 0.33, b: 0.36, a: 1}
@@ -15742,7 +15750,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1505933310
 RectTransform:
   m_ObjectHideFlags: 0
@@ -18980,6 +18988,8 @@ MonoBehaviour:
   lockLabel: {fileID: 0}
   clearMarker: {fileID: 1655040901}
   clearLabel: {fileID: 0}
+  challengeMarker: {fileID: 350992543}
+  tintBackground: 0
   unlockedColor: {r: 0.25, g: 0.45, b: 0.72, a: 1}
   clearedColor: {r: 0.22, g: 0.55, b: 0.38, a: 1}
   lockedColor: {r: 0.32, g: 0.33, b: 0.36, a: 1}
@@ -19670,6 +19680,7 @@ GameObject:
   - component: {fileID: 1836574880}
   - component: {fileID: 1836574879}
   - component: {fileID: 1836574881}
+  - component: {fileID: 1836574890}
   m_Layer: 5
   m_Name: StagePanel
   m_TagString: Untagged
@@ -19749,10 +19760,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   slots:
   - {fileID: 1783025710}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 1126000017}
+  - {fileID: 564558331}
+  - {fileID: 1323225169}
+  - {fileID: 353359895}
   chapterTitle: {fileID: 0}
   chapterButtons:
   - {fileID: 0}
@@ -19763,7 +19774,50 @@ MonoBehaviour:
   prevButton: {fileID: 252872455}
   nextButton: {fileID: 2119197965}
   pageLabel: {fileID: 0}
+  waterFloat: {fileID: 1836574890}
   battleSceneName: BattleScene
+--- !u!114 &1836574890
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1836574877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a882acf67da04af6b03fd767e03e4543, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targets:
+  - rect: {fileID: 1783025709}
+    phaseOffset: 0
+    amplitudeScale: 1
+  - rect: {fileID: 1126000016}
+    phaseOffset: 0.14
+    amplitudeScale: 1
+  - rect: {fileID: 564558330}
+    phaseOffset: 0.28
+    amplitudeScale: 1
+  - rect: {fileID: 1323225168}
+    phaseOffset: 0.42
+    amplitudeScale: 1
+  - rect: {fileID: 353359894}
+    phaseOffset: 0.56
+    amplitudeScale: 1
+  - rect: {fileID: 1193341680}
+    phaseOffset: 0.05
+    amplitudeScale: 1.15
+  - rect: {fileID: 1170557580}
+    phaseOffset: 0.38
+    amplitudeScale: 0.95
+  - rect: {fileID: 1289280096}
+    phaseOffset: 0.72
+    amplitudeScale: 1.25
+  bobAmplitudeY: 8
+  bobPeriod: 2.6
+  bobAmplitudeX: 3
+  tiltAngle: 0.8
+  tiltPeriod: 3.2
 --- !u!1 &1847767730
 GameObject:
   m_ObjectHideFlags: 0
@@ -20188,7 +20242,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1857213573
 RectTransform:
   m_ObjectHideFlags: 0

@@ -1,4 +1,4 @@
-using System;
+sing System;
 using System.IO;
 using TMPro;
 using UnityEditor;
@@ -149,6 +149,19 @@ public static class StagePanelSetup
                 return;
             }
 
+            // Protect user-placed GQ art hierarchy (SlotRow with TZ / yun). Use Wire Stage Panel instead.
+            Transform contentCheck = panel.Content;
+            Transform slotRowCheck = contentCheck != null ? contentCheck.Find("SlotRow") : null;
+            if (slotRowCheck != null && (slotRowCheck.Find("yun1") != null || (slotRowCheck.Find("Slot1") != null && slotRowCheck.Find("Slot1/TZ") != null)))
+            {
+                Debug.LogWarning($"{LogTag} Detected user-placed StagePanel art (yun/TZ). Abort rebuild; use Tools/Template/Wire Stage Panel.");
+                if (interactive)
+                {
+                    EditorUtility.DisplayDialog("Build Stage Panel", "User-placed StagePanel art detected (yun/TZ). Use Tools/Template/Wire Stage Panel instead of Rebuild.", "OK");
+                }
+                CloseIfOpened(scene, openedHere);
+                return;
+            }
             if (!interactive && panel.GetComponent<StagePanelController>() != null)
             {
                 Debug.Log($"{LogTag} Stage panel already built, auto-run skipped.");
@@ -308,6 +321,9 @@ public static class StagePanelSetup
         SetRef(so, "lockLabel", lockLabel);
         SetRef(so, "clearMarker", clearBg.gameObject);
         SetRef(so, "clearLabel", clearLabel);
+        SetRef(so, "challengeMarker", null);
+        SerializedProperty tint = so.FindProperty("tintBackground");
+        if (tint != null) tint.boolValue = false;
         so.ApplyModifiedPropertiesWithoutUndo();
         return slot;
     }

@@ -4,8 +4,9 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 一个关卡格子：编号、锁定遮罩、通关标记。
-/// 未解锁时点击不进战斗，只通知外面弹提示。引用都由编辑器赋值。
+/// One stage cell: number label, Lock (suo), Clear checkmark, TZ challenge badge.
+/// TZ shows when this stage is the current max challengeable and not cleared yet.
+/// Locked clicks notify the panel; they do not enter battle. Refs are assigned in the editor.
 /// </summary>
 public class StageSlot : MonoBehaviour
 {
@@ -16,10 +17,13 @@ public class StageSlot : MonoBehaviour
     [SerializeField] private TMP_Text lockLabel;
     [SerializeField] private GameObject clearMarker;
     [SerializeField] private TMP_Text clearLabel;
+    [SerializeField] private GameObject challengeMarker;
 
-    [SerializeField] private Color unlockedColor = new Color(0.25f, 0.45f, 0.72f, 1f);
-    [SerializeField] private Color clearedColor = new Color(0.22f, 0.55f, 0.38f, 1f);
-    [SerializeField] private Color lockedColor = new Color(0.32f, 0.33f, 0.36f, 1f);
+    [Tooltip("When false, leave background sprite colors alone (art-driven slots).")]
+    [SerializeField] private bool tintBackground = false;
+    [SerializeField] private Color unlockedColor = Color.white;
+    [SerializeField] private Color clearedColor = Color.white;
+    [SerializeField] private Color lockedColor = new Color(0.65f, 0.65f, 0.68f, 1f);
 
     private int _chapter = -1;
     private int _stage = -1;
@@ -61,7 +65,11 @@ public class StageSlot : MonoBehaviour
         _onClick = onClick;
     }
 
-    public void Bind(int chapter, int stage, bool unlocked, bool cleared)
+    /// <summary>
+    /// Refresh labels and markers only. Does not create or destroy UI nodes.
+    /// showChallenge: current max challengeable stage that is not cleared yet.
+    /// </summary>
+    public void Bind(int chapter, int stage, bool unlocked, bool cleared, bool showChallenge)
     {
         _chapter = chapter;
         _stage = stage;
@@ -82,7 +90,12 @@ public class StageSlot : MonoBehaviour
             clearMarker.SetActive(unlocked && cleared);
         }
 
-        if (background != null)
+        if (challengeMarker != null)
+        {
+            challengeMarker.SetActive(showChallenge);
+        }
+
+        if (tintBackground && background != null)
         {
             if (!unlocked)
             {

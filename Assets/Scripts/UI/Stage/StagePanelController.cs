@@ -5,17 +5,17 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
-/// 关卡选择：一次显示一章，每页 5 关，章内翻页。
-/// 解锁状态读 LocalSaveManager（新档只有 1-1 解锁）。
-/// 点已解锁的格子异步进入 BattleScene，并把章节/关卡记到 StageSelection.Current。
-/// 挂在 StagePanel 上，引用由编辑器赋值。
+/// Stage select: one chapter, 5 slots per page. L/Next page by -5/+5 within the chapter
+/// (e.g. 1-1 page -> 1-6). Only refreshes slot contents; does not recreate the panel.
+/// Unlock/clear from LocalSaveManager. TZ badge via StageSlot when stage is the current
+/// max challengeable and not cleared. Optional StageWaterFloat for slots + yun clouds.
 /// </summary>
 public class StagePanelController : MonoBehaviour
 {
     [Header("Slots")]
     [SerializeField] private StageSlot[] slots = new StageSlot[StageDefs.SlotsPerPage];
 
-    [Header("Chapter")]
+    [Header("Chapter (optional)")]
     [SerializeField] private TMP_Text chapterTitle;
     [SerializeField] private Button[] chapterButtons = new Button[StageDefs.ChapterCount];
     [SerializeField] private Color chapterSelectedColor = new Color(0.85f, 0.55f, 0.20f, 1f);
@@ -25,6 +25,9 @@ public class StagePanelController : MonoBehaviour
     [SerializeField] private Button prevButton;
     [SerializeField] private Button nextButton;
     [SerializeField] private TMP_Text pageLabel;
+
+    [Header("Float (optional)")]
+    [SerializeField] private StageWaterFloat waterFloat;
 
     [Header("Flow")]
     [SerializeField] private string battleSceneName = "BattleScene";
@@ -68,6 +71,10 @@ public class StagePanelController : MonoBehaviour
     {
         _loading = false;
         Refresh();
+        if (waterFloat != null)
+        {
+            waterFloat.StartMotion();
+        }
     }
 
     private void OnDestroy()
@@ -198,6 +205,10 @@ public class StagePanelController : MonoBehaviour
             }
         }
 
+        int frontierChapter = save != null ? save.HighestUnlockedChapter : 1;
+        int frontierStage = save != null ? save.HighestUnlockedStage : 1;
+        bool allCleared = save != null && save.AllStagesCleared;
+
         int startStage = _page * StageDefs.SlotsPerPage + 1;
         for (int i = 0; i < StageDefs.SlotsPerPage; i++)
         {
@@ -209,7 +220,10 @@ public class StagePanelController : MonoBehaviour
             int stage = startStage + i;
             bool unlocked = save != null && save.IsStageUnlocked(_chapter, stage);
             bool cleared = save != null && save.IsStageCleared(_chapter, stage);
-            slots[i].Bind(_chapter, stage, unlocked, cleared);
+            // TZ: current max challengeable, not cleared yet.
+            bool showChallenge = unlocked && !cleared && !allCleared
+                && _chapter == frontierChapter && stage == frontierStage;
+            slots[i].Bind(_chapter, stage, unlocked, cleared, showChallenge);
         }
 
         if (pageLabel != null)
