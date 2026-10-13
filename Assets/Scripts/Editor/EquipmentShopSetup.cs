@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 
 /// <summary>
-/// Ensures ItemConfig has Healing Potion + 8 equipment shop items (ZB-BQ/MZ/XZ/YF).
+/// Ensures ItemConfig has Healing Potion + Gold Pouch + 8 equipment shop items (ZB-BQ/MZ/XZ/YF).
 /// Menu: Tools/Template/Ensure Equipment Shop Items
 /// One-shot: EquipmentShopSetup.run
 /// </summary>
@@ -215,6 +215,7 @@ public static class EquipmentShopSetup
             SerializedObject so = new SerializedObject(cfg);
             SerializedProperty items = so.FindProperty("items");
             EnsureHealPotion(items);
+            EnsureGoldPouch(items);
             for (int i = 0; i < Equipment.Length; i++)
             {
                 UpsertEquipment(items, Equipment[i]);
@@ -225,7 +226,7 @@ public static class EquipmentShopSetup
             AssetDatabase.SaveAssets();
 
             int count = items.arraySize;
-            string msg = LogTag + " ItemConfig ready. entries=" + count + " (heal + 8 equipment). Icons AddressByFileName under Assets/UI.";
+            string msg = LogTag + " ItemConfig ready. entries=" + count + " (heal + gold pouch + 8 equipment). Icons AddressByFileName under Assets/UI.";
             Debug.Log(msg);
             try
             {
@@ -258,6 +259,35 @@ public static class EquipmentShopSetup
         entry.FindPropertyRelative("price").intValue = 150;
         entry.FindPropertyRelative("currency").enumValueIndex = (int)CurrencyType.Gold;
         entry.FindPropertyRelative("iconLocation").stringValue = "Item_HealPotion";
+        entry.FindPropertyRelative("grantCurrency").enumValueIndex = (int)CurrencyType.Gold;
+        entry.FindPropertyRelative("grantAmount").intValue = 0;
+        entry.FindPropertyRelative("equipType").enumValueIndex = (int)EquipItemType.None;
+        entry.FindPropertyRelative("attackBonus").intValue = 0;
+        entry.FindPropertyRelative("statBonusLabel").stringValue = string.Empty;
+        entry.FindPropertyRelative("statBonusValue").floatValue = 0f;
+        entry.FindPropertyRelative("specialEffectId").stringValue = string.Empty;
+        entry.FindPropertyRelative("specialValue").floatValue = 0f;
+        entry.FindPropertyRelative("specialDescription").stringValue = string.Empty;
+    }
+
+private static void EnsureGoldPouch(SerializedProperty items)
+    {
+        int index = FindIndex(items, GameItemDefs.GoldPouchId);
+        if (index < 0)
+        {
+            index = items.arraySize;
+            items.arraySize++;
+        }
+
+        SerializedProperty entry = items.GetArrayElementAtIndex(index);
+        entry.FindPropertyRelative("id").stringValue = GameItemDefs.GoldPouchId;
+        entry.FindPropertyRelative("displayName").stringValue = "Gold Pouch";
+        entry.FindPropertyRelative("description").stringValue = "Exchange gems for gold. Grants 50 gold instantly.";
+        entry.FindPropertyRelative("price").intValue = 10;
+        entry.FindPropertyRelative("currency").enumValueIndex = (int)CurrencyType.Gems;
+        entry.FindPropertyRelative("iconLocation").stringValue = "ZJM-JBd";
+        entry.FindPropertyRelative("grantCurrency").enumValueIndex = (int)CurrencyType.Gold;
+        entry.FindPropertyRelative("grantAmount").intValue = 50;
         entry.FindPropertyRelative("equipType").enumValueIndex = (int)EquipItemType.None;
         entry.FindPropertyRelative("attackBonus").intValue = 0;
         entry.FindPropertyRelative("statBonusLabel").stringValue = string.Empty;
@@ -283,6 +313,8 @@ public static class EquipmentShopSetup
         entry.FindPropertyRelative("price").intValue = def.price;
         entry.FindPropertyRelative("currency").enumValueIndex = (int)CurrencyType.Gold;
         entry.FindPropertyRelative("iconLocation").stringValue = def.iconLocation;
+        entry.FindPropertyRelative("grantCurrency").enumValueIndex = (int)CurrencyType.Gold;
+        entry.FindPropertyRelative("grantAmount").intValue = 0;
         entry.FindPropertyRelative("equipType").enumValueIndex = (int)def.equipType;
         entry.FindPropertyRelative("attackBonus").intValue = def.attackBonus;
         entry.FindPropertyRelative("statBonusLabel").stringValue = def.statBonusLabel ?? string.Empty;

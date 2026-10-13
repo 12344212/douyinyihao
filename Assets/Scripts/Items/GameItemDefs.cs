@@ -9,6 +9,7 @@ public static class GameItemDefs
 {
     public const string ConfigAddress = "ItemConfig";
     public const string HealPotionId = "heal_potion";
+    public const string GoldPouchId = "gold_pouch";
 
     public const string IronPikeId = "ZB-BQ1";
     public const string CoralLanceId = "ZB-BQ2";
@@ -28,6 +29,8 @@ public static class GameItemDefs
         public readonly int price;
         public readonly CurrencyType currency;
         public readonly string iconLocation;
+        public readonly CurrencyType grantCurrency;
+        public readonly int grantAmount;
         public readonly EquipItemType equipType;
         public readonly int attackBonus;
         public readonly string statBonusLabel;
@@ -43,6 +46,8 @@ public static class GameItemDefs
             int price,
             CurrencyType currency,
             string iconLocation,
+            CurrencyType grantCurrency = CurrencyType.Gold,
+            int grantAmount = 0,
             EquipItemType equipType = EquipItemType.None,
             int attackBonus = 0,
             string statBonusLabel = null,
@@ -57,6 +62,8 @@ public static class GameItemDefs
             this.price = price;
             this.currency = currency;
             this.iconLocation = iconLocation;
+            this.grantCurrency = grantCurrency;
+            this.grantAmount = grantAmount;
             this.equipType = equipType;
             this.attackBonus = attackBonus;
             this.statBonusLabel = statBonusLabel ?? string.Empty;
@@ -67,6 +74,9 @@ public static class GameItemDefs
         }
 
         public bool IsEquipment => equipType != EquipItemType.None;
+
+        /// <summary>True when purchase grants currency immediately instead of a bag stack.</summary>
+        public bool IsCurrencyPack => grantAmount > 0;
 
         /// <summary>English type label for UI.</summary>
         public string EquipTypeLabel
@@ -212,6 +222,8 @@ public static class GameItemDefs
             entry.price,
             entry.currency,
             entry.iconLocation,
+            entry.grantCurrency,
+            entry.grantAmount,
             entry.equipType,
             entry.attackBonus,
             entry.statBonusLabel,

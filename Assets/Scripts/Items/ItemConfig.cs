@@ -5,6 +5,7 @@ using UnityEngine;
 /// Item config. Add/remove entries in Inspector; shop and bag read this table.
 /// Address: ItemConfig (YooAsset AddressByFileName).
 /// Equipment entries carry type / attack / special fields for display + stub battle hooks.
+/// Currency-pack entries (grantAmount > 0) spend price currency and grant grantCurrency immediately (no bag stack).
 /// </summary>
 [CreateAssetMenu(fileName = "ItemConfig", menuName = "Template/Item Config")]
 public class ItemConfig : ScriptableObject
@@ -22,6 +23,11 @@ public class ItemConfig : ScriptableObject
         public int price;
         public CurrencyType currency;
         public string iconLocation;
+
+        [Header("Currency pack (optional)")]
+        [Tooltip("If grantAmount > 0, purchase spends price currency and grants this currency * qty (no inventory stack).")]
+        public CurrencyType grantCurrency;
+        public int grantAmount;
 
         [Header("Equipment (optional)")]
         public EquipItemType equipType;

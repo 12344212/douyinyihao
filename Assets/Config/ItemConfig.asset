@@ -19,6 +19,8 @@ MonoBehaviour:
     price: 150
     currency: 0
     iconLocation: Item_HealPotion
+    grantCurrency: 0
+    grantAmount: 0
     equipType: 0
     attackBonus: 0
     statBonusLabel: 
@@ -32,6 +34,8 @@ MonoBehaviour:
     price: 120
     currency: 0
     iconLocation: ZB-BQ1
+    grantCurrency: 0
+    grantAmount: 0
     equipType: 1
     attackBonus: 2
     statBonusLabel: Attack +2
@@ -45,6 +49,8 @@ MonoBehaviour:
     price: 280
     currency: 0
     iconLocation: ZB-BQ2
+    grantCurrency: 0
+    grantAmount: 0
     equipType: 1
     attackBonus: 4
     statBonusLabel: Attack +4
@@ -58,6 +64,8 @@ MonoBehaviour:
     price: 100
     currency: 0
     iconLocation: ZB-MZ1
+    grantCurrency: 0
+    grantAmount: 0
     equipType: 2
     attackBonus: 0
     statBonusLabel: Attack Range +0.2
@@ -71,6 +79,8 @@ MonoBehaviour:
     price: 240
     currency: 0
     iconLocation: ZB-MZ2
+    grantCurrency: 0
+    grantAmount: 0
     equipType: 2
     attackBonus: 0
     statBonusLabel: Attack Range +0.4
@@ -84,6 +94,8 @@ MonoBehaviour:
     price: 110
     currency: 0
     iconLocation: ZB-XZ1
+    grantCurrency: 0
+    grantAmount: 0
     equipType: 3
     attackBonus: 0
     statBonusLabel: Net Speed +10%
@@ -97,6 +109,8 @@ MonoBehaviour:
     price: 260
     currency: 0
     iconLocation: ZB-XZ2
+    grantCurrency: 0
+    grantAmount: 0
     equipType: 3
     attackBonus: 0
     statBonusLabel: Net Speed +20%
@@ -110,6 +124,8 @@ MonoBehaviour:
     price: 150
     currency: 0
     iconLocation: ZB-YF1
+    grantCurrency: 0
+    grantAmount: 0
     equipType: 4
     attackBonus: 0
     statBonusLabel: HP +5
@@ -123,6 +139,8 @@ MonoBehaviour:
     price: 300
     currency: 0
     iconLocation: ZB-YF2
+    grantCurrency: 0
+    grantAmount: 0
     equipType: 4
     attackBonus: 0
     statBonusLabel: HP +10
@@ -130,3 +148,18 @@ MonoBehaviour:
     specialEffectId: dodge_chance
     specialValue: 0.15
     specialDescription: 15% chance to dodge the attack.
+  - id: gold_pouch
+    displayName: Gold Pouch
+    description: Exchange gems for gold. Grants 50 gold instantly.
+    price: 10
+    currency: 1
+    iconLocation: ZJM-JBd
+    grantCurrency: 0
+    grantAmount: 50
+    equipType: 0
+    attackBonus: 0
+    statBonusLabel: 
+    statBonusValue: 0
+    specialEffectId: 
+    specialValue: 0
+    specialDescription:

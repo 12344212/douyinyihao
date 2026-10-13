@@ -713,6 +713,26 @@ public class ShopPanelController : MonoBehaviour
         }
 
         int bought = _buyQty;
+
+        // Currency pack: spend price currency, grant grantCurrency * qty (no bag stack).
+        if (_buyDef.IsCurrencyPack)
+        {
+            int grantTotal = _buyDef.grantAmount * bought;
+            save.AddCurrency(_buyDef.grantCurrency, grantTotal);
+            GetPanelController.Show(new GetPanelController.Reward
+            {
+                useCurrency = true,
+                currency = _buyDef.grantCurrency,
+                iconLocation = _buyDef.iconLocation,
+                displayName = _buyDef.grantCurrency == CurrencyType.Gems ? "Gems" : "Gold",
+                count = grantTotal
+            });
+            save.AddShopPurchaseCount(bought);
+            RefreshProgressAndChests();
+            HideBuy();
+            return;
+        }
+
         if (!save.AddItem(_buyDef.id, bought))
         {
             save.AddCurrency(_buyDef.currency, total);
