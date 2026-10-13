@@ -344,7 +344,7 @@ public static class ShopPanelSdSetup
         Image icon = CreateImage("Icon", bg.transform, new Color(0.55f, 0.40f, 0.85f, 1f), false);
         SetRect(icon.rectTransform, new Vector2(-360f, 0f), new Vector2(100f, 100f));
 
-        TMP_Text name = CreateText("Name", bg.transform, "Healing Potion", 34f, LabelDark, font, TextAlignmentOptions.Left);
+        TMP_Text name = CreateText("Name", bg.transform, "Item Name", 34f, LabelDark, font, TextAlignmentOptions.Left);
         SetRect(name.rectTransform, new Vector2(-80f, 20f), new Vector2(480f, 44f));
 
         TMP_Text price = CreateText("Price", bg.transform, "150 Gold", 28f, LabelDark, font, TextAlignmentOptions.Left);

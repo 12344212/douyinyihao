@@ -108,17 +108,17 @@ public static class ToastRewardUISetup
             return;
         }
 
-        string potionIcon = null;
-        GameItemDefs.Def potion = GameItemDefs.Get(GameItemDefs.HealPotionId);
-        if (potion != null)
+        string equipIcon = null;
+        GameItemDefs.Def equip = GameItemDefs.Get(GameItemDefs.IronPikeId);
+        if (equip != null)
         {
-            potionIcon = potion.iconLocation;
+            equipIcon = equip.iconLocation;
         }
 
         GetPanelController.Show(
             new GetPanelController.Reward { useCurrency = true, currency = CurrencyType.Gold, displayName = "Gold", count = 200 },
             new GetPanelController.Reward { useCurrency = true, currency = CurrencyType.Gems, displayName = "Gems", count = 10 },
-            new GetPanelController.Reward { iconLocation = potionIcon, displayName = "Healing Potion", count = 2 });
+            new GetPanelController.Reward { iconLocation = equipIcon, displayName = "Iron Pike", count = 1 });
     }
 
     /// <summary>生成 Toast 与奖励弹窗。mainCanvas 用来取 UI 相机。</summary>

@@ -299,7 +299,7 @@ public static class ShopPanelSetup
         Image icon = CreateImage("Icon", bg.transform, IconColor, false);
         SetRect(icon.rectTransform, new Vector2(0f, 0.5f), new Vector2(90f, 0f), new Vector2(110f, 110f));
 
-        TMP_Text name = CreateText("Name", bg.transform, "Healing Potion", 36f, new Color(0.2f, 0.15f, 0.1f, 1f), font, TextAlignmentOptions.Left);
+        TMP_Text name = CreateText("Name", bg.transform, "Item Name", 36f, new Color(0.2f, 0.15f, 0.1f, 1f), font, TextAlignmentOptions.Left);
         name.fontStyle = FontStyles.Bold;
         SetRect(name.rectTransform, new Vector2(0f, 0.5f), new Vector2(420f, 24f), new Vector2(520f, 50f));
 

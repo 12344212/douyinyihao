@@ -1172,6 +1172,14 @@ public class LocalSaveManager : MonoBehaviour
                 continue;
             }
 
+            // Removed catalog item: strip leftover heal potions from older player saves.
+            if (stack.itemId == GameItemDefs.HealPotionId)
+            {
+                _data.itemStacks.RemoveAt(i);
+                changed = true;
+                continue;
+            }
+
             ItemStackEntry first;
             if (seen.TryGetValue(stack.itemId, out first))
             {

@@ -8,6 +8,7 @@ using UnityEngine;
 public static class GameItemDefs
 {
     public const string ConfigAddress = "ItemConfig";
+    /// <summary>Removed item id. Kept so LocalSaveManager can strip leftover stacks from old saves.</summary>
     public const string HealPotionId = "heal_potion";
     public const string GoldPouchId = "gold_pouch";
 
