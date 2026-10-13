@@ -4,9 +4,9 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// StagePanel yun1/yun2/yun3: each cloud flies in from off-screen, lands at a
-/// random position inside the bounds, holds briefly (soft bob), then flies out
-/// and loops continuously via DOTween.
+/// StagePanel yun1/yun2/yun3: all three clouds share one fly direction (left->right
+/// or right->left). Each flies in from off-screen, lands at a random position,
+/// holds briefly (soft bob), then flies out the far side and loops via DOTween.
 /// </summary>
 public class StageCloudFly : MonoBehaviour
 {
@@ -15,8 +15,8 @@ public class StageCloudFly : MonoBehaviour
     [SerializeField] private RectTransform boundsRoot;
 
     [Header("Timing")]
-    [SerializeField] private Vector2 flyInDurationRange = new Vector2(2.0f, 3.4f);
-    [SerializeField] private Vector2 flyOutDurationRange = new Vector2(1.4f, 2.4f);
+    [SerializeField] private Vector2 flyInDurationRange = new Vector2(4.0f, 6.5f);
+    [SerializeField] private Vector2 flyOutDurationRange = new Vector2(3.0f, 4.8f);
     [SerializeField] private Vector2 landHoldRange = new Vector2(1.4f, 3.0f);
     [SerializeField] private Vector2 restDelayRange = new Vector2(0.25f, 1.1f);
     [SerializeField] private Vector2 initialDelayRange = new Vector2(0f, 1.4f);
@@ -32,6 +32,8 @@ public class StageCloudFly : MonoBehaviour
 
     private Coroutine[] _loops;
     private Vector2[] _restorePos;
+    /// <summary>Shared by all clouds for the whole enabled session.</summary>
+    private bool _sharedFromLeft;
 
     private void OnEnable()
     {
@@ -66,6 +68,9 @@ public class StageCloudFly : MonoBehaviour
         {
             return;
         }
+
+        // One direction for all three yun for this session.
+        _sharedFromLeft = Random.value > 0.5f;
 
         _restorePos = new Vector2[clouds.Length];
         _loops = new Coroutine[clouds.Length];
@@ -159,13 +164,14 @@ public class StageCloudFly : MonoBehaviour
                 Random.Range(landMin.x, landMax.x),
                 Random.Range(landMin.y, landMax.y));
 
-            bool fromLeft = Random.value > 0.5f;
+            // All clouds use the same enter/exit direction (fly through).
+            bool fromLeft = _sharedFromLeft;
             float startX = fromLeft
                 ? -halfW - cloudHalfW - edgePadding
                 : halfW + cloudHalfW + edgePadding;
             float startY = land.y + Random.Range(-24f, 24f);
 
-            bool exitLeft = Random.value > 0.45f ? !fromLeft : fromLeft;
+            bool exitLeft = !fromLeft;
             float endX = exitLeft
                 ? -halfW - cloudHalfW - edgePadding
                 : halfW + cloudHalfW + edgePadding;

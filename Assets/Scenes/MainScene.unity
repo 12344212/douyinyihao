@@ -19828,8 +19828,8 @@ MonoBehaviour:
   - {fileID: 1170557580}
   - {fileID: 1289280096}
   boundsRoot: {fileID: 779781568}
-  flyInDurationRange: {x: 2, y: 3.4}
-  flyOutDurationRange: {x: 1.4, y: 2.4}
+  flyInDurationRange: {x: 4, y: 6.5}
+  flyOutDurationRange: {x: 3, y: 4.8}
   landHoldRange: {x: 1.4, y: 3}
   restDelayRange: {x: 0.25, y: 1.1}
   initialDelayRange: {x: 0, y: 1.4}
