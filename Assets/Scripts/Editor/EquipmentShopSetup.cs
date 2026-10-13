@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 
 /// <summary>
-/// Ensures ItemConfig has Healing Potion + Gold Pouch + 8 equipment shop items (ZB-BQ/MZ/XZ/YF).
+/// Ensures ItemConfig has Gold Pouch + 8 equipment shop items (ZB-BQ/MZ/XZ/YF). Removes Healing Potion if present.
 /// Menu: Tools/Template/Ensure Equipment Shop Items
 /// One-shot: EquipmentShopSetup.run
 /// </summary>
@@ -214,7 +214,7 @@ public static class EquipmentShopSetup
 
             SerializedObject so = new SerializedObject(cfg);
             SerializedProperty items = so.FindProperty("items");
-            EnsureHealPotion(items);
+            RemoveHealPotion(items);
             EnsureGoldPouch(items);
             for (int i = 0; i < Equipment.Length; i++)
             {
@@ -226,7 +226,7 @@ public static class EquipmentShopSetup
             AssetDatabase.SaveAssets();
 
             int count = items.arraySize;
-            string msg = LogTag + " ItemConfig ready. entries=" + count + " (heal + gold pouch + 8 equipment). Icons AddressByFileName under Assets/UI.";
+            string msg = LogTag + " ItemConfig ready. entries=" + count + " (gold pouch + 8 equipment, heal removed). Icons AddressByFileName under Assets/UI.";
             Debug.Log(msg);
             try
             {
@@ -243,31 +243,15 @@ public static class EquipmentShopSetup
         }
     }
 
-    private static void EnsureHealPotion(SerializedProperty items)
+    private static void RemoveHealPotion(SerializedProperty items)
     {
         int index = FindIndex(items, GameItemDefs.HealPotionId);
         if (index < 0)
         {
-            index = items.arraySize;
-            items.arraySize++;
+            return;
         }
 
-        SerializedProperty entry = items.GetArrayElementAtIndex(index);
-        entry.FindPropertyRelative("id").stringValue = GameItemDefs.HealPotionId;
-        entry.FindPropertyRelative("displayName").stringValue = "Healing Potion";
-        entry.FindPropertyRelative("description").stringValue = "Restores 30% of max HP.";
-        entry.FindPropertyRelative("price").intValue = 150;
-        entry.FindPropertyRelative("currency").enumValueIndex = (int)CurrencyType.Gold;
-        entry.FindPropertyRelative("iconLocation").stringValue = "Item_HealPotion";
-        entry.FindPropertyRelative("grantCurrency").enumValueIndex = (int)CurrencyType.Gold;
-        entry.FindPropertyRelative("grantAmount").intValue = 0;
-        entry.FindPropertyRelative("equipType").enumValueIndex = (int)EquipItemType.None;
-        entry.FindPropertyRelative("attackBonus").intValue = 0;
-        entry.FindPropertyRelative("statBonusLabel").stringValue = string.Empty;
-        entry.FindPropertyRelative("statBonusValue").floatValue = 0f;
-        entry.FindPropertyRelative("specialEffectId").stringValue = string.Empty;
-        entry.FindPropertyRelative("specialValue").floatValue = 0f;
-        entry.FindPropertyRelative("specialDescription").stringValue = string.Empty;
+        items.DeleteArrayElementAtIndex(index);
     }
 
 private static void EnsureGoldPouch(SerializedProperty items)

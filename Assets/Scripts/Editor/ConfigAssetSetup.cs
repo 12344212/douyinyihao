@@ -253,14 +253,8 @@ public static class ConfigAssetSetup
         AssetDatabase.CreateAsset(cfg, ItemConfigPath);
         SerializedObject so = new SerializedObject(cfg);
         SerializedProperty items = so.FindProperty("items");
-        items.arraySize = 1;
-        SerializedProperty entry = items.GetArrayElementAtIndex(0);
-        entry.FindPropertyRelative("id").stringValue = GameItemDefs.HealPotionId;
-        entry.FindPropertyRelative("displayName").stringValue = "Healing Potion";
-        entry.FindPropertyRelative("description").stringValue = "Restores 30% of max HP.";
-        entry.FindPropertyRelative("price").intValue = 150;
-        entry.FindPropertyRelative("currency").enumValueIndex = (int)CurrencyType.Gold;
-        entry.FindPropertyRelative("iconLocation").stringValue = "Item_HealPotion";
+        // Shop catalog is filled by EquipmentShopSetup (gold pouch + equipment; no healing potion).
+        items.arraySize = 0;
         so.ApplyModifiedPropertiesWithoutUndo();
         EditorUtility.SetDirty(cfg);
         Debug.Log($"{LogTag} Created {ItemConfigPath}");

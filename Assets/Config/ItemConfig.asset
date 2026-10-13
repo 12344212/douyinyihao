@@ -13,21 +13,6 @@ MonoBehaviour:
   m_Name: ItemConfig
   m_EditorClassIdentifier: 
   items:
-  - id: heal_potion
-    displayName: Healing Potion
-    description: Restores 30% of max HP.
-    price: 150
-    currency: 0
-    iconLocation: Item_HealPotion
-    grantCurrency: 0
-    grantAmount: 0
-    equipType: 0
-    attackBonus: 0
-    statBonusLabel: 
-    statBonusValue: 0
-    specialEffectId: 
-    specialValue: 0
-    specialDescription: 
   - id: ZB-BQ1
     displayName: Iron Pike
     description: A sturdy iron pike. Boosts attack power.

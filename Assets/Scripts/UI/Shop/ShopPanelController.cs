@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -8,6 +8,7 @@ using UnityEngine.UI;
 /// <summary>
 /// Shop list + Buy confirm (folded from BuyPanel). Slot BUY opens Buy panel:
 /// icon, description, +/- qty, total price, currency icon (ZJM-JB / ZJM-ZS).
+/// Equipment: purchasable once; owned items (persisted itemStacks) are omitted from the list.
 /// Purchase count drives progress 0..5; chests at 1/3/5 claim 50/150/300 gold.
 /// </summary>
 public class ShopPanelController : MonoBehaviour
@@ -273,12 +274,20 @@ public class ShopPanelController : MonoBehaviour
             GameItemDefs.Bind(itemConfig);
         }
 
+        LocalSaveManager save = LocalSaveManager.Instance;
         IReadOnlyList<GameItemDefs.Def> defs = GameItemDefs.All;
         for (int i = 0; i < defs.Count; i++)
         {
+            GameItemDefs.Def def = defs[i];
+            // Equipment: once owned (persisted via itemStacks), hide from shop.
+            if (def != null && def.IsEquipment && save != null && save.HasItem(def.id))
+            {
+                continue;
+            }
+
             ShopItemSlot slot = Instantiate(slotPrefab, listRoot);
             slot.gameObject.SetActive(true);
-            slot.Bind(defs[i], SelectItem, OpenBuy);
+            slot.Bind(def, SelectItem, OpenBuy);
             _slots.Add(slot);
         }
 
@@ -320,6 +329,17 @@ public class ShopPanelController : MonoBehaviour
         {
             TipPanelUI.ShowTip("Select an item.");
             return;
+        }
+
+        if (def.IsEquipment)
+        {
+            LocalSaveManager save = LocalSaveManager.Instance;
+            if (save != null && save.HasItem(def.id))
+            {
+                TipPanelUI.ShowTip("Already owned.");
+                Rebuild();
+                return;
+            }
         }
 
         SelectItem(def);
@@ -704,15 +724,23 @@ public class ShopPanelController : MonoBehaviour
         }
 
         LocalSaveManager save = LocalSaveManager.Instance;
-        int total = _buyDef.price * _buyQty;
+        // Equipment is purchasable once; qty locked to 1.
+        int bought = _buyDef.IsEquipment ? 1 : _buyQty;
+        if (_buyDef.IsEquipment && save != null && save.HasItem(_buyDef.id))
+        {
+            TipPanelUI.ShowTip("Already owned.");
+            HideBuy();
+            Rebuild();
+            return;
+        }
+
+        int total = _buyDef.price * bought;
         bool gems = _buyDef.currency == CurrencyType.Gems;
         if (save == null || !save.TrySpend(_buyDef.currency, total))
         {
             TipPanelUI.ShowTip(gems ? "Not enough gems." : "Not enough gold.");
             return;
         }
-
-        int bought = _buyQty;
 
         // Currency pack: spend price currency, grant grantCurrency * qty (no bag stack).
         if (_buyDef.IsCurrencyPack)
@@ -750,10 +778,21 @@ public class ShopPanelController : MonoBehaviour
         save.AddShopPurchaseCount(bought);
         RefreshProgressAndChests();
         HideBuy();
+
+        // Owned equipment leaves the shop list (persisted via itemStacks / HasItem).
+        if (_buyDef.IsEquipment)
+        {
+            Rebuild();
+        }
     }
 
     private int BuyMaxAllowed()
     {
+        if (_buyDef != null && _buyDef.IsEquipment)
+        {
+            return 1;
+        }
+
         int cap = BuyAbsoluteMax;
         LocalSaveManager save = LocalSaveManager.Instance;
         if (save != null && _buyDef != null && _buyDef.price > 0)
@@ -787,9 +826,11 @@ public class ShopPanelController : MonoBehaviour
             buyTotalLabel.text = (_buyDef.price * _buyQty).ToString();
         }
 
-        if (buyMinusButton != null) buyMinusButton.interactable = _buyQty > 1;
+        bool equipOnce = _buyDef != null && _buyDef.IsEquipment;
+        if (buyMinusButton != null) buyMinusButton.interactable = !equipOnce && _buyQty > 1;
         // Stay clickable at afford cap so OnBuyPlus can show Not enough gold/gems tip.
-        if (buyPlusButton != null) buyPlusButton.interactable = _buyQty < BuyAbsoluteMax;
+        // Equipment once-buy: +/- locked (qty always 1).
+        if (buyPlusButton != null) buyPlusButton.interactable = !equipOnce && _buyQty < BuyAbsoluteMax;
 
         RefreshItemPrice();
     }
