@@ -10,7 +10,7 @@ using UnityEngine.UI;
 /// <summary>
 /// Wire existing StagePanel hierarchy (user-placed nodes). Does not recreate slots.
 /// Binds StageSlot (Number/Lock/Clear/TZ), StagePanelController (5 slots + L/Next),
-/// and StageWaterFloat (5 slots + 3 yun). English UI tips stay in code.
+/// StageWaterFloat (5 slots), and StageCloudFly (yun1/yun2/yun3).
 /// Menu: Tools/Template/Wire Stage Panel
 /// One-shot: StagePanelWireSetup.run
 /// </summary>
@@ -194,7 +194,32 @@ public static class StagePanelWireSetup
             }
 
             wso.ApplyModifiedPropertiesWithoutUndo();
+
+            StageCloudFly cloudFly = panelTf.GetComponent<StageCloudFly>();
+            if (cloudFly == null)
+            {
+                cloudFly = panelTf.gameObject.AddComponent<StageCloudFly>();
+            }
+
+            RectTransform[] yunClouds = CollectYunClouds(slotRow);
+            SerializedObject cso = new SerializedObject(cloudFly);
+            SerializedProperty cloudsProp = cso.FindProperty("clouds");
+            cloudsProp.arraySize = yunClouds.Length;
+            for (int i = 0; i < yunClouds.Length; i++)
+            {
+                cloudsProp.GetArrayElementAtIndex(i).objectReferenceValue = yunClouds[i];
+            }
+
+            SerializedProperty boundsProp = cso.FindProperty("boundsRoot");
+            if (boundsProp != null)
+            {
+                boundsProp.objectReferenceValue = slotRow as RectTransform;
+            }
+
+            cso.ApplyModifiedPropertiesWithoutUndo();
+
             SetRef(so, "waterFloat", water);
+            SetRef(so, "cloudFly", cloudFly);
             so.ApplyModifiedPropertiesWithoutUndo();
 
             // Default TZ / Lock / Clear visibility until runtime Refresh.
@@ -220,6 +245,7 @@ public static class StagePanelWireSetup
 
             sb.Append("prev=").Append(prev.name).Append("; next=").Append(next.name);
             sb.Append("; floatTargets=").Append(floatTargets.Length);
+            sb.Append("; yunClouds=").Append(yunClouds.Length);
             return sb.ToString();
         }
         finally
@@ -299,7 +325,7 @@ public static class StagePanelWireSetup
 
     private static StageWaterFloat.Target[] BuildFloatTargets(Transform slotRow)
     {
-        StageWaterFloat.Target[] list = new StageWaterFloat.Target[8];
+        StageWaterFloat.Target[] list = new StageWaterFloat.Target[5];
         for (int i = 0; i < 5; i++)
         {
             Transform slotTf = slotRow.Find("Slot" + (i + 1));
@@ -311,9 +337,13 @@ public static class StagePanelWireSetup
             };
         }
 
+        return list;
+    }
+
+    private static RectTransform[] CollectYunClouds(Transform slotRow)
+    {
         string[] yuns = { "yun1", "yun2", "yun3" };
-        float[] yunPhase = { 0.05f, 0.38f, 0.72f };
-        float[] yunAmp = { 1.15f, 0.95f, 1.25f };
+        RectTransform[] list = new RectTransform[yuns.Length];
         for (int i = 0; i < yuns.Length; i++)
         {
             Transform y = slotRow.Find(yuns[i]);
@@ -322,12 +352,7 @@ public static class StagePanelWireSetup
                 throw new Exception(yuns[i] + " missing under SlotRow.");
             }
 
-            list[5 + i] = new StageWaterFloat.Target
-            {
-                rect = y as RectTransform,
-                phaseOffset = yunPhase[i],
-                amplitudeScale = yunAmp[i]
-            };
+            list[i] = y as RectTransform;
         }
 
         return list;

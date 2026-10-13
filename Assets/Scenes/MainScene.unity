@@ -19681,6 +19681,7 @@ GameObject:
   - component: {fileID: 1836574879}
   - component: {fileID: 1836574881}
   - component: {fileID: 1836574890}
+  - component: {fileID: 1836574891}
   m_Layer: 5
   m_Name: StagePanel
   m_TagString: Untagged
@@ -19775,6 +19776,7 @@ MonoBehaviour:
   nextButton: {fileID: 2119197965}
   pageLabel: {fileID: 0}
   waterFloat: {fileID: 1836574890}
+  cloudFly: {fileID: 1836574891}
   battleSceneName: BattleScene
 --- !u!114 &1836574890
 MonoBehaviour:
@@ -19799,25 +19801,43 @@ MonoBehaviour:
     phaseOffset: 0.28
     amplitudeScale: 1
   - rect: {fileID: 1323225168}
-    phaseOffset: 0.42000002
+    phaseOffset: 0.42
     amplitudeScale: 1
   - rect: {fileID: 353359894}
     phaseOffset: 0.56
     amplitudeScale: 1
-  - rect: {fileID: 1193341680}
-    phaseOffset: 0.05
-    amplitudeScale: 1.15
-  - rect: {fileID: 1170557580}
-    phaseOffset: 0.38
-    amplitudeScale: 0.95
-  - rect: {fileID: 1289280096}
-    phaseOffset: 0.72
-    amplitudeScale: 1.25
   bobAmplitudeY: 8
   bobPeriod: 2.6
   bobAmplitudeX: 3
   tiltAngle: 0.8
   tiltPeriod: 3.2
+--- !u!114 &1836574891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1836574877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4f8a2917b3e4d6a9e05f1d82c47b6a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clouds:
+  - {fileID: 1193341680}
+  - {fileID: 1170557580}
+  - {fileID: 1289280096}
+  boundsRoot: {fileID: 779781568}
+  flyInDurationRange: {x: 2, y: 3.4}
+  flyOutDurationRange: {x: 1.4, y: 2.4}
+  landHoldRange: {x: 1.4, y: 3}
+  restDelayRange: {x: 0.25, y: 1.1}
+  initialDelayRange: {x: 0, y: 1.4}
+  landMin: {x: -420, y: -70}
+  landMax: {x: 420, y: 110}
+  edgePadding: 90
+  landBobAmplitude: 5
+  landBobPeriod: 2.5
 --- !u!1 &1847767730
 GameObject:
   m_ObjectHideFlags: 0

@@ -2,8 +2,8 @@ using DG.Tweening;
 using UnityEngine;
 
 /// <summary>
-/// Light water-float for StagePanel: gentle Y bob (+ optional tiny X) via DOTween.
-/// Used on the 5 stage slots and 3 yun clouds. Phase offsets keep motion desynced.
+/// Light water-float for StagePanel slots: gentle Y bob (+ optional tiny X) via DOTween.
+/// Yun clouds use StageCloudFly instead. Phase offsets keep slot motion desynced.
 /// </summary>
 public class StageWaterFloat : MonoBehaviour
 {

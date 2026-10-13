@@ -8,7 +8,7 @@ using UnityEngine.UI;
 /// Stage select: one chapter, 5 slots per page. L/Next page by -5/+5 within the chapter
 /// (e.g. 1-1 page -> 1-6). Only refreshes slot contents; does not recreate the panel.
 /// Unlock/clear from LocalSaveManager. TZ badge via StageSlot when stage is the current
-/// max challengeable and not cleared. Optional StageWaterFloat for slots + yun clouds.
+/// max challengeable and not cleared. StageWaterFloat for slots; StageCloudFly for yun.
 /// </summary>
 public class StagePanelController : MonoBehaviour
 {
@@ -26,8 +26,9 @@ public class StagePanelController : MonoBehaviour
     [SerializeField] private Button nextButton;
     [SerializeField] private TMP_Text pageLabel;
 
-    [Header("Float (optional)")]
+    [Header("Motion (optional)")]
     [SerializeField] private StageWaterFloat waterFloat;
+    [SerializeField] private StageCloudFly cloudFly;
 
     [Header("Flow")]
     [SerializeField] private string battleSceneName = "BattleScene";
@@ -74,6 +75,11 @@ public class StagePanelController : MonoBehaviour
         if (waterFloat != null)
         {
             waterFloat.StartMotion();
+        }
+
+        if (cloudFly != null)
+        {
+            cloudFly.StartMotion();
         }
     }
 
