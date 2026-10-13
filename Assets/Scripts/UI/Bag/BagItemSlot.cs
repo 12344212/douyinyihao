@@ -6,6 +6,8 @@ using UnityEngine.UI;
 
 /// <summary>
 /// 背包格子：图标、数量。选中后才显示 Select。点击通知面板刷新 ItemData。
+/// Icon load is deferred safely: Bind may run while a parent is inactive (e.g. Equit listRoot);
+/// OnEnable retries the pending YooAsset icon so the first open is never blank.
 /// </summary>
 public class BagItemSlot : MonoBehaviour
 {
@@ -19,6 +21,9 @@ public class BagItemSlot : MonoBehaviour
     private string _itemId;
     private Action<string> _onClick;
     private bool _setNativeSize;
+    private string _pendingIconLocation;
+    private int _iconLoadGen;
+    private Coroutine _iconLoad;
 
     public string ItemId => _itemId;
 
@@ -30,6 +35,24 @@ public class BagItemSlot : MonoBehaviour
         }
 
         SetSelected(false);
+    }
+
+    private void OnEnable()
+    {
+        // Bind often runs under an inactive parent (listRoot). Retry pending load when hierarchy activates.
+        if (!string.IsNullOrEmpty(_pendingIconLocation))
+        {
+            BeginIconLoad(_pendingIconLocation);
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (_iconLoad != null)
+        {
+            StopCoroutine(_iconLoad);
+            _iconLoad = null;
+        }
     }
 
     private void OnDestroy()
@@ -45,6 +68,7 @@ public class BagItemSlot : MonoBehaviour
         _itemId = itemId;
         _onClick = onClick;
         _setNativeSize = setNativeSize;
+        _pendingIconLocation = iconLocation;
         if (nameLabel != null)
         {
             nameLabel.text = string.IsNullOrEmpty(displayName) ? itemId : displayName;
@@ -68,7 +92,17 @@ public class BagItemSlot : MonoBehaviour
         SetSelected(false);
         if (isActiveAndEnabled)
         {
-            StartCoroutine(LoadIcon(iconLocation));
+            BeginIconLoad(iconLocation);
+        }
+        else
+        {
+            // Invalidate in-flight loads; OnEnable will start fresh when active.
+            _iconLoadGen++;
+            if (_iconLoad != null)
+            {
+                StopCoroutine(_iconLoad);
+                _iconLoad = null;
+            }
         }
     }
 
@@ -80,16 +114,38 @@ public class BagItemSlot : MonoBehaviour
         }
     }
 
-    private IEnumerator LoadIcon(string location)
+    private void BeginIconLoad(string location)
+    {
+        _iconLoadGen++;
+        if (_iconLoad != null)
+        {
+            StopCoroutine(_iconLoad);
+            _iconLoad = null;
+        }
+
+        _iconLoad = StartCoroutine(LoadIcon(location, _iconLoadGen));
+    }
+
+    private IEnumerator LoadIcon(string location, int gen)
     {
         YooAssetManager yoo = YooAssetManager.Instance;
         if (iconImage == null || yoo == null || !yoo.IsReady || string.IsNullOrEmpty(location) || !yoo.HasLocation(location))
         {
+            if (gen == _iconLoadGen)
+            {
+                _iconLoad = null;
+            }
+
             yield break;
         }
 
         Sprite sprite = null;
         yield return yoo.LoadSpriteAsync(location, s => sprite = s);
+        if (gen != _iconLoadGen)
+        {
+            yield break;
+        }
+
         if (sprite != null && iconImage != null)
         {
             iconImage.sprite = sprite;
@@ -99,6 +155,8 @@ public class BagItemSlot : MonoBehaviour
                 iconImage.SetNativeSize();
             }
         }
+
+        _iconLoad = null;
     }
 
     private void HandleClick()

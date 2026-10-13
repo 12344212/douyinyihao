@@ -235,6 +235,10 @@ public class UpgradeEquipController : MonoBehaviour
             return;
         }
 
+        // Activate before Instantiate/Bind so BagItemSlot.isActiveAndEnabled is true on first open.
+        // Otherwise Bind skips StartCoroutine(LoadIcon) under an inactive listRoot (empty Icon until reopen).
+        listRoot.gameObject.SetActive(true);
+
         List<ItemStackEntry> items = save.GetAllItems();
         int shown = 0;
         for (int i = 0; i < items.Count; i++)
