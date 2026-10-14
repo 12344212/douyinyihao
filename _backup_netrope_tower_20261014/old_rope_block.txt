@@ -1,0 +1,57 @@
+﻿        if (net == _playerNet)
+        {
+            SyncPlayerRope(net);
+        }
+    }
+
+    private void SyncPlayerRope(NetShot net)
+    {
+        if (net == null || net.Dead || net.Home != null || _ropeSprite == null)
+        {
+            HidePlayerRope();
+            return;
+        }
+
+        Vector3 hand = _characterBody != null ? _characterBody.FirePosition : _characterPos;
+        Vector3 delta = net.Pos - hand;
+        delta.z = 0f;
+        float length = delta.magnitude;
+        if (length < 0.05f)
+        {
+            HidePlayerRope();
+            return;
+        }
+
+        if (_playerRope == null)
+        {
+            GameObject ropeObject = new GameObject("NetRope");
+            ropeObject.transform.SetParent(spawnRoot, false);
+            _playerRope = ropeObject.AddComponent<SpriteRenderer>();
+            _playerRope.sprite = _ropeSprite;
+            _playerRope.drawMode = SpriteDrawMode.Tiled;
+            _playerRope.sortingOrder = 21;
+        }
+
+        float width = _ropeSprite.bounds.size.x;
+        if (width < 0.01f)
+        {
+            width = 0.3f;
+        }
+
+        _playerRope.enabled = true;
+        _playerRope.size = new Vector2(width, length);
+        Vector3 mid = (hand + net.Pos) * 0.5f;
+        mid.z = 0f;
+        _playerRope.transform.position = mid;
+        float angle = Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg - 90f;
+        _playerRope.transform.rotation = Quaternion.Euler(0f, 0f, angle);
+    }
+
+    private void HidePlayerRope()
+    {
+        if (_playerRope != null)
+        {
+            _playerRope.enabled = false;
+        }
+    }
+

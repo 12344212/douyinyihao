@@ -6,7 +6,8 @@ using UnityEngine.UI;
 
 /// <summary>
 /// UpgradePanel equipment UI: EquipSlots open Equit list (all owned equipment);
-/// EquitInfo equip/unequip with slot-type validation; slot bg shows equipped icon.
+/// EquitInfo equip/unequip by item type into matching slot (shoes/armor/spear/hood),
+/// ignoring which EquipSlot opened the list. Slot bg shows equipped icon.
 /// Inspector drag refs. English player text.
 /// Slot map: 1=Shoes(ZB-XZ), 2=Armor(ZB-YF), 3=Spear(ZB-BQ), 4=Hood(ZB-MZ).
 /// </summary>
@@ -50,7 +51,6 @@ public class UpgradeEquipController : MonoBehaviour
     [SerializeField] private Color placeholderColor = new Color(0.55f, 0.40f, 0.85f, 1f);
 
     private readonly List<BagItemSlot> _slots = new List<BagItemSlot>(8);
-    private EquipItemType _openType = EquipItemType.None;
     private string _infoItemId;
     private Coroutine _infoIconRoutine;
 
@@ -142,7 +142,7 @@ public class UpgradeEquipController : MonoBehaviour
         }
 
         RefreshSlotVisuals();
-        if (equitRoot != null && equitRoot.activeSelf && _openType != EquipItemType.None)
+        if (IsEquitOpen())
         {
             RebuildEquitList();
         }
@@ -176,19 +176,18 @@ public class UpgradeEquipController : MonoBehaviour
 
     private void OnEquipSlotClicked(int slotIndex)
     {
-        EquipItemType type = LocalSaveManager.EquipTypeForSlotIndex(slotIndex);
-        if (type == EquipItemType.None)
+        // Any EquipSlot opens the full Equit list; equip targets the item's own type slot.
+        if (LocalSaveManager.EquipTypeForSlotIndex(slotIndex) == EquipItemType.None)
         {
             return;
         }
 
         HideEquitInfo();
-        OpenEquit(type);
+        OpenEquit();
     }
 
-    private void OpenEquit(EquipItemType type)
+    private void OpenEquit()
     {
-        _openType = type;
         if (equitRoot != null)
         {
             equitRoot.SetActive(true);
@@ -199,12 +198,16 @@ public class UpgradeEquipController : MonoBehaviour
 
     private void HideEquit()
     {
-        _openType = EquipItemType.None;
         ClearListSlots();
         if (equitRoot != null)
         {
             equitRoot.SetActive(false);
         }
+    }
+
+    private bool IsEquitOpen()
+    {
+        return equitRoot != null && equitRoot.activeSelf;
     }
 
     private void RebuildEquitList()
@@ -368,12 +371,7 @@ public class UpgradeEquipController : MonoBehaviour
             return;
         }
 
-        if (_openType != EquipItemType.None && def.equipType != _openType)
-        {
-            TipPanelUI.ShowTip("This equipment does not match the selected slot.");
-            return;
-        }
-
+        // Equip into the item's own type slot (shoes/armor/spear/hood); ignore opened EquipSlot.
         if (!save.TryEquipItem(_infoItemId))
         {
             TipPanelUI.ShowTip("Cannot equip.");
@@ -383,7 +381,7 @@ public class UpgradeEquipController : MonoBehaviour
         TipPanelUI.ShowTip("Equipped!");
         HideEquitInfo();
         RefreshSlotVisuals();
-        if (_openType != EquipItemType.None)
+        if (IsEquitOpen())
         {
             RebuildEquitList();
         }
@@ -412,7 +410,7 @@ public class UpgradeEquipController : MonoBehaviour
         TipPanelUI.ShowTip("Unequipped.");
         HideEquitInfo();
         RefreshSlotVisuals();
-        if (_openType != EquipItemType.None)
+        if (IsEquitOpen())
         {
             RebuildEquitList();
         }

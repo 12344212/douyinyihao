@@ -545,7 +545,7 @@ public class LocalSaveManager : MonoBehaviour
     // ---------- 藏品 CP1–CP15 ----------
 
     public const int CollectibleCount = 15;
-    public const int CollectibleClickGold = 1000;
+    public const int CollectibleClickGold = CollectionDefs.ClickGoldReward;
 
     public bool IsCollectibleOwned(int index)
     {
@@ -624,7 +624,7 @@ public class LocalSaveManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 拥有且未领奖时领取一次 1000 金币；成功返回 true 并写盘。
+    /// 拥有且未领奖时领取一次 500 金币；成功返回 true 并写盘。
     /// </summary>
     public bool TryClaimCollectibleReward(int index, out int goldReward)
     {

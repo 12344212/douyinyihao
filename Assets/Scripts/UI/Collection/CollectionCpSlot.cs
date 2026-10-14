@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 /// <summary>
 /// 单个藏品格子 CP1–CP15：未拥有显示剪影；拥有后显示彩图并呼吸缩放；
-/// 拥有且未领奖时可点一次领取 1000 金币，之后锁死点击并停止呼吸。
+/// 拥有且未领奖时可点一次领取 500 金币，弹出 GetPanel，之后锁死点击并停止呼吸。
 /// </summary>
 [DisallowMultipleComponent]
 public class CollectionCpSlot : MonoBehaviour
@@ -199,6 +199,12 @@ public class CollectionCpSlot : MonoBehaviour
         }
 
         StopBreath();
-        Debug.Log($"[CollectionCpSlot] Claimed CP{index + 1} reward: +{gold} gold.");
+        GetPanelController.Show(new GetPanelController.Reward
+        {
+            useCurrency = true,
+            currency = CurrencyType.Gold,
+            displayName = "Gold",
+            count = gold
+        });
     }
 }

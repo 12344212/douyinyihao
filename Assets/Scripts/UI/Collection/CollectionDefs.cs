@@ -6,7 +6,7 @@
 public static class CollectionDefs
 {
     public const int Count = 15;
-    public const int ClickGoldReward = 1000;
+    public const int ClickGoldReward = 500;
 
     /// <summary>已拥有彩图地址：CP1 … CP15</summary>
     public static string OwnedAddress(int index)

@@ -773,7 +773,10 @@ public class ShopPanelController : MonoBehaviour
             {
                 useCurrency = true,
                 currency = _buyDef.grantCurrency,
-                iconLocation = _buyDef.iconLocation,
+                // Gems → ZJM-ZS; gold packs keep pouch art (e.g. ZJM-JBd) when set.
+                iconLocation = _buyDef.grantCurrency == CurrencyType.Gems
+                    ? GameItemDefs.CurrencyIconLocation(CurrencyType.Gems)
+                    : _buyDef.iconLocation,
                 displayName = _buyDef.grantCurrency == CurrencyType.Gems ? "Gems" : "Gold",
                 count = grantTotal
             });
@@ -792,6 +795,7 @@ public class ShopPanelController : MonoBehaviour
 
         GetPanelController.Show(new GetPanelController.Reward
         {
+            itemId = _buyDef.id,
             iconLocation = _buyDef.iconLocation,
             displayName = _buyDef.displayName,
             count = bought

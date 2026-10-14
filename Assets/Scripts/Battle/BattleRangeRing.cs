@@ -19,9 +19,15 @@ public class BattleRangeRing : MonoBehaviour
     [Tooltip("旧版精灵圈，仅作引用；运行时禁用，外观以 ringColor/strokeWidth 为准")]
     [SerializeField] private SpriteRenderer ringSprite;
 
+    private const float BriefHoldSeconds = 2f;
+    private const float BriefFadeSeconds = 0.5f;
+
     private LineRenderer _line;
     private Material _lineMaterial;
     private bool _ready;
+    private bool _persistent = true;
+    private float _hold;
+    private float _fade;
 
     private void Awake()
     {
@@ -34,6 +40,39 @@ public class BattleRangeRing : MonoBehaviour
 
         EnsureLine();
         ApplyLook();
+    }
+
+    private void Update()
+    {
+        if (_persistent || _line == null || !_line.enabled)
+        {
+            return;
+        }
+
+        if (_hold > 0f)
+        {
+            _hold -= Time.deltaTime;
+            if (_hold > 0f)
+            {
+                return;
+            }
+
+            _hold = 0f;
+            _fade = BriefFadeSeconds;
+        }
+
+        if (_fade <= 0f)
+        {
+            return;
+        }
+
+        _fade -= Time.deltaTime;
+        float t = BriefFadeSeconds > 0.01f ? Mathf.Clamp01(_fade / BriefFadeSeconds) : 0f;
+        SetAlpha(ringColor.a * t);
+        if (_fade <= 0f)
+        {
+            _line.enabled = false;
+        }
     }
 
     private void OnDestroy()
@@ -61,6 +100,44 @@ public class BattleRangeRing : MonoBehaviour
 #endif
 
     public void SetRadius(float radius)
+    {
+        _persistent = true;
+        _hold = 0f;
+        _fade = 0f;
+        ApplyRadius(radius);
+        SetAlpha(ringColor.a);
+    }
+
+    /// <summary>只更新半径，不把圈亮出来。炮塔平时用这个。</summary>
+    public void SetQuietRadius(float radius)
+    {
+        _persistent = false;
+        ApplyRadius(radius);
+        if (_hold <= 0f && _fade <= 0f)
+        {
+            SetAlpha(0f);
+            if (_line != null)
+            {
+                _line.enabled = false;
+            }
+        }
+    }
+
+    /// <summary>亮起 2 秒后渐隐。部署和升级时调用。</summary>
+    public void ShowBriefly()
+    {
+        _persistent = false;
+        _hold = BriefHoldSeconds;
+        _fade = 0f;
+        if (_line != null)
+        {
+            _line.enabled = true;
+        }
+
+        SetAlpha(ringColor.a);
+    }
+
+    private void ApplyRadius(float radius)
     {
         if (radius < 0f)
         {
@@ -103,6 +180,22 @@ public class BattleRangeRing : MonoBehaviour
         {
             float a = (Mathf.PI * 2f) * i / count;
             _line.SetPosition(i, new Vector3(Mathf.Cos(a) * localR, Mathf.Sin(a) * localR, 0f));
+        }
+    }
+
+    private void SetAlpha(float alpha)
+    {
+        Color color = ringColor;
+        color.a = Mathf.Clamp01(alpha);
+        if (_line != null)
+        {
+            _line.startColor = color;
+            _line.endColor = color;
+        }
+
+        if (_lineMaterial != null)
+        {
+            _lineMaterial.color = color;
         }
     }
 

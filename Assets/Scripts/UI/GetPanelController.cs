@@ -1,23 +1,24 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 /// <summary>
-/// 获得奖励弹窗（挂在 MainScene 的 CanvasReward 上，排序在功能面板之上、顶栏之下）。
-/// 只负责展示，不发奖：调用方在 Show 之前自己用 LocalSaveManager 加金币 / 钻石 / 道具。
-/// 不走 MainUIController 的“同时只开一个面板”规则，可盖在其它面板上面。
+/// Reward popup on MainScene CanvasReward (above feature panels, below top bar).
+/// Display only — caller grants gold / gems / items via LocalSaveManager before Show.
+/// Not gated by MainUIController single-panel rule; can overlay other panels.
+/// Reward slots reuse bag BagPrefab (BagItemSlot): icon, count; equipment SetNativeSize.
 /// </summary>
 public class GetPanelController : MonoBehaviour
 {
-    /// <summary>一条奖励。iconLocation 是 YooAsset 地址，可空（没有图就用色块）。</summary>
+    /// <summary>One reward. iconLocation is a YooAsset address; empty uses a color placeholder.</summary>
     [System.Serializable]
     public struct Reward
     {
+        /// <summary>Optional item id. When set, icon / equipment come from GameItemDefs.</summary>
+        public string itemId;
         public string iconLocation;
         public string displayName;
         public int count;
-        /// <summary>为 true 时按货币显示：图标地址为空则用 Icon_Gold / Icon_Gems。</summary>
+        /// <summary>When true, treat as currency; empty icon uses ZJM-JB / ZJM-ZS via YooAsset.</summary>
         public bool useCurrency;
         public CurrencyType currency;
     }
@@ -26,10 +27,9 @@ public class GetPanelController : MonoBehaviour
 
     [SerializeField] private UIPanel panel;
     [SerializeField] private RectTransform rowRoot;
-    [SerializeField] private RewardRowView rowTemplate;
+    [SerializeField] private BagItemSlot bagPrefab;
 
-    private readonly List<RewardRowView> _rows = new List<RewardRowView>(4);
-    private Coroutine _loadCo;
+    private readonly List<BagItemSlot> _slots = new List<BagItemSlot>(4);
 
     private void Awake()
     {
@@ -40,10 +40,6 @@ public class GetPanelController : MonoBehaviour
         }
 
         Instance = this;
-        if (rowTemplate != null)
-        {
-            rowTemplate.gameObject.SetActive(false);
-        }
     }
 
     private void OnDestroy()
@@ -54,7 +50,7 @@ public class GetPanelController : MonoBehaviour
         }
     }
 
-    /// <summary>弹出奖励列表。没有实例时只打警告。</summary>
+    /// <summary>Show reward list. Warns only when no instance.</summary>
     public static void Show(params Reward[] rewards)
     {
         if (Instance == null)
@@ -66,56 +62,28 @@ public class GetPanelController : MonoBehaviour
         Instance.ShowRewards(rewards);
     }
 
-    /// <summary>展示奖励。本方法不修改存档。</summary>
+    /// <summary>Show rewards. Does not modify save data.</summary>
     public void ShowRewards(params Reward[] rewards)
     {
-        if (rewards == null || rewards.Length == 0 || panel == null || rowRoot == null || rowTemplate == null)
+        if (rewards == null || rewards.Length == 0 || panel == null || rowRoot == null || bagPrefab == null)
         {
             Debug.LogWarning("[GetPanelController] Missing rewards or references.");
             return;
         }
 
-        // 先激活再开协程（面板默认是隐藏的）
+        // Show first so BagItemSlot.isActiveAndEnabled and icon load coroutines can start.
         panel.Show();
-        RebuildRows(rewards);
-
-        if (_loadCo != null)
+        if (!rowRoot.gameObject.activeSelf)
         {
-            StopCoroutine(_loadCo);
+            rowRoot.gameObject.SetActive(true);
         }
 
-        _loadCo = StartCoroutine(LoadIcons(rewards));
+        RebuildRows(rewards);
     }
 
     private void RebuildRows(Reward[] rewards)
     {
-        for (int i = 0; i < _rows.Count; i++)
-        {
-            if (_rows[i] != null)
-            {
-                Destroy(_rows[i].gameObject);
-            }
-        }
-
-        _rows.Clear();
-        for (int i = 0; i < rewards.Length; i++)
-        {
-            if (rewards[i].count <= 0)
-            {
-                continue;
-            }
-
-            RewardRowView row = Instantiate(rowTemplate, rowRoot);
-            row.gameObject.SetActive(true);
-            row.Bind(rewards[i].displayName, rewards[i].count, null, PlaceholderColor(rewards[i]));
-            _rows.Add(row);
-        }
-    }
-
-    private IEnumerator LoadIcons(Reward[] rewards)
-    {
-        YooAssetManager yoo = YooAssetManager.Instance;
-        int rowIndex = 0;
+        ClearSlots();
         for (int i = 0; i < rewards.Length; i++)
         {
             Reward reward = rewards[i];
@@ -124,35 +92,75 @@ public class GetPanelController : MonoBehaviour
                 continue;
             }
 
-            RewardRowView row = rowIndex < _rows.Count ? _rows[rowIndex] : null;
-            rowIndex++;
-            if (row == null)
+            GameItemDefs.Def def = null;
+            if (!reward.useCurrency)
             {
-                continue;
+                if (!string.IsNullOrEmpty(reward.itemId))
+                {
+                    def = GameItemDefs.Get(reward.itemId);
+                }
+                // Fallback: callers may only set iconLocation (often same as item id).
+                if (def == null && !string.IsNullOrEmpty(reward.iconLocation))
+                {
+                    def = GameItemDefs.Get(reward.iconLocation);
+                }
             }
 
-            string location = ResolveIcon(reward);
-            if (yoo == null || !yoo.IsReady || string.IsNullOrEmpty(location) || !yoo.HasLocation(location))
+            string displayName = reward.displayName;
+            if (string.IsNullOrEmpty(displayName) && def != null)
             {
-                continue;
+                displayName = def.displayName;
             }
 
-            Sprite sprite = null;
-            yield return yoo.LoadSpriteAsync(location, s => sprite = s);
-            if (sprite != null && row != null)
-            {
-                row.Bind(reward.displayName, reward.count, sprite, Color.white);
-            }
+            string iconLocation = ResolveIcon(reward, def);
+            bool setNativeSize = def != null && def.IsEquipment;
+            string bindId = !string.IsNullOrEmpty(reward.itemId)
+                ? reward.itemId
+                : (def != null && !string.IsNullOrEmpty(def.id)
+                    ? def.id
+                    : (reward.useCurrency ? ("currency_" + reward.currency) : string.Empty));
+
+            BagItemSlot slot = Instantiate(bagPrefab, rowRoot);
+            slot.gameObject.SetActive(true);
+            slot.Bind(
+                bindId,
+                displayName,
+                reward.count,
+                iconLocation,
+                null,
+                showCount: true,
+                setNativeSize: setNativeSize);
+            slot.SetSelected(false);
+            _slots.Add(slot);
         }
-
-        _loadCo = null;
     }
 
-    private static string ResolveIcon(Reward reward)
+    private static string ResolveIcon(Reward reward, GameItemDefs.Def def)
     {
+        // Gem rewards always use YooAsset ZJM-ZS (ignore stale Icon_Gems / wrong pack icons).
+        if (reward.useCurrency && reward.currency == CurrencyType.Gems)
+        {
+            return GameItemDefs.CurrencyIconLocation(CurrencyType.Gems);
+        }
+
         if (!string.IsNullOrEmpty(reward.iconLocation))
         {
+            if (reward.iconLocation == "Icon_Gems")
+            {
+                return GameItemDefs.CurrencyIconLocation(CurrencyType.Gems);
+            }
+
+            if (reward.iconLocation == "Icon_Gold")
+            {
+                return GameItemDefs.CurrencyIconLocation(CurrencyType.Gold);
+            }
+
             return reward.iconLocation;
+        }
+
+        if (def != null && !string.IsNullOrEmpty(def.iconLocation))
+        {
+            return def.iconLocation;
         }
 
         if (reward.useCurrency)
@@ -163,15 +171,16 @@ public class GetPanelController : MonoBehaviour
         return null;
     }
 
-    private static Color PlaceholderColor(Reward reward)
+    private void ClearSlots()
     {
-        if (!reward.useCurrency)
+        for (int i = 0; i < _slots.Count; i++)
         {
-            return new Color(0.55f, 0.40f, 0.85f, 1f);
+            if (_slots[i] != null)
+            {
+                Destroy(_slots[i].gameObject);
+            }
         }
 
-        return reward.currency == CurrencyType.Gems
-            ? new Color(0.35f, 0.85f, 1f, 1f)
-            : new Color(1f, 0.80f, 0.20f, 1f);
+        _slots.Clear();
     }
 }

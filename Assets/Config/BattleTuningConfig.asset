@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -24,7 +24,7 @@ MonoBehaviour:
   spearRadius: 0.7
   spearSpeed: 12
   towerDamage: 8
-  towerAttackInterval: 0.8
+  towerAttackInterval: 1.2
   towerRange: 3
   captureRange: 3
   characterRange: 4
@@ -46,9 +46,10 @@ MonoBehaviour:
   reelHoldSpeedTier3: 1.2
   reelStepTier4: 0.35
   reelHoldSpeedTier4: 0.7
-  driftInterval: 0.6
+  woodDriftInterval: 0.2
+  ironDriftInterval: 0.4
   driftSpeed: 2.4
-  driftPrefillCount: 10
+  driftPrefillCount: 30
   driftLevelUpBurstCount: 4
   heroDamageStep: 3
   netDiameterStep: 0.25
@@ -61,20 +62,22 @@ MonoBehaviour:
   captureCooldownMin: 0.6
   attackRangeStep: 0.75
   attackDamageStep: 3
+  attractorDamage: 12
   attractorRange: 3
-  attractorInterval: 5
+  attractorInterval: 0.75
   attractorRangeStep: 0.75
-  attractorIntervalStep: 0.5
-  attractorIntervalMin: 2
-  attractorPullDuration: 0.35
+  attractorIntervalStep: 0.05
+  attractorIntervalMin: 0.25
   crabInterval: 1.5
   waveGap: 30
   waveCap: 6
-  xpPerResource: 1
-  xpLevel1: 5
-  xpLevel2: 8
-  xpLevel3Base: 12
-  xpStepAfterLevel3: 4
+  xpWood: 1
+  xpIron: 2
+  xpMeat: 3
+  xpLevel1: 10
+  xpLevel2: 16
+  xpLevel3Base: 24
+  xpStepAfterLevel3: 8
   waterColor: {r: 0.1, g: 0.42, b: 0.72, a: 1}
   woodPlankColor: {r: 0.62, g: 0.42, b: 0.22, a: 1}
   captureTowerColor: {r: 0.2, g: 0.75, b: 0.72, a: 1}

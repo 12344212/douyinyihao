@@ -1,19 +1,20 @@
 using System.Collections;
+using DG.Tweening;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
-/// MainScene 主界面控制器（挂在 MainScene 的 Canvas 上，与参考项目一致）。
-/// - 主界面按钮打开对应功能面板（CanvasPanel 下的 UIPanel），同一时间只开一个；面板 Close / Esc / Android 返回键关闭。
-/// - 顶栏（CanvasMax 下的 TopBarPrefab 实例）：头像 → Profile 弹窗，金币 "+" → Shop，钻石 "+" → Top Up。
-/// - Collection（原 playButton）打开 CollectionPanel；进战斗仍由关卡格子调用 StartBattle。
-/// 货币显示与 OnCurrencyChanged 订阅由 TopBarUI 负责，这里只提供 RefreshCurrency 转发。
-/// 所有引用通过 Inspector 序列化字段赋值（MainSceneUISetup 生成并绑定）。
+/// MainScene main UI controller (on Canvas).
+/// Opens feature panels one at a time; TopBar avatar/gold+/gems+; Collection opens CollectionPanel.
+/// Main menu buttons except Stage use child T as click hit (Button + Image alpha 0, raycastable);
+/// on T click play DOPunchScale on parent then open the panel.
 /// </summary>
 public class MainUIController : MonoBehaviour
 {
     public const string BattleSceneName = "BattleScene";
+    private const string TouchChildName = "T";
 
     [Header("Main Buttons")]
     [SerializeField] private Button playButton;
@@ -38,9 +39,29 @@ public class MainUIController : MonoBehaviour
     [Header("Flow")]
     [SerializeField] private string battleSceneName = BattleSceneName;
 
+    [Header("Click Punch (T hit -> punch parent)")]
+    [SerializeField] private float clickPunchStrength = 0.12f;
+    [SerializeField] private float clickPunchDuration = 0.22f;
+    [SerializeField] private int clickPunchVibrato = 8;
+    [SerializeField] private float clickPunchElasticity = 0.55f;
+
     private UIPanel[] _panels;
     private UIPanel _currentPanel;
     private bool _loadingBattle;
+
+    private Button _playClick;
+    private Button _stagesClick;
+    private Button _shopClick;
+    private Button _bagClick;
+    private Button _upgradeClick;
+    private Button _topUpClick;
+
+    private UnityAction _playAction;
+    private UnityAction _stagesAction;
+    private UnityAction _shopAction;
+    private UnityAction _bagAction;
+    private UnityAction _upgradeAction;
+    private UnityAction _topUpAction;
 
     public UIPanel CurrentPanel => _currentPanel;
     public bool IsPanelOpen => _currentPanel != null;
@@ -57,12 +78,26 @@ public class MainUIController : MonoBehaviour
             }
         }
 
-        Bind(playButton, OpenCollection);
-        Bind(stagesButton, OpenStages);
-        Bind(shopButton, OpenShop);
-        Bind(bagButton, OpenBag);
-        Bind(upgradeButton, OpenUpgrade);
-        Bind(topUpButton, OpenTopUp);
+        _playClick = ResolveMenuClick(playButton, useTouchChild: true);
+        _stagesClick = ResolveMenuClick(stagesButton, useTouchChild: false);
+        _shopClick = ResolveMenuClick(shopButton, useTouchChild: true);
+        _bagClick = ResolveMenuClick(bagButton, useTouchChild: true);
+        _upgradeClick = ResolveMenuClick(upgradeButton, useTouchChild: true);
+        _topUpClick = ResolveMenuClick(topUpButton, useTouchChild: true);
+
+        _playAction = () => OnMenuClicked(playButton, OpenCollection);
+        _stagesAction = OpenStages;
+        _shopAction = () => OnMenuClicked(shopButton, OpenShop);
+        _bagAction = () => OnMenuClicked(bagButton, OpenBag);
+        _upgradeAction = () => OnMenuClicked(upgradeButton, OpenUpgrade);
+        _topUpAction = () => OnMenuClicked(topUpButton, OpenTopUp);
+
+        Bind(_playClick, _playAction);
+        Bind(_stagesClick, _stagesAction);
+        Bind(_shopClick, _shopAction);
+        Bind(_bagClick, _bagAction);
+        Bind(_upgradeClick, _upgradeAction);
+        Bind(_topUpClick, _topUpAction);
 
         if (topBar != null)
         {
@@ -93,12 +128,12 @@ public class MainUIController : MonoBehaviour
             }
         }
 
-        Unbind(playButton, OpenCollection);
-        Unbind(stagesButton, OpenStages);
-        Unbind(shopButton, OpenShop);
-        Unbind(bagButton, OpenBag);
-        Unbind(upgradeButton, OpenUpgrade);
-        Unbind(topUpButton, OpenTopUp);
+        Unbind(_playClick, _playAction);
+        Unbind(_stagesClick, _stagesAction);
+        Unbind(_shopClick, _shopAction);
+        Unbind(_bagClick, _bagAction);
+        Unbind(_upgradeClick, _upgradeAction);
+        Unbind(_topUpClick, _topUpAction);
 
         if (topBar != null)
         {
@@ -110,14 +145,11 @@ public class MainUIController : MonoBehaviour
 
     private void Update()
     {
-        // Esc（编辑器 / PC）与 Android 返回键都映射为 KeyCode.Escape
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             OnBackPressed();
         }
     }
-
-    // ---------- 面板 ----------
 
     public void OpenStages() => OpenPanel(stagePanel);
     public void OpenShop() => OpenPanel(shopPanel);
@@ -127,7 +159,6 @@ public class MainUIController : MonoBehaviour
     public void OpenProfile() => OpenPanel(profilePanel);
     public void OpenCollection() => OpenPanel(collectionPanel);
 
-    /// <summary>打开指定面板；已有其它面板时先立即关闭它（同一时间只开一个）。</summary>
     public void OpenPanel(UIPanel panel)
     {
         if (_loadingBattle)
@@ -156,7 +187,6 @@ public class MainUIController : MonoBehaviour
         RefreshCurrency();
     }
 
-    /// <summary>关闭当前面板（带动画），并确保其它面板都已隐藏。</summary>
     public void CloseAllPanels()
     {
         UIPanel closing = _currentPanel;
@@ -180,7 +210,6 @@ public class MainUIController : MonoBehaviour
         }
     }
 
-    /// <summary>返回键：有面板则关闭；主界面无面板时暂不处理（以后可在这里加退出确认）。</summary>
     public void OnBackPressed()
     {
         if (_currentPanel != null)
@@ -201,9 +230,6 @@ public class MainUIController : MonoBehaviour
         }
     }
 
-    // ---------- 货币 ----------
-
-    /// <summary>刷新顶栏货币显示（TopBarUI 自己也会订阅 OnCurrencyChanged）。</summary>
     public void RefreshCurrency()
     {
         if (topBar != null)
@@ -212,9 +238,6 @@ public class MainUIController : MonoBehaviour
         }
     }
 
-    // ---------- 战斗 ----------
-
-    /// <summary>进入战斗场景（异步加载）。</summary>
     public void StartBattle()
     {
         if (_loadingBattle)
@@ -229,6 +252,7 @@ public class MainUIController : MonoBehaviour
         }
 
         _loadingBattle = true;
+        SetClickInteractable(_playClick, false);
         if (playButton != null)
         {
             playButton.interactable = false;
@@ -252,17 +276,145 @@ public class MainUIController : MonoBehaviour
         }
     }
 
-    private static void Bind(Button button, UnityEngine.Events.UnityAction action)
+    private void OnMenuClicked(Button host, UnityAction openAction)
+    {
+        if (host != null)
+        {
+            PlayClickPunch(host.transform);
+        }
+
+        if (openAction != null)
+        {
+            openAction.Invoke();
+        }
+    }
+
+    private void PlayClickPunch(Transform target)
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        DOTween.Kill(ClickPunchId(target), complete: false);
+        target
+            .DOPunchScale(
+                Vector3.one * Mathf.Max(0.01f, clickPunchStrength),
+                Mathf.Max(0.05f, clickPunchDuration),
+                Mathf.Max(1, clickPunchVibrato),
+                Mathf.Clamp01(clickPunchElasticity))
+            .SetId(ClickPunchId(target))
+            .SetUpdate(true)
+            .SetLink(target.gameObject);
+    }
+
+    private static object ClickPunchId(Transform target) => "MainUIClickPunch:" + target.GetInstanceID();
+
+    private static Button ResolveMenuClick(Button host, bool useTouchChild)
+    {
+        if (host == null)
+        {
+            return null;
+        }
+
+        if (!useTouchChild)
+        {
+            return host;
+        }
+
+        Transform touch = host.transform.Find(TouchChildName);
+        if (touch == null)
+        {
+            Debug.LogWarning($"[MainUIController] Child '{TouchChildName}' missing under '{host.name}', falling back to host Button.");
+            return host;
+        }
+
+        ConfigureTouchChild(touch);
+        DisableHostRaycast(host);
+        return touch.GetComponent<Button>();
+    }
+
+    /// <summary>T: active, Image alpha 0 + raycast, Button with no color tint.</summary>
+    public static void ConfigureTouchChild(Transform touch)
+    {
+        if (touch == null)
+        {
+            return;
+        }
+
+        if (!touch.gameObject.activeSelf)
+        {
+            touch.gameObject.SetActive(true);
+        }
+
+        Image img = touch.GetComponent<Image>();
+        if (img == null)
+        {
+            img = touch.gameObject.AddComponent<Image>();
+        }
+
+        Color c = img.color;
+        c.a = 0f;
+        img.color = c;
+        img.raycastTarget = true;
+
+        Button btn = touch.GetComponent<Button>();
+        if (btn == null)
+        {
+            btn = touch.gameObject.AddComponent<Button>();
+        }
+
+        btn.transition = Selectable.Transition.None;
+        btn.targetGraphic = img;
+        btn.interactable = true;
+    }
+
+    /// <summary>Disable raycast on host/siblings so only T receives clicks.</summary>
+    public static void DisableHostRaycast(Button host)
+    {
+        if (host == null)
+        {
+            return;
+        }
+
+        Transform touch = host.transform.Find(TouchChildName);
+        Graphic[] graphics = host.GetComponentsInChildren<Graphic>(true);
+        for (int i = 0; i < graphics.Length; i++)
+        {
+            Graphic g = graphics[i];
+            if (g == null)
+            {
+                continue;
+            }
+
+            if (touch != null && (g.transform == touch || g.transform.IsChildOf(touch)))
+            {
+                continue;
+            }
+
+            g.raycastTarget = false;
+        }
+    }
+
+    private static void SetClickInteractable(Button button, bool interactable)
     {
         if (button != null)
+        {
+            button.interactable = interactable;
+        }
+    }
+
+    private static void Bind(Button button, UnityAction action)
+    {
+        if (button != null && action != null)
         {
             button.onClick.AddListener(action);
         }
     }
 
-    private static void Unbind(Button button, UnityEngine.Events.UnityAction action)
+    private static void Unbind(Button button, UnityAction action)
     {
-        if (button != null)
+        if (button != null && action != null)
         {
             button.onClick.RemoveListener(action);
         }

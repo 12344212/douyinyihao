@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -36,18 +37,27 @@ public class BattleDirector : MonoBehaviour
         Spear
     }
 
+    private enum PendingThrow
+    {
+        None,
+        Net,
+        Spear
+    }
+
     private class PlankNode
     {
         public PlankView View;
         public int X;
         public int Y;
-        public float Hp;
         public bool Dead;
         public Vector3 Logic;
         public Color BaseColor;
+        public float Hp;
+        public float MaxHp;
         public BattleBuildingKind Building;
         public BattleTower Tower;
         public NetShot Net;
+        public ResNode CaptureTarget;
         public float AttackCd;
         public float CaptureCd;
         public float AttractorCd;
@@ -60,14 +70,18 @@ public class BattleDirector : MonoBehaviour
         public Vector3 Pos;
         public Vector3 Velocity;
         public bool Dead;
-        public bool Attracting;
+        public int CollectibleIndex = -1;
+        public SpriteRenderer CollectibleRenderer;
     }
 
     private class EnemyNode
     {
-        public BattleCrab View;
+        public BattleEnemy View;
         public Vector3 Pos;
         public float Hp;
+        public float MaxHp;
+        public float Damage;
+        public float MoveSpeed;
         public float AttackTimer;
         public bool Dead;
     }
@@ -84,6 +98,7 @@ public class BattleDirector : MonoBehaviour
         public bool AutoReel;
         public bool Dead;
         public PlankNode Home;
+        public SpriteRenderer Rope;
         public readonly List<ResNode> Held = new List<ResNode>();
     }
 
@@ -96,6 +111,19 @@ public class BattleDirector : MonoBehaviour
         public float Damage;
         public float Radius;
         public EnemyNode Lock;
+        public bool Done;
+        public BattleDamageKind Kind;
+    }
+
+    /// <summary>Enemy bolt (Bulie3); damages target plank on impact.</summary>
+    private class EnemyBolt
+    {
+        public BattleSpear View;
+        public Vector3 Pos;
+        public Vector3 Origin;
+        public Vector3 Target;
+        public float Damage;
+        public PlankNode TargetPlank;
         public bool Done;
     }
 
@@ -115,8 +143,12 @@ public class BattleDirector : MonoBehaviour
     [SerializeField] private Transform spawnRoot;
     [SerializeField] private PlankView[] startingPlanks;
     [SerializeField] private PlankView plankPrefab;
-    [SerializeField] private BattleResource resourcePrefab;
-    [SerializeField] private BattleCrab crabPrefab;
+    [SerializeField] private BattleResource woodPrefab;
+    [SerializeField] private BattleResource ironPrefab;
+    [SerializeField] private BattleResource meatPrefab;
+    [SerializeField] private BattleEnemy crabPrefab;
+    private BattleEnemy enemy2Prefab;
+    private BattleEnemy enemy3Prefab;
     [SerializeField] private BattleNet netPrefab;
     [SerializeField] private BattleSpear spearPrefab;
     [SerializeField] private BattleTower captureTowerPrefab;
@@ -132,13 +164,24 @@ public class BattleDirector : MonoBehaviour
     private int _xp;
     private int _pendingNeed;
     private int _wood;
-    private int _leaf;
-    private int _scrap;
+    private int _iron;
+    private float _playerHp;
+    private float _playerHpMax;
+    private int _plankBuys;
+    private int _attackBuys;
+    private int _attractorBuys;
+    private int _captureBuys;
+    private int _healBuys;
+    private bool _buildFromShop;
     private int _waveCount = 2;
+    private StageRosterConfig _stageRoster;
+    private StageBattleDefs.Resolved _roster;
+    private float _spearDamageBase;
+    private float _playerSpearCd;
     private int _waveIndex;
     private int _spawnedInWave;
-    private int _crabSerial;
-    private float _driftTimer;
+    private float _woodDriftTimer;
+    private float _ironDriftTimer;
     private float _waveTimer;
     private bool _wavesDone;
     private bool _hudDirty;
@@ -161,6 +204,10 @@ public class BattleDirector : MonoBehaviour
     private float _attackDamageBonus;
     private float _attractorRangeBonus;
     private float _attractorIntervalMul = 1f;
+    private int _collectibleIndex = -1;
+    private float _collectibleTimer;
+    private bool _collectibleSpawned;
+    private Sprite _collectibleSprite;
     private readonly BattleUpgradeKind[] _levelOffers = new BattleUpgradeKind[3];
     private readonly List<BattleUpgradeKind> _offerPool = new List<BattleUpgradeKind>(16);
     private BattleCharacter _characterBody;
@@ -171,7 +218,19 @@ public class BattleDirector : MonoBehaviour
     private int _walkY;
     private CanvasGroup _modalGroup;
     private NetShot _playerNet;
+    private Sprite _ropeSprite;
+    private SpriteRenderer _playerRope;
     private BuildKind _buildKind;
+    private BattleSpear _attackBoltPrefab;
+    private BattleSpear _attractorBoltPrefab;
+    private BattleSpear _enemyBoltPrefab;
+    private DamakePopup _damakePrefab;
+    private Vector3 _camRestPos;
+    private float _shakeTimer;
+    private const float ShakeDuration = 0.16f;
+    private const float ShakeStrength = 0.08f;
+    private PendingThrow _pendingThrow;
+    private Vector3 _pendingThrowPoint;
     private SpriteRenderer _buildMask;
     private static Sprite _buildMaskSprite;
 
@@ -179,26 +238,21 @@ public class BattleDirector : MonoBehaviour
     private readonly List<ResNode> _resources = new List<ResNode>();
     private readonly List<EnemyNode> _enemies = new List<EnemyNode>();
     private readonly List<SpearShot> _spears = new List<SpearShot>();
+    private readonly List<EnemyBolt> _enemyBolts = new List<EnemyBolt>();
     private readonly List<RaycastResult> _hits = new List<RaycastResult>();
     private readonly List<Vector2Int> _expandCells = new List<Vector2Int>();
     private readonly List<PlankView> _ghostPlanks = new List<PlankView>();
     private readonly List<PlankNode> _raisedPlanks = new List<PlankNode>();
-    private readonly List<AttractPull> _attractPulls = new List<AttractPull>();
-
-    private class AttractPull
-    {
-        public ResNode Res;
-        public PlankNode Home;
-        public Vector3 From;
-        public float Elapsed;
-    }
-
     /// <summary>运行时才出现的预制体，由 YooAsset 按地址加载后塞进来。</summary>
-    public void SetSpawnPrefabs(PlankView plank, BattleResource resource, BattleCrab crab, BattleNet net, BattleSpear spear, BattleTower capture, BattleTower attack, BattleTower attractor)
+    public void SetSpawnPrefabs(PlankView plank, BattleResource wood, BattleResource iron, BattleResource meat, BattleEnemy enemy1, BattleEnemy enemy2, BattleEnemy enemy3, BattleNet net, BattleSpear spear, BattleTower capture, BattleTower attack, BattleTower attractor)
     {
         plankPrefab = plank;
-        resourcePrefab = resource;
-        crabPrefab = crab;
+        woodPrefab = wood;
+        ironPrefab = iron;
+        meatPrefab = meat;
+        crabPrefab = enemy1;
+        enemy2Prefab = enemy2;
+        enemy3Prefab = enemy3;
         netPrefab = net;
         spearPrefab = spear;
         captureTowerPrefab = capture;
@@ -206,15 +260,56 @@ public class BattleDirector : MonoBehaviour
         attractorTowerPrefab = attractor;
     }
 
+    /// <summary>角色网绳，地址 ZB-SZ1。</summary>
+    public void SetRopeSprite(Sprite sprite)
+    {
+        _ropeSprite = sprite;
+    }
+
+    /// <summary>基础攻击塔 bulie1，第二个攻击塔 bulie2。</summary>
+    public void SetTowerBolts(BattleSpear attackBolt, BattleSpear attractorBolt)
+    {
+        _attackBoltPrefab = attackBolt;
+        _attractorBoltPrefab = attractorBolt;
+    }
+
+    /// <summary>Enemy ranged bolt prefab, YooAsset address Bulie3.</summary>
+    public void SetEnemyBolt(BattleSpear enemyBolt)
+    {
+        _enemyBoltPrefab = enemyBolt;
+    }
+
+    /// <summary>Damage float prefab, YooAsset address Damake.</summary>
+    public void SetDamakePrefab(DamakePopup damake)
+    {
+        _damakePrefab = damake;
+    }
+
+    /// <summary>五套基础关卡，地址 StageRosterConfig。</summary>
+    public void SetStageRoster(StageRosterConfig roster)
+    {
+        _stageRoster = roster;
+    }
+
+    private void OnDestroy()
+    {
+        BattleTime.Reset();
+    }
+
     public void Begin(BattleTuningConfig config)
     {
+        if (!BattleTime.IsHeld)
+        {
+            Time.timeScale = 1f;
+        }
+
         if (_ready || config == null)
         {
             Debug.LogError("[Battle] Begin skipped. Config missing or already started.");
             return;
         }
 
-        if (hud == null || plankPrefab == null || resourcePrefab == null || crabPrefab == null ||
+        if (hud == null || plankPrefab == null || woodPrefab == null || ironPrefab == null || meatPrefab == null || crabPrefab == null || enemy2Prefab == null || enemy3Prefab == null ||
             netPrefab == null || spearPrefab == null || captureTowerPrefab == null || attackTowerPrefab == null ||
             attractorTowerPrefab == null)
         {
@@ -234,7 +329,11 @@ public class BattleDirector : MonoBehaviour
             {
                 _cam.transform.position = new Vector3(_cam.transform.position.x, _cam.transform.position.y, -10f);
             }
+
+            _camRestPos = _cam.transform.position;
         }
+
+        _shakeTimer = 0f;
 
         ResolveStage();
         _characterPos = CellCenter(0, 0);
@@ -242,12 +341,17 @@ public class BattleDirector : MonoBehaviour
         {
             character.position = _characterPos;
             _characterBody = character.GetComponent<BattleCharacter>();
+            if (_characterBody != null)
+            {
+                _characterBody.SetThrowListener(ReleasePlayerThrow);
+            }
         }
 
         _characterRange = _config.CharacterRange;
         _netCapacity = _config.NetCapacity;
         _captureNetCapacity = _config.CaptureNetCapacity;
         _heroDamageBonus = 0f;
+        _spearDamageBase = _config.SpearDamage;
         _netSizeBonus = 0f;
         _netSpeedMul = 1f;
         _captureRangeBonus = 0f;
@@ -257,7 +361,7 @@ public class BattleDirector : MonoBehaviour
         _attackDamageBonus = 0f;
         _attractorRangeBonus = 0f;
         _attractorIntervalMul = 1f;
-        _attractPulls.Clear();
+        ApplyMetaStats();
         RefreshCharacterRange();
 
         if (startingPlanks != null)
@@ -268,13 +372,25 @@ public class BattleDirector : MonoBehaviour
             }
         }
 
-        _driftTimer = _config.DriftInterval;
+        _playerHpMax = ComputePlayerMaxHp();
+        _playerHp = _playerHpMax;
+        _woodDriftTimer = WoodDriftInterval();
+        _ironDriftTimer = IronDriftInterval();
         PrefillDriftResources();
-        _waveTimer = _config.CrabInterval;
+        ScheduleCollectible();
+        if (_roster.WaveCount <= 0)
+        {
+            _wavesDone = true;
+            _waveTimer = 0f;
+        }
+        else
+        {
+            _waveTimer = Mathf.Max(0f, _roster.waves[0].spawnInterval);
+        }
         _ready = true;
         hud.SetWeapon(_weapon);
         TouchHud();
-        Debug.Log("[Battle] stage " + _chapter + "-" + _stage + " waves " + _waveCount);
+        Debug.Log("[Battle] stage " + _chapter + "-" + _stage + " set " + (_roster.template + 1) + " x" + _roster.statMul.ToString("0.0") + " waves " + _waveCount);
     }
 
     private void Update()
@@ -316,7 +432,11 @@ public class BattleDirector : MonoBehaviour
         if (_phase != Phase.Fight) return;
         TickSpears(dt);
         if (_phase != Phase.Fight) return;
+        TickEnemyBolts(dt);
+        if (_phase != Phase.Fight) return;
         TickDriftSpawn(dt);
+        if (_phase != Phase.Fight) return;
+        TickCollectible(dt);
         if (_phase != Phase.Fight) return;
         TickWaves(dt);
         if (_phase != Phase.Fight) return;
@@ -325,13 +445,20 @@ public class BattleDirector : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (!_ready || !_hudDirty || hud == null)
+        if (!_ready)
+        {
+            return;
+        }
+
+        TickCameraShake();
+        if (!_hudDirty || hud == null)
         {
             return;
         }
 
         _hudDirty = false;
-        hud.SetCounts(_wood, _leaf, _scrap);
+        hud.SetCounts(_wood, _iron);
+        hud.SetHp(_playerHp, _playerHpMax);
         hud.SetXp(_level, _xp, _config.XpToNext(_level));
     }
 
@@ -388,6 +515,124 @@ public class BattleDirector : MonoBehaviour
     public void ChooseAttack() { ChooseOfferSlot(2); }
     public void ChooseRange() { ChooseOfferSlot(0); }
     public void ChooseCapacity() { ChooseOfferSlot(1); }
+
+    public int NextPlankWoodCost => BattleTuning.ShopPlankWood + _plankBuys * BattleTuning.ShopPlankWoodStep;
+    public int NextAttackIronCost => BattleTuning.ShopAttackIron + _attackBuys * BattleTuning.ShopAttackIronStep;
+    public int NextAttractorIronCost => BattleTuning.ShopAttractorIron + _attractorBuys * BattleTuning.ShopAttractorIronStep;
+    public int NextCaptureWoodCost => BattleTuning.ShopCaptureWood + _captureBuys * BattleTuning.ShopCaptureWoodStep;
+    public int NextHealWoodCost => BattleTuning.ShopHealWood + _healBuys * BattleTuning.ShopHealWoodStep;
+
+    public bool CanBuyPlank()
+    {
+        return _phase == Phase.Fight && _wood >= NextPlankWoodCost && HasPlankSpace();
+    }
+
+    public bool CanBuyAttack()
+    {
+        return _phase == Phase.Fight && _iron >= NextAttackIronCost && FindEmptyPlank() != null;
+    }
+
+    public bool CanBuyAttractor()
+    {
+        return _phase == Phase.Fight && _iron >= NextAttractorIronCost && FindEmptyPlank() != null;
+    }
+
+    public bool CanBuyCapture()
+    {
+        return _phase == Phase.Fight && _wood >= NextCaptureWoodCost && FindEmptyPlank() != null;
+    }
+
+    public bool CanBuyHeal()
+    {
+        return _phase == Phase.Fight && _playerHp < _playerHpMax - 0.01f && _wood >= NextHealWoodCost;
+    }
+
+    public bool TryBuyPlank()
+    {
+        if (!CanBuyPlank())
+        {
+            return false;
+        }
+
+        _wood -= NextPlankWoodCost;
+        _plankBuys++;
+        TouchHud();
+        _buildFromShop = true;
+        EnterBuildMode(BuildKind.Plank);
+        return true;
+    }
+
+    public bool TryBuyAttack()
+    {
+        if (!CanBuyAttack())
+        {
+            return false;
+        }
+
+        _iron -= NextAttackIronCost;
+        _attackBuys++;
+        TouchHud();
+        _buildFromShop = true;
+        EnterBuildMode(BuildKind.Attack);
+        return true;
+    }
+
+    public bool TryBuyAttractor()
+    {
+        if (!CanBuyAttractor())
+        {
+            return false;
+        }
+
+        _iron -= NextAttractorIronCost;
+        _attractorBuys++;
+        TouchHud();
+        _buildFromShop = true;
+        EnterBuildMode(BuildKind.Attractor);
+        return true;
+    }
+
+    public bool TryBuyCapture()
+    {
+        if (!CanBuyCapture())
+        {
+            return false;
+        }
+
+        _wood -= NextCaptureWoodCost;
+        _captureBuys++;
+        TouchHud();
+        _buildFromShop = true;
+        EnterBuildMode(BuildKind.Capture);
+        return true;
+    }
+
+    public bool TryBuyHeal()
+    {
+        if (!CanBuyHeal())
+        {
+            return false;
+        }
+
+        _wood -= NextHealWoodCost;
+        _healBuys++;
+        _playerHp += BattleTuning.ShopHealAmount;
+        if (_playerHp > _playerHpMax)
+        {
+            _playerHp = _playerHpMax;
+        }
+
+        SyncPlankHpFromPlayer();
+        RefreshAllPlankHealth();
+        TouchHud();
+        return true;
+    }
+
+    private bool HasPlankSpace()
+    {
+        CollectExpansionCells(_expandCells);
+        return _expandCells.Count > 0;
+    }
 
     public void OnPrimary()
     {
@@ -449,11 +694,40 @@ public class BattleDirector : MonoBehaviour
 
         _level = 1;
         _xp = 0;
-        _waveCount = _config.WaveCountFor(_config.StageIndex(_chapter, _stage));
+        _roster = StageBattleDefs.Resolve(_stageRoster, _chapter, _stage);
+        _waveCount = _roster.WaveCount;
+        _wood = _roster.startWood;
+        _iron = _roster.startIron;
+    }
+
+    /// <summary>开局长矛伤害、射程、收网速度吃角色等级和已穿装备。局内升级卡之后再加。</summary>
+    private void ApplyMetaStats()
+    {
+        LocalSaveManager save = LocalSaveManager.Instance;
+        int level = save != null ? save.CharacterLevel : CharacterUpgradeDefs.MinLevel;
+        _spearDamageBase = CharacterUpgradeDefs.AttackAtLevel(level);
+        if (save == null)
+        {
+            return;
+        }
+
+        string spearId = save.GetEquippedItemId(EquipItemType.Spear);
+        _spearDamageBase += EquipSpecialEffects.GetAttackBonus(spearId);
+
+        string hoodId = save.GetEquippedItemId(EquipItemType.Hood);
+        _characterRange += Mathf.Max(0f, EquipSpecialEffects.GetStatBonusValue(hoodId));
+
+        string shoesId = save.GetEquippedItemId(EquipItemType.Shoes);
+        _netSpeedMul += Mathf.Max(0f, EquipSpecialEffects.GetStatBonusValue(shoesId));
     }
 
     private void HandleInput(float dt)
     {
+        if (_playerSpearCd > 0f)
+        {
+            _playerSpearCd = Mathf.Max(0f, _playerSpearCd - dt);
+        }
+
         if (Input.GetMouseButtonDown(0))
         {
             if (PointerOverUi())
@@ -464,7 +738,8 @@ public class BattleDirector : MonoBehaviour
             {
                 Vector3 point = MouseWorld();
                 PlankNode step = PlankUnder(point);
-                if (step != null && !(_playerNet != null && _weapon == BattleWeapon.Spear))
+                // Plank click always walks (net and spear), same as net-mode plank move.
+                if (step != null)
                 {
                     BeginWalk(step);
                     _press = PressKind.None;
@@ -486,7 +761,7 @@ public class BattleDirector : MonoBehaviour
                     LaunchPlayerNet(land);
                     _press = PressKind.Launch;
                 }
-                else
+                else if (_playerSpearCd <= 0f)
                 {
                     Vector3 land = point;
                     if (!InsideCharacterRange(point))
@@ -497,6 +772,7 @@ public class BattleDirector : MonoBehaviour
                     }
 
                     ThrowPlayerSpear(land);
+                    _playerSpearCd = BattleTuning.PlayerSpearInterval;
                     _press = PressKind.Spear;
                 }
             }
@@ -571,11 +847,6 @@ public class BattleDirector : MonoBehaviour
                 continue;
             }
 
-            if (res.Attracting)
-            {
-                continue;
-            }
-
             res.Pos += res.Velocity * dt;
             bool offLeft = res.Pos.x < view.Cx - view.HalfW - 1.5f;
             bool offBottom = res.Pos.y < view.Cy - view.HalfH - 1.5f;
@@ -583,40 +854,62 @@ public class BattleDirector : MonoBehaviour
             if ((offLeft && offBottom) || far)
             {
                 res.Dead = true;
-                if (res.View != null)
-                {
-                    Destroy(res.View.gameObject);
-                }
+                DestroyRes(res);
 
                 _resources.RemoveAt(i);
                 continue;
             }
 
-            if (res.View != null)
-            {
-                res.View.transform.position = res.Pos;
-            }
+            PlaceRes(res);
         }
     }
 
     private void TickDriftSpawn(float dt)
     {
-        _driftTimer -= dt;
-        if (_driftTimer > 0f)
+        _woodDriftTimer -= dt;
+        if (_woodDriftTimer <= 0f)
         {
-            return;
+            _woodDriftTimer = WoodDriftInterval();
+            SpawnDriftKind(BattleResourceKind.Wood);
         }
 
-        _driftTimer = _config.DriftInterval;
-        SpawnResource();
+        _ironDriftTimer -= dt;
+        if (_ironDriftTimer <= 0f)
+        {
+            _ironDriftTimer = IronDriftInterval();
+            SpawnDriftKind(BattleResourceKind.Iron);
+        }
+    }
+
+    /// <summary>木头/铁各自绝对刷新间隔，不受 DriftCountMul 影响。</summary>
+    private float WoodDriftInterval()
+    {
+        return _config.WoodDriftInterval;
+    }
+
+    private float IronDriftInterval()
+    {
+        return _config.IronDriftInterval;
+    }
+
+    /// <summary>升级爆发数量倍率；预填与定时刷新用绝对值。</summary>
+    private static int ScaledDriftCount(int count)
+    {
+        if (count <= 0)
+        {
+            return 0;
+        }
+
+        return Mathf.Max(1, Mathf.RoundToInt(count * BattleTuning.DriftCountMul));
     }
 
     private void PrefillDriftResources()
     {
+        // 开局预填绝对值，不乘 DriftCountMul
         SpawnDriftBurst(_config.DriftPrefillCount);
     }
 
-    /// <summary>在漂流走廊上刷一批木/叶（开战预填、升级爆发共用）。</summary>
+    /// <summary>在漂流走廊上刷一批木/铁（开战预填、升级爆发共用）。</summary>
     private void SpawnDriftBurst(int count)
     {
         if (count <= 0)
@@ -632,16 +925,17 @@ public class BattleDirector : MonoBehaviour
             Vector3 dir = PickDriftDirection();
             float u = (i + Random.Range(0.2f, 0.8f)) / count;
             float t = Mathf.Lerp(0.06f, 0.88f, u);
-            CreateDriftResource(origin + dir * (travel * t), dir * _config.DriftSpeed);
+            BattleResourceKind kind = Random.value < 0.5f ? BattleResourceKind.Wood : BattleResourceKind.Iron;
+            SpawnDriftOne(kind, origin + dir * (travel * t), dir * _config.DriftSpeed);
         }
     }
 
-    private void SpawnResource()
+    private void SpawnDriftKind(BattleResourceKind kind)
     {
         ViewBounds view = GetView();
         Vector3 origin = PickDriftSpawnOrigin(view);
         Vector3 dir = PickDriftDirection();
-        CreateDriftResource(origin, dir * _config.DriftSpeed);
+        SpawnDriftOne(kind, origin, dir * _config.DriftSpeed);
     }
 
     private static Vector3 PickDriftSpawnOrigin(ViewBounds view)
@@ -669,16 +963,32 @@ public class BattleDirector : MonoBehaviour
         return new Vector3(dir.x + jitter, dir.y, 0f).normalized;
     }
 
-    private void CreateDriftResource(Vector3 pos, Vector3 velocity)
+    private BattleResource PrefabFor(BattleResourceKind kind)
+    {
+        if (kind == BattleResourceKind.Iron)
+        {
+            return ironPrefab;
+        }
+
+        if (kind == BattleResourceKind.Meat)
+        {
+            return meatPrefab;
+        }
+
+        return woodPrefab;
+    }
+
+    private void SpawnDriftOne(BattleResourceKind kind, Vector3 pos, Vector3 velocity)
     {
         ResNode res = new ResNode();
-        res.Kind = Random.value < 0.5f ? BattleResourceKind.Wood : BattleResourceKind.Leaf;
+        res.Kind = kind;
         res.Pos = pos;
         res.Velocity = velocity;
-        res.View = Instantiate(resourcePrefab, spawnRoot);
-        res.View.SetKind(res.Kind);
+        res.View = Instantiate(PrefabFor(kind), spawnRoot);
+        res.View.SetKind(kind);
         res.View.SetSortingOrder(1);
         res.View.transform.position = res.Pos;
+        res.View.transform.rotation = Quaternion.Euler(0f, 0f, Random.Range(0f, 360f));
         _resources.Add(res);
     }
 
@@ -691,12 +1001,218 @@ public class BattleDirector : MonoBehaviour
         float jitter = Random.Range(-0.22f, 0.22f);
         dir = new Vector3(dir.x + jitter, dir.y, 0f).normalized;
         res.Velocity = dir * (_config.DriftSpeed / 6f);
-        res.View = Instantiate(resourcePrefab, spawnRoot);
+        res.View = Instantiate(meatPrefab, spawnRoot);
         res.View.SetKind(res.Kind);
         res.View.SetSortingOrder(1);
         res.View.transform.position = res.Pos;
+        res.View.transform.rotation = Quaternion.Euler(0f, 0f, Random.Range(0f, 360f));
         _resources.Add(res);
     }
+
+    /// <summary>优先漂未收集的藏品；都有了就随机一件。</summary>
+    private int PickCollectibleIndex()
+    {
+        LocalSaveManager save = LocalSaveManager.Instance;
+        int unowned = 0;
+        for (int i = 0; i < CollectionDefs.Count; i++)
+        {
+            if (save == null || !save.IsCollectibleOwned(i))
+            {
+                unowned++;
+            }
+        }
+
+        if (unowned <= 0)
+        {
+            return Random.Range(0, CollectionDefs.Count);
+        }
+
+        int pick = Random.Range(0, unowned);
+        for (int i = 0; i < CollectionDefs.Count; i++)
+        {
+            if (save != null && save.IsCollectibleOwned(i))
+            {
+                continue;
+            }
+
+            if (pick == 0)
+            {
+                return i;
+            }
+
+            pick--;
+        }
+
+        return 0;
+    }
+
+    private void ScheduleCollectible()
+    {
+        _collectibleIndex = PickCollectibleIndex();
+        _collectibleSpawned = false;
+        _collectibleSprite = null;
+        float span = EstimateFightSeconds();
+        float latest = Mathf.Min(22f, Mathf.Max(12f, span * 0.35f));
+        _collectibleTimer = Random.Range(6f, latest);
+        StartCoroutine(LoadCollectibleSprite());
+    }
+
+    private float EstimateFightSeconds()
+    {
+        if (_roster == null || _roster.WaveCount <= 0)
+        {
+            return 12f;
+        }
+
+        float time = Mathf.Max(0f, _roster.waves[0].spawnInterval);
+        for (int wave = 0; wave < _roster.WaveCount; wave++)
+        {
+            StageBattleDefs.ResolvedWave entry = _roster.waves[wave];
+            int crabs = entry == null || entry.slots == null ? 0 : entry.slots.Length;
+            if (crabs > 1)
+            {
+                time += (crabs - 1) * Mathf.Max(0f, entry.spawnInterval);
+            }
+
+            if (wave < _roster.WaveCount - 1)
+            {
+                time += _roster.waveGap;
+            }
+        }
+
+        return time;
+    }
+
+    private IEnumerator LoadCollectibleSprite()
+    {
+        int index = _collectibleIndex;
+        YooAssetManager yoo = YooAssetManager.Instance;
+        if (yoo == null || index < 0)
+        {
+            yield break;
+        }
+
+        if (!yoo.IsReady)
+        {
+            yield return yoo.InitializeAsync();
+        }
+
+        if (!yoo.IsReady)
+        {
+            Debug.LogError("[Battle] YooAsset is not ready. Collectible sprite was not loaded.");
+            yield break;
+        }
+
+        Sprite sprite = null;
+        yield return yoo.LoadSpriteAsync(CollectionDefs.OwnedAddress(index), loaded => sprite = loaded);
+        if (index != _collectibleIndex)
+        {
+            yield break;
+        }
+
+        _collectibleSprite = sprite;
+        if (sprite == null)
+        {
+            Debug.LogError("[Battle] Failed to load collectible " + CollectionDefs.OwnedAddress(index) + ".");
+        }
+    }
+
+    private void TickCollectible(float dt)
+    {
+        if (_collectibleSpawned || _collectibleIndex < 0)
+        {
+            return;
+        }
+
+        _collectibleTimer -= dt;
+        if (_collectibleTimer > 0f || _collectibleSprite == null)
+        {
+            return;
+        }
+
+        SpawnCollectible();
+    }
+
+    private void SpawnCollectible()
+    {
+        if (_collectibleSpawned || _collectibleSprite == null)
+        {
+            return;
+        }
+
+        _collectibleSpawned = true;
+        ViewBounds view = GetView();
+        Vector3 origin = PickDriftSpawnOrigin(view);
+        Vector3 dir = PickDriftDirection();
+        ResNode res = new ResNode();
+        res.CollectibleIndex = _collectibleIndex;
+        res.Kind = BattleResourceKind.Wood;
+        res.Pos = origin;
+        res.Velocity = dir * _config.DriftSpeed;
+        GameObject go = new GameObject(CollectionDefs.OwnedAddress(_collectibleIndex));
+        go.transform.SetParent(spawnRoot, false);
+        SpriteRenderer renderer = go.AddComponent<SpriteRenderer>();
+        renderer.sprite = _collectibleSprite;
+        renderer.sortingOrder = 12;
+        float longest = Mathf.Max(_collectibleSprite.bounds.size.x, _collectibleSprite.bounds.size.y);
+        float scale = longest > 0.01f ? 2.7f / longest : 1f;
+        go.transform.localScale = new Vector3(scale, scale, 1f);
+        go.transform.position = res.Pos;
+        res.CollectibleRenderer = renderer;
+        _resources.Add(res);
+    }
+
+    private static void PlaceRes(ResNode res)
+    {
+        if (res.View != null)
+        {
+            res.View.transform.position = res.Pos;
+        }
+        else if (res.CollectibleRenderer != null)
+        {
+            res.CollectibleRenderer.transform.position = res.Pos;
+        }
+    }
+
+    private void DestroyRes(ResNode res)
+    {
+        if (res.View != null)
+        {
+            Destroy(res.View.gameObject);
+            res.View = null;
+        }
+
+        if (res.CollectibleRenderer != null)
+        {
+            Destroy(res.CollectibleRenderer.gameObject);
+            res.CollectibleRenderer = null;
+        }
+    }
+
+    private static void SetResOrder(ResNode res, int order)
+    {
+        if (res.View != null)
+        {
+            res.View.SetSortingOrder(order);
+        }
+        else if (res.CollectibleRenderer != null)
+        {
+            res.CollectibleRenderer.sortingOrder = order;
+        }
+    }
+
+    private void GrantCollectible(int index)
+    {
+        LocalSaveManager save = LocalSaveManager.Instance;
+        if (save == null)
+        {
+            Debug.LogWarning("[Battle] LocalSaveManager missing. Collectible was not saved.");
+            return;
+        }
+
+        save.SetCollectibleOwned(index, true);
+    }
+
     private void TickWaves(float dt)
     {
         if (_wavesDone)
@@ -713,66 +1229,130 @@ public class BattleDirector : MonoBehaviour
         if (_waveIndex >= _waveCount)
         {
             _wavesDone = true;
+            _collectibleTimer = 0f;
             return;
         }
 
-        SpawnCrab();
+        StageBattleDefs.ResolvedWave wave = _roster.waves[_waveIndex];
+        int need = wave == null || wave.slots == null ? 0 : wave.slots.Length;
+        if (need <= 0 || _spawnedInWave >= need)
+        {
+            AdvanceWave();
+            return;
+        }
+
+        SpawnEnemy(wave.slots[_spawnedInWave]);
         _spawnedInWave++;
-        int need = 2 + _waveIndex;
         if (_spawnedInWave >= need)
         {
-            _waveIndex++;
-            _spawnedInWave = 0;
-            if (_waveIndex >= _waveCount)
-            {
-                _wavesDone = true;
-            }
-            else
-            {
-                _waveTimer = _config.WaveGap;
-            }
+            AdvanceWave();
         }
         else
         {
-            _waveTimer = _config.CrabInterval;
+            _waveTimer = Mathf.Max(0f, wave.spawnInterval);
         }
     }
 
-    private void SpawnCrab()
+    private void AdvanceWave()
     {
-        ViewBounds view = GetView();
-        Vector3 pos;
-        if ((_crabSerial & 1) == 0)
+        _waveIndex++;
+        _spawnedInWave = 0;
+        if (_waveIndex >= _waveCount)
         {
-            pos = new Vector3(
-                view.Cx + view.HalfW + 1.8f,
-                Random.Range(view.Cy - view.HalfH * 0.85f, view.Cy + view.HalfH * 0.95f),
-                0f);
+            _wavesDone = true;
+            _collectibleTimer = 0f;
         }
         else
         {
-            pos = new Vector3(
-                Random.Range(view.Cx - view.HalfW * 0.1f, view.Cx + view.HalfW * 0.95f),
-                view.Cy + view.HalfH + 1.8f,
-                0f);
+            _waveTimer = _roster.waveGap;
         }
+    }
 
-        _crabSerial++;
+    private void SpawnEnemy(StageBattleDefs.SpawnSlot slot)
+    {
+        ViewBounds view = GetView();
+        Vector3 pos = PickEnemySpawnOrigin(view);
         if (PlankUnder(pos) != null || Sqr2(pos, _characterPos) <= TouchSqr())
         {
-            pos.x += 3f;
-            pos.y += 3f;
+            Vector3 toward = new Vector3(view.Cx - pos.x, view.Cy - pos.y, 0f);
+            if (toward.sqrMagnitude < 0.0001f)
+            {
+                toward = Vector3.left;
+            }
+
+            pos += toward.normalized * 3f;
+        }
+
+        BattleEnemy prefab = PrefabForKind(slot.kind);
+        if (prefab == null)
+        {
+            return;
         }
 
         EnemyNode enemy = new EnemyNode();
         enemy.Pos = pos;
-        enemy.Hp = _config.EnemyHp;
+        enemy.Hp = slot.stat.hp;
+        enemy.MaxHp = slot.stat.hp;
+        enemy.Damage = slot.stat.damage;
+        enemy.MoveSpeed = slot.stat.speed;
         enemy.AttackTimer = _config.EnemyAttackInterval;
-        enemy.View = Instantiate(crabPrefab, spawnRoot);
+        enemy.View = Instantiate(prefab, spawnRoot);
         enemy.View.SetBodyScale(0.62f);
         enemy.View.transform.position = pos;
         enemy.View.SetHealth01(1f);
+        Vector3 spawnFace = _characterPos - pos;
+        if (spawnFace.sqrMagnitude < 0.0001f)
+        {
+            spawnFace = new Vector3(view.Cx - pos.x, view.Cy - pos.y, 0f);
+        }
+
+        enemy.View.FaceToward(spawnFace);
         _enemies.Add(enemy);
+    }
+
+    /// <summary>Random off-screen spawn on left / right / top / bottom.</summary>
+    private static Vector3 PickEnemySpawnOrigin(ViewBounds view)
+    {
+        const float margin = 1.8f;
+        int side = Random.Range(0, 4);
+        float x;
+        float y;
+        switch (side)
+        {
+            case 0: // right
+                x = view.Cx + view.HalfW + margin;
+                y = Random.Range(view.Cy - view.HalfH * 0.85f, view.Cy + view.HalfH * 0.95f);
+                break;
+            case 1: // left
+                x = view.Cx - view.HalfW - margin;
+                y = Random.Range(view.Cy - view.HalfH * 0.85f, view.Cy + view.HalfH * 0.95f);
+                break;
+            case 2: // top
+                x = Random.Range(view.Cx - view.HalfW * 0.95f, view.Cx + view.HalfW * 0.95f);
+                y = view.Cy + view.HalfH + margin;
+                break;
+            default: // bottom
+                x = Random.Range(view.Cx - view.HalfW * 0.95f, view.Cx + view.HalfW * 0.95f);
+                y = view.Cy - view.HalfH - margin;
+                break;
+        }
+
+        return new Vector3(x, y, 0f);
+    }
+
+    private BattleEnemy PrefabForKind(int kind)
+    {
+        if (kind == 2 && enemy3Prefab != null)
+        {
+            return enemy3Prefab;
+        }
+
+        if (kind == 1 && enemy2Prefab != null)
+        {
+            return enemy2Prefab;
+        }
+
+        return crabPrefab;
     }
 
     private void TickEnemies(float dt)
@@ -795,44 +1375,93 @@ public class BattleDirector : MonoBehaviour
             return;
         }
 
-        PlankNode plank = PlankTouchedByCrab(enemy);
-        if (plank != null)
+        bool ranged = enemy.View != null && enemy.View.IsRanged;
+        if (ranged)
+        {
+            TickRangedEnemy(enemy, dt);
+            return;
+        }
+
+        PlankNode plank = NearestPlank(enemy.Pos);
+        if (plank == null)
+        {
+            enemy.AttackTimer = _config.EnemyAttackInterval;
+            if (ReachedCharacter(enemy))
+            {
+                Lose();
+                return;
+            }
+
+            Vector3 toChar = _characterPos - enemy.Pos;
+            enemy.Pos = Vector3.MoveTowards(enemy.Pos, _characterPos, enemy.MoveSpeed * dt);
+            if (ReachedCharacter(enemy))
+            {
+                Lose();
+                return;
+            }
+
+            PlaceEnemy(enemy, toChar);
+            return;
+        }
+
+        float reach = CrabRadius(enemy) + PlankRadius(plank);
+        Vector3 toPlank = plank.Logic - enemy.Pos;
+        if (Sqr2(plank.Logic, enemy.Pos) <= reach * reach)
         {
             enemy.AttackTimer -= dt;
             if (enemy.AttackTimer <= 0f)
             {
                 enemy.AttackTimer += _config.EnemyAttackInterval;
-                DamagePlank(plank, _config.EnemyAttackDamage);
+                if (enemy.View != null)
+                {
+                    enemy.View.PlayMeleeImpact(toPlank);
+                }
+
+                DamagePlank(plank, enemy.Damage);
             }
 
-            PlaceEnemy(enemy);
+            PlaceEnemy(enemy, toPlank);
             return;
         }
 
         enemy.AttackTimer = _config.EnemyAttackInterval;
-        if (ReachedCharacter(enemy))
-        {
-            Lose();
-            return;
-        }
-
-        enemy.Pos = Vector3.MoveTowards(enemy.Pos, _characterPos, _config.EnemyMoveSpeed * dt);
-        if (PlankTouchedByCrab(enemy) != null)
-        {
-            PlaceEnemy(enemy);
-            return;
-        }
-
-        if (ReachedCharacter(enemy))
-        {
-            Lose();
-            return;
-        }
-
-        PlaceEnemy(enemy);
+        enemy.Pos = Vector3.MoveTowards(enemy.Pos, plank.Logic, enemy.MoveSpeed * dt);
+        PlaceEnemy(enemy, toPlank);
     }
 
-    private void PlaceEnemy(EnemyNode enemy)
+    /// <summary>Ranged: move to nearest plank, stop nearby, fire Bulie3 at that plank.</summary>
+    private void TickRangedEnemy(EnemyNode enemy, float dt)
+    {
+        PlankNode plank = NearestPlank(enemy.Pos);
+        if (plank == null)
+        {
+            enemy.AttackTimer = _config.EnemyAttackInterval;
+            PlaceEnemy(enemy, _characterPos - enemy.Pos);
+            return;
+        }
+
+        float stop = Mathf.Max(2.5f, _config.CharacterRange);
+        float dist = Vector3.Distance(enemy.Pos, plank.Logic);
+        Vector3 toPlank = plank.Logic - enemy.Pos;
+        if (dist > stop)
+        {
+            enemy.AttackTimer = _config.EnemyAttackInterval;
+            enemy.Pos = Vector3.MoveTowards(enemy.Pos, plank.Logic, enemy.MoveSpeed * dt);
+            PlaceEnemy(enemy, toPlank);
+            return;
+        }
+
+        enemy.AttackTimer -= dt;
+        if (enemy.AttackTimer <= 0f)
+        {
+            enemy.AttackTimer += _config.EnemyAttackInterval;
+            FireEnemyBolt(enemy, plank);
+        }
+
+        PlaceEnemy(enemy, toPlank);
+    }
+
+    private void PlaceEnemy(EnemyNode enemy, Vector3 faceDir)
     {
         if (enemy.View == null)
         {
@@ -840,8 +1469,12 @@ public class BattleDirector : MonoBehaviour
         }
 
         enemy.View.transform.position = enemy.Pos;
-        float ratio = _config.EnemyHp <= 0f ? 0f : Mathf.Clamp01(enemy.Hp / _config.EnemyHp);
+        float ratio = enemy.MaxHp <= 0f ? 0f : Mathf.Clamp01(enemy.Hp / enemy.MaxHp);
         enemy.View.SetHealth01(ratio);
+        if (faceDir.sqrMagnitude > 0.0001f)
+        {
+            enemy.View.FaceToward(faceDir);
+        }
     }
 
     private bool ReachedCharacter(EnemyNode enemy)
@@ -963,21 +1596,65 @@ public class BattleDirector : MonoBehaviour
         return _config.CellSize * 0.45f;
     }
 
-    private void DamageEnemy(EnemyNode enemy, float damage)
+    private void DamageEnemy(EnemyNode enemy, float damage, BattleDamageKind kind)
     {
         if (enemy == null || enemy.Dead)
         {
             return;
         }
 
+        if (damage < 0f)
+        {
+            damage = 0f;
+        }
+
+        Vector3 floatPos = enemy.Pos;
+        if (enemy.View != null)
+        {
+            floatPos = enemy.View.transform.position;
+        }
+
         enemy.Hp -= damage;
+        SpawnDamake(floatPos, damage, kind);
         if (enemy.Hp <= 0f)
         {
             KillEnemy(enemy);
             return;
         }
 
-        PlaceEnemy(enemy);
+        PlaceEnemy(enemy, Vector3.zero);
+    }
+
+    private void SpawnDamake(Vector3 worldPos, float damage, BattleDamageKind kind)
+    {
+        if (_damakePrefab == null || damage <= 0f)
+        {
+            return;
+        }
+
+        Transform parent = spawnRoot != null ? spawnRoot : transform;
+        DamakePopup popup = Instantiate(_damakePrefab, parent);
+        popup.transform.position = worldPos + new Vector3(Random.Range(-0.15f, 0.15f), 0.55f, 0f);
+        popup.Play(damage, ColorForDamage(kind));
+    }
+
+    private static Color ColorForDamage(BattleDamageKind kind)
+    {
+        switch (kind)
+        {
+            case BattleDamageKind.AttackTower:
+                return new Color(1f, 0.45f, 0.2f, 1f);
+            case BattleDamageKind.Attractor:
+                return new Color(0.55f, 0.35f, 1f, 1f);
+            case BattleDamageKind.Player:
+                // Distinct from enemy floats: soft red/white.
+                return new Color(1f, 0.45f, 0.45f, 1f);
+            case BattleDamageKind.Plank:
+                return new Color(0.85f, 0.55f, 0.25f, 1f);
+            case BattleDamageKind.Spear:
+            default:
+                return new Color(1f, 0.92f, 0.25f, 1f);
+        }
     }
 
     private void KillEnemy(EnemyNode enemy)
@@ -1009,12 +1686,13 @@ public class BattleDirector : MonoBehaviour
         node.View = view;
         node.X = view.CellX;
         node.Y = view.CellY;
-        node.Hp = _config.PlankHp;
         node.Logic = CellCenter(node.X, node.Y);
+        // Planks share player HP; MaxHp/Hp mirror player for display only (not a lose condition).
+        node.MaxHp = _playerHpMax > 0f ? _playerHpMax : (_config != null ? _config.PlankHp : BattleTuning.PlankHp);
+        node.Hp = _playerHpMax > 0f ? _playerHp : node.MaxHp;
         view.transform.position = node.Logic;
-        view.SetBodyScale(_config.CellSize * 0.9f);
-        view.Paint(_config.WoodPlankColor);
-        node.BaseColor = view.BaseColor;
+        float adoptRatio = node.MaxHp <= 0f ? 1f : Mathf.Clamp01(node.Hp / node.MaxHp);
+        view.SetHealth01(adoptRatio);
         _planks.Add(node);
     }
 
@@ -1046,18 +1724,15 @@ public class BattleDirector : MonoBehaviour
         }
 
         BattleTower prefab = captureTowerPrefab;
-        Color color = _config.CaptureTowerColor;
         float radius = _config.CaptureRange + _captureRangeBonus;
         if (kind == BattleBuildingKind.Attack)
         {
             prefab = attackTowerPrefab;
-            color = _config.AttackTowerColor;
             radius = _config.TowerRange + _attackRangeBonus;
         }
         else if (kind == BattleBuildingKind.Attractor)
         {
             prefab = attractorTowerPrefab;
-            color = _config.AttractorTowerColor;
             radius = _config.AttractorRange + _attractorRangeBonus;
             plank.AttractorCd = 0f;
         }
@@ -1065,27 +1740,117 @@ public class BattleDirector : MonoBehaviour
         Transform parent = plank.View != null && plank.View.TowerAnchor != null ? plank.View.TowerAnchor : plank.View.transform;
         BattleTower tower = Instantiate(prefab, parent);
         tower.transform.localPosition = Vector3.zero;
-        tower.transform.localScale = Vector3.one * (_config.CellSize * 0.42f);
-        tower.ApplyColor(color);
         tower.SetRangeRadius(radius);
+        tower.ShowRangeBriefly();
         plank.Tower = tower;
     }
 
+    private void DamagePlayer(float damage)
+    {
+        Vector3 floatPos = _characterPos;
+        if (character != null)
+        {
+            floatPos = character.position;
+        }
+
+        ApplySharedPlayerDamage(damage, floatPos, BattleDamageKind.Player);
+    }
+
+    /// <summary>
+    /// Enemy hits a plank: shared player HP (not per-plank), float at the hit plank, shake every plank.
+    /// Lose only when player HP hits 0 (same path as DamagePlayer).
+    /// </summary>
     private void DamagePlank(PlankNode plank, float damage)
     {
-        if (plank == null || plank.Dead)
+        if (plank == null || plank.Dead || damage <= 0f || _phase != Phase.Fight)
         {
             return;
         }
 
-        plank.Hp -= damage;
-        if (plank.Hp <= 0f)
+        Vector3 floatPos = plank.Logic;
+        if (plank.View != null)
         {
-            RemovePlank(plank);
+            floatPos = plank.View.transform.position;
+        }
+
+        ShakeAllPlanks();
+        ApplySharedPlayerDamage(damage, floatPos, BattleDamageKind.Plank);
+    }
+
+    private void ApplySharedPlayerDamage(float damage, Vector3 floatPos, BattleDamageKind kind)
+    {
+        if (_phase != Phase.Fight || damage <= 0f || _playerHp <= 0f)
+        {
             return;
         }
 
-        RefreshPlank(plank);
+        _playerHp -= damage;
+        if (_playerHp < 0f)
+        {
+            _playerHp = 0f;
+        }
+
+        // Keep unused per-plank Hp mirrors in sync with shared player HP (display / legacy).
+        SyncPlankHpFromPlayer();
+
+        SpawnDamake(floatPos, damage, kind);
+        BeginCameraShake();
+        if (hud != null)
+        {
+            hud.PlayHurtFlash();
+        }
+
+        RefreshAllPlankHealth();
+        TouchHud();
+        if (_playerHp <= 0f)
+        {
+            Lose();
+        }
+    }
+
+    private void ShakeAllPlanks()
+    {
+        for (int i = 0; i < _planks.Count; i++)
+        {
+            PlankNode plank = _planks[i];
+            if (plank == null || plank.Dead || plank.View == null)
+            {
+                continue;
+            }
+
+            plank.View.PlayHitShake();
+        }
+    }
+
+    private void SyncPlankHpFromPlayer()
+    {
+        for (int i = 0; i < _planks.Count; i++)
+        {
+            PlankNode plank = _planks[i];
+            if (plank == null || plank.Dead)
+            {
+                continue;
+            }
+
+            plank.MaxHp = _playerHpMax;
+            plank.Hp = _playerHp;
+        }
+    }
+
+    private void RefreshAllPlankHealth()
+    {
+        float ratio = _playerHpMax <= 0f ? 0f : Mathf.Clamp01(_playerHp / _playerHpMax);
+        for (int i = 0; i < _planks.Count; i++)
+        {
+            PlankNode plank = _planks[i];
+            if (plank == null || plank.Dead || plank.View == null)
+            {
+                continue;
+            }
+
+            plank.View.transform.position = plank.Logic;
+            plank.View.SetHealth01(ratio);
+        }
     }
 
     private void RemovePlank(PlankNode plank)
@@ -1095,14 +1860,12 @@ public class BattleDirector : MonoBehaviour
             return;
         }
 
+        // Do not Lose() when a plank under the character is removed - shared player HP owns defeat.
         plank.Dead = true;
-        plank.Hp = 0f;
         if (plank.Net != null)
         {
             CancelNet(plank.Net);
         }
-
-        CancelAttractPullsFor(plank);
 
         if (plank.View != null)
         {
@@ -1120,7 +1883,7 @@ public class BattleDirector : MonoBehaviour
         }
 
         plank.View.transform.position = plank.Logic;
-        float ratio = _config.PlankHp <= 0f ? 0f : Mathf.Clamp01(plank.Hp / _config.PlankHp);
+        float ratio = _playerHpMax <= 0f ? 0f : Mathf.Clamp01(_playerHp / _playerHpMax);
         plank.View.SetHealth01(ratio);
     }
 
@@ -1220,6 +1983,8 @@ public class BattleDirector : MonoBehaviour
         _press = PressKind.None;
         hud.HideLevelUp();
         ClearBuildVisuals();
+        EnsureBuildMask();
+        hud.SetBattleInputEnabled(false);
 
         if (kind == BuildKind.Plank)
         {
@@ -1234,11 +1999,6 @@ public class BattleDirector : MonoBehaviour
     private void HandleBuildInput()
     {
         if (!Input.GetMouseButtonDown(0))
-        {
-            return;
-        }
-
-        if (PointerOverUi())
         {
             return;
         }
@@ -1283,7 +2043,21 @@ public class BattleDirector : MonoBehaviour
     private void FinishBuildMode()
     {
         ClearBuildVisuals();
+        if (hud != null)
+        {
+            hud.SetBattleInputEnabled(true);
+        }
+
         _buildKind = BuildKind.None;
+        if (_buildFromShop)
+        {
+            _buildFromShop = false;
+            _phase = Phase.Fight;
+            TouchHud();
+            TryOpenLevelUp();
+            return;
+        }
+
         CommitLevelUp();
     }
 
@@ -1328,8 +2102,6 @@ public class BattleDirector : MonoBehaviour
             PlankView ghost = Instantiate(plankPrefab, spawnRoot);
             ghost.SetCell(cell.x, cell.y);
             ghost.transform.position = CellCenter(cell.x, cell.y);
-            ghost.SetBodyScale(_config.CellSize * 0.9f);
-            ghost.Paint(_config.WoodPlankColor);
             ghost.ApplyGhostLook();
             _ghostPlanks.Add(ghost);
         }
@@ -1360,8 +2132,7 @@ public class BattleDirector : MonoBehaviour
 
     private void ShowTowerBuildTargets()
     {
-        // 运行时遮罩：压暗场景，空木板抬高 sorting 后仍可点选
-        EnsureBuildMask();
+        // 空木板抬高 sorting，压在遮罩上面，仍然可以点选
         _raisedPlanks.Clear();
         for (int i = 0; i < _planks.Count; i++)
         {
@@ -1414,7 +2185,7 @@ public class BattleDirector : MonoBehaviour
 
         SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
         sr.sprite = GetBuildMaskSprite();
-        sr.color = new Color(0f, 0f, 0f, 0.55f);
+        sr.color = new Color(0f, 0f, 0f, 200f / 255f);
         sr.sortingOrder = 40;
         _buildMask = sr;
     }
@@ -1458,6 +2229,40 @@ public class BattleDirector : MonoBehaviour
         return onCharacter;
     }
 
+    private void TickCaptureTower(PlankNode plank, float dt)
+    {
+        if (plank.Net != null || plank.Tower == null)
+        {
+            return;
+        }
+
+        float range = _config.CaptureRange + _captureRangeBonus;
+        ResNode res = plank.CaptureTarget;
+        if (!IsLiveResource(res) || Sqr2(res.Pos, plank.Logic) > range * range)
+        {
+            res = NearestResource(plank.Logic, range);
+            plank.CaptureTarget = res;
+        }
+
+        if (res == null)
+        {
+            return;
+        }
+
+        if (!plank.Tower.AimToward(res.Pos, dt))
+        {
+            return;
+        }
+
+        CreateNet(plank.Tower.FirePosition, res.Pos, plank, true);
+        plank.CaptureTarget = null;
+    }
+
+    private bool IsLiveResource(ResNode res)
+    {
+        return res != null && !res.Dead && _resources.Contains(res);
+    }
+
     private void TickTowers(float dt)
     {
         for (int i = 0; i < _planks.Count; i++)
@@ -1470,42 +2275,35 @@ public class BattleDirector : MonoBehaviour
 
             if (plank.Building == BattleBuildingKind.Attack)
             {
-                plank.AttackCd -= dt;
-                if (plank.AttackCd <= 0f)
+                EnemyNode target = NearestEnemy(plank.Logic, _config.TowerRange + _attackRangeBonus);
+                if (target != null && plank.Tower != null)
                 {
-                    EnemyNode target = NearestEnemy(plank.Logic, _config.TowerRange + _attackRangeBonus);
-                    if (target != null)
-                    {
-                        ThrowTowerSpear(plank, target);
-                        plank.AttackCd = _config.TowerAttackInterval;
-                    }
+                    plank.Tower.AimToward(target.Pos, dt);
+                }
+
+                plank.AttackCd -= dt;
+                if (plank.AttackCd <= 0f && target != null)
+                {
+                    ThrowTowerSpear(plank, target, _config.TowerDamage + _attackDamageBonus, _attackBoltPrefab, BattleDamageKind.AttackTower);
+                    plank.AttackCd = _config.TowerAttackInterval;
                 }
             }
             else if (plank.Building == BattleBuildingKind.Capture)
             {
-                plank.CaptureCd -= dt;
-                if (plank.CaptureCd <= 0f && plank.Net == null)
-                {
-                    ResNode res = NearestResource(plank.Logic, _config.CaptureRange + _captureRangeBonus);
-                    if (res != null)
-                    {
-                        CreateNet(plank.Logic, res.Pos, plank, true);
-                        float cd = _config.CaptureCooldown * _captureCooldownMul;
-                        if (cd < _config.CaptureCooldownMin)
-                        {
-                            cd = _config.CaptureCooldownMin;
-                        }
-
-                        plank.CaptureCd = cd;
-                    }
-                }
+                TickCaptureTower(plank, dt);
             }
             else if (plank.Building == BattleBuildingKind.Attractor)
             {
-                plank.AttractorCd -= dt;
-                if (plank.AttractorCd <= 0f)
+                EnemyNode target = NearestEnemy(plank.Logic, _config.AttractorRange + _attractorRangeBonus);
+                if (target != null && plank.Tower != null)
                 {
-                    StartAttractorPulls(plank);
+                    plank.Tower.AimToward(target.Pos, dt);
+                }
+
+                plank.AttractorCd -= dt;
+                if (plank.AttractorCd <= 0f && target != null)
+                {
+                    ThrowTowerSpear(plank, target, _config.AttractorDamage, _attractorBoltPrefab, BattleDamageKind.Attractor);
                     float interval = _config.AttractorInterval * _attractorIntervalMul;
                     if (interval < _config.AttractorIntervalMin)
                     {
@@ -1516,120 +2314,6 @@ public class BattleDirector : MonoBehaviour
                 }
             }
         }
-
-        TickAttractPulls(dt);
-    }
-
-    private void StartAttractorPulls(PlankNode plank)
-    {
-        if (plank == null || plank.Dead)
-        {
-            return;
-        }
-
-        float range = _config.AttractorRange + _attractorRangeBonus;
-        float limit = range * range;
-        for (int i = 0; i < _resources.Count; i++)
-        {
-            ResNode res = _resources[i];
-            if (res == null || res.Dead || res.Attracting)
-            {
-                continue;
-            }
-
-            if (Sqr2(res.Pos, plank.Logic) > limit)
-            {
-                continue;
-            }
-
-            res.Attracting = true;
-            res.Velocity = Vector3.zero;
-            AttractPull pull = new AttractPull();
-            pull.Res = res;
-            pull.Home = plank;
-            pull.From = res.Pos;
-            pull.Elapsed = 0f;
-            _attractPulls.Add(pull);
-        }
-    }
-
-    private void TickAttractPulls(float dt)
-    {
-        float duration = _config.AttractorPullDuration;
-        if (duration < 0.05f)
-        {
-            duration = 0.05f;
-        }
-
-        for (int i = _attractPulls.Count - 1; i >= 0; i--)
-        {
-            AttractPull pull = _attractPulls[i];
-            ResNode res = pull.Res;
-            if (res == null || res.Dead || pull.Home == null || pull.Home.Dead)
-            {
-                if (res != null && !res.Dead)
-                {
-                    res.Attracting = false;
-                }
-
-                _attractPulls.RemoveAt(i);
-                continue;
-            }
-
-            pull.Elapsed += dt;
-            float t = pull.Elapsed / duration;
-            if (t >= 1f)
-            {
-                GrantAttractedResource(res);
-                _attractPulls.RemoveAt(i);
-                continue;
-            }
-
-            Vector3 target = pull.Home.Logic;
-            res.Pos = Vector3.Lerp(pull.From, target, t);
-            if (res.View != null)
-            {
-                res.View.transform.position = res.Pos;
-            }
-        }
-    }
-
-    private void GrantAttractedResource(ResNode res)
-    {
-        if (res == null || res.Dead)
-        {
-            return;
-        }
-
-        res.Dead = true;
-        res.Attracting = false;
-        AddCount(res.Kind, 1);
-        AddXp(_config.XpPerResource);
-        if (res.View != null)
-        {
-            Destroy(res.View.gameObject);
-        }
-
-        _resources.Remove(res);
-    }
-
-    private void CancelAttractPullsFor(PlankNode home)
-    {
-        for (int i = _attractPulls.Count - 1; i >= 0; i--)
-        {
-            AttractPull pull = _attractPulls[i];
-            if (pull.Home != home)
-            {
-                continue;
-            }
-
-            if (pull.Res != null && !pull.Res.Dead)
-            {
-                pull.Res.Attracting = false;
-            }
-
-            _attractPulls.RemoveAt(i);
-        }
     }
 
     private void LaunchPlayerNet(Vector3 point)
@@ -1639,7 +2323,16 @@ public class BattleDirector : MonoBehaviour
             return;
         }
 
-        _playerNet = CreateNet(_characterPos, point, null, false);
+        _pendingThrow = PendingThrow.Net;
+        _pendingThrowPoint = point;
+        if (_characterBody != null)
+        {
+            _characterBody.PlayThrow();
+        }
+        else
+        {
+            ReleasePlayerThrow();
+        }
     }
 
     private NetShot CreateNet(Vector3 origin, Vector3 target, PlankNode home, bool autoReel)
@@ -1689,6 +2382,7 @@ public class BattleDirector : MonoBehaviour
             return;
         }
 
+        Vector3 motionStart = net.Pos;
         if (net.Home != null && net.Home.Dead)
         {
             CancelNet(net);
@@ -1759,6 +2453,14 @@ public class BattleDirector : MonoBehaviour
             CaptureIdleOverlap(net);
         }
 
+        if (net.View != null)
+        {
+            float travel = Vector2.Distance(
+                new Vector2(motionStart.x, motionStart.y),
+                new Vector2(net.Pos.x, net.Pos.y));
+            net.View.TickFloat(dt, travel);
+        }
+
         SyncNetVisual(net);
     }
 
@@ -1809,7 +2511,7 @@ public class BattleDirector : MonoBehaviour
         for (int i = _resources.Count - 1; i >= 0; i--)
         {
             ResNode res = _resources[i];
-            if (res.Dead || res.Attracting)
+            if (res.Dead)
             {
                 continue;
             }
@@ -1853,7 +2555,7 @@ public class BattleDirector : MonoBehaviour
         for (int i = _resources.Count - 1; i >= 0; i--)
         {
             ResNode res = _resources[i];
-            if (res.Dead || res.Attracting)
+            if (res.Dead)
             {
                 continue;
             }
@@ -1869,7 +2571,8 @@ public class BattleDirector : MonoBehaviour
 
     private void TakeResource(NetShot net, int index)
     {
-        if (net != null)
+        ResNode res = _resources[index];
+        if (net != null && res.CollectibleIndex < 0)
         {
             int cap = net.Home == null ? _netCapacity : _captureNetCapacity;
             if (net.Held.Count >= cap)
@@ -1878,13 +2581,9 @@ public class BattleDirector : MonoBehaviour
             }
         }
 
-        ResNode res = _resources[index];
         _resources.RemoveAt(index);
         net.Held.Add(res);
-        if (res.View != null)
-        {
-            res.View.SetSortingOrder(31);
-        }
+        SetResOrder(res, 31);
 
         RefreshNetBadges(net);
     }
@@ -1908,7 +2607,12 @@ public class BattleDirector : MonoBehaviour
                 continue;
             }
 
-            if (res.Kind == BattleResourceKind.Leaf)
+            if (res.CollectibleIndex >= 0)
+            {
+                continue;
+            }
+
+            if (res.Kind == BattleResourceKind.Iron)
             {
                 leaf++;
             }
@@ -1932,7 +2636,7 @@ public class BattleDirector : MonoBehaviour
         }
 
         net.Dead = true;
-        int gained = 0;
+        int xpGained = 0;
         for (int i = 0; i < net.Held.Count; i++)
         {
             ResNode res = net.Held[i];
@@ -1941,13 +2645,22 @@ public class BattleDirector : MonoBehaviour
                 continue;
             }
 
-            AddCount(res.Kind, 1);
-            gained++;
-            res.Dead = true;
-            if (res.View != null)
+            if (res.CollectibleIndex >= 0)
             {
-                Destroy(res.View.gameObject);
+                GrantCollectible(res.CollectibleIndex);
             }
+            else if (res.Kind == BattleResourceKind.Meat)
+            {
+                xpGained += _config.XpFor(res.Kind);
+            }
+            else
+            {
+                AddCount(res.Kind, 1);
+                xpGained += _config.XpFor(res.Kind);
+            }
+
+            res.Dead = true;
+            DestroyRes(res);
         }
 
         net.Held.Clear();
@@ -1962,15 +2675,18 @@ public class BattleDirector : MonoBehaviour
             {
                 net.Home.Net = null;
             }
+
+            DestroyNetRope(net);
         }
         else if (_playerNet == net)
         {
             _playerNet = null;
+            HideNetRope(net);
         }
 
-        if (gained > 0)
+        if (xpGained > 0)
         {
-            AddXp(gained * _config.XpPerResource);
+            AddXp(xpGained);
         }
     }
 
@@ -1990,10 +2706,7 @@ public class BattleDirector : MonoBehaviour
                 continue;
             }
 
-            if (res.View != null)
-            {
-                res.View.SetSortingOrder(1);
-            }
+            SetResOrder(res, 1);
 
             _resources.Add(res);
         }
@@ -2009,9 +2722,15 @@ public class BattleDirector : MonoBehaviour
             net.Home.Net = null;
         }
 
+        if (net.Home != null)
+        {
+            DestroyNetRope(net);
+        }
+
         if (_playerNet == net)
         {
             _playerNet = null;
+            HideNetRope(net);
         }
     }
 
@@ -2025,7 +2744,7 @@ public class BattleDirector : MonoBehaviour
         for (int i = 0; i < net.Held.Count; i++)
         {
             ResNode res = net.Held[i];
-            if (res == null || res.View == null)
+            if (res == null || (res.View == null && res.CollectibleRenderer == null))
             {
                 continue;
             }
@@ -2033,35 +2752,196 @@ public class BattleDirector : MonoBehaviour
             float ang = i * 1.15f;
             Vector3 offset = new Vector3(Mathf.Cos(ang), Mathf.Sin(ang), 0f) * 0.28f;
             res.Pos = net.Pos + offset;
-            res.View.transform.position = res.Pos;
+            PlaceRes(res);
+        }
+
+        SyncNetRope(net);
+    }
+
+    private Vector3 GetNetRopeOrigin(NetShot net)
+    {
+        if (net != null && net.Home != null)
+        {
+            if (net.Home.Tower != null)
+            {
+                return net.Home.Tower.FirePosition;
+            }
+
+            return net.Home.Logic;
+        }
+
+        return _characterBody != null ? _characterBody.FirePosition : _characterPos;
+    }
+
+    private SpriteRenderer EnsureNetRope(NetShot net)
+    {
+        if (net == null)
+        {
+            return null;
+        }
+
+        if (net.Rope != null)
+        {
+            return net.Rope;
+        }
+
+        if (net.Home == null && _playerRope != null)
+        {
+            net.Rope = _playerRope;
+            return net.Rope;
+        }
+
+        GameObject ropeObject = new GameObject("NetRope");
+        ropeObject.transform.SetParent(spawnRoot, false);
+        SpriteRenderer rope = ropeObject.AddComponent<SpriteRenderer>();
+        rope.sprite = _ropeSprite;
+        rope.drawMode = SpriteDrawMode.Tiled;
+        rope.sortingOrder = 21;
+        net.Rope = rope;
+        if (net.Home == null)
+        {
+            _playerRope = rope;
+        }
+
+        return rope;
+    }
+
+    private void SyncNetRope(NetShot net)
+    {
+        if (net == null || net.Dead || _ropeSprite == null)
+        {
+            HideNetRope(net);
+            return;
+        }
+
+        Vector3 hand = GetNetRopeOrigin(net);
+        Vector3 delta = net.Pos - hand;
+        delta.z = 0f;
+        float length = delta.magnitude;
+        if (length < 0.05f)
+        {
+            HideNetRope(net);
+            return;
+        }
+
+        SpriteRenderer rope = EnsureNetRope(net);
+        if (rope == null)
+        {
+            return;
+        }
+
+        float width = _ropeSprite.bounds.size.x;
+        if (width < 0.01f)
+        {
+            width = 0.3f;
+        }
+
+        rope.enabled = true;
+        rope.size = new Vector2(width, length);
+        Vector3 mid = (hand + net.Pos) * 0.5f;
+        mid.z = 0f;
+        rope.transform.position = mid;
+        float angle = Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg - 90f;
+        rope.transform.rotation = Quaternion.Euler(0f, 0f, angle);
+    }
+
+    private void HideNetRope(NetShot net)
+    {
+        if (net != null && net.Rope != null)
+        {
+            net.Rope.enabled = false;
+        }
+        else if (_playerRope != null)
+        {
+            _playerRope.enabled = false;
         }
     }
 
+    private void DestroyNetRope(NetShot net)
+    {
+        if (net == null)
+        {
+            return;
+        }
+
+        if (net.Rope != null)
+        {
+            if (net.Rope == _playerRope)
+            {
+                _playerRope.enabled = false;
+            }
+            else
+            {
+                Destroy(net.Rope.gameObject);
+            }
+
+            net.Rope = null;
+        }
+    }
     private void ThrowPlayerSpear(Vector3 point)
     {
+        _pendingThrow = PendingThrow.Spear;
+        _pendingThrowPoint = point;
+        if (_characterBody != null)
+        {
+            _characterBody.PlayThrow();
+        }
+        else
+        {
+            ReleasePlayerThrow();
+        }
+    }
+
+    private void ReleasePlayerThrow()
+    {
+        PendingThrow kind = _pendingThrow;
+        Vector3 point = _pendingThrowPoint;
+        _pendingThrow = PendingThrow.None;
+        if (kind == PendingThrow.Net)
+        {
+            if (_playerNet == null)
+            {
+                Vector3 origin = _characterBody != null ? _characterBody.FirePosition : _characterPos;
+                _playerNet = CreateNet(origin, point, null, false);
+            }
+        }
+        else if (kind == PendingThrow.Spear)
+        {
+            SpawnPlayerSpear(point);
+        }
+    }
+
+    private void SpawnPlayerSpear(Vector3 point)
+    {
+        Vector3 origin = _characterBody != null ? _characterBody.FirePosition : _characterPos;
         SpearShot spear = new SpearShot();
-        spear.Pos = _characterPos;
-        spear.Origin = _characterPos;
+        spear.Pos = origin;
+        spear.Origin = origin;
         spear.Target = point;
-        spear.Damage = _config.SpearDamage + _heroDamageBonus;
+        spear.Damage = _spearDamageBase + _heroDamageBonus;
         spear.Radius = _config.SpearRadius;
+        spear.Kind = BattleDamageKind.Spear;
         spear.View = Instantiate(spearPrefab, spawnRoot);
         spear.View.transform.position = spear.Pos;
+        spear.View.AimHead(spear.Target - spear.Origin);
         _spears.Add(spear);
     }
 
-    private void ThrowTowerSpear(PlankNode plank, EnemyNode enemy)
+    private void ThrowTowerSpear(PlankNode plank, EnemyNode enemy, float damage, BattleSpear boltPrefab, BattleDamageKind kind)
     {
+        Vector3 origin = plank.Tower != null ? plank.Tower.FirePosition : plank.Logic;
+        BattleSpear prefab = boltPrefab != null ? boltPrefab : spearPrefab;
         SpearShot spear = new SpearShot();
-        spear.Pos = plank.Logic;
-        spear.Origin = plank.Logic;
+        spear.Pos = origin;
+        spear.Origin = origin;
         spear.Target = enemy.Pos;
-        spear.Damage = _config.TowerDamage + _attackDamageBonus;
+        spear.Damage = damage;
         spear.Radius = 0f;
         spear.Lock = enemy;
-        spear.View = Instantiate(spearPrefab, spawnRoot);
-        spear.View.SetTint(_config.TowerSpearColor);
+        spear.Kind = kind;
+        spear.View = Instantiate(prefab, spawnRoot);
         spear.View.transform.position = spear.Pos;
+        spear.View.AimHead(spear.Target - spear.Origin);
         _spears.Add(spear);
     }
 
@@ -2094,11 +2974,7 @@ public class BattleDirector : MonoBehaviour
                 aim = spear.Target - spear.Origin;
             }
 
-            if (aim.sqrMagnitude > 0.0001f)
-            {
-                float ang = Mathf.Atan2(aim.y, aim.x) * Mathf.Rad2Deg;
-                spear.View.transform.rotation = Quaternion.Euler(0f, 0f, ang);
-            }
+            spear.View.AimHead(aim);
         }
 
         if (Sqr2(spear.Pos, spear.Target) > 0.0025f)
@@ -2109,20 +2985,103 @@ public class BattleDirector : MonoBehaviour
         spear.Done = true;
         if (spear.Lock != null)
         {
-            DamageEnemy(spear.Lock, spear.Damage);
+            DamageEnemy(spear.Lock, spear.Damage, spear.Kind);
         }
         else
         {
             EnemyNode hit = NearestEnemy(spear.Target, spear.Radius);
             if (hit != null)
             {
-                DamageEnemy(hit, spear.Damage);
+                DamageEnemy(hit, spear.Damage, spear.Kind);
             }
         }
 
         if (spear.View != null)
         {
             Destroy(spear.View.gameObject);
+        }
+    }
+
+    private void FireEnemyBolt(EnemyNode enemy, PlankNode plank)
+    {
+        if (enemy == null || enemy.View == null || _enemyBoltPrefab == null || plank == null || plank.Dead)
+        {
+            return;
+        }
+
+        Vector3 origin = enemy.View.MuzzleWorldPos();
+        Vector3 target = plank.Logic;
+        if (plank.View != null)
+        {
+            target = plank.View.transform.position;
+        }
+
+        enemy.View.PlayShootRecoil(target - origin);
+
+        EnemyBolt bolt = new EnemyBolt();
+        bolt.Pos = origin;
+        bolt.Origin = origin;
+        bolt.Target = target;
+        bolt.Damage = enemy.Damage;
+        bolt.TargetPlank = plank;
+        bolt.View = Instantiate(_enemyBoltPrefab, spawnRoot);
+        bolt.View.transform.position = bolt.Pos;
+        bolt.View.AimHead(bolt.Target - bolt.Origin);
+        _enemyBolts.Add(bolt);
+    }
+
+    private void TickEnemyBolts(float dt)
+    {
+        for (int i = _enemyBolts.Count - 1; i >= 0; i--)
+        {
+            TickEnemyBolt(_enemyBolts[i], dt);
+            if (_enemyBolts[i].Done)
+            {
+                _enemyBolts.RemoveAt(i);
+            }
+        }
+    }
+
+    private void TickEnemyBolt(EnemyBolt bolt, float dt)
+    {
+        if (bolt == null || bolt.Done)
+        {
+            return;
+        }
+
+        bolt.Pos = Vector3.MoveTowards(bolt.Pos, bolt.Target, _config.SpearSpeed * dt);
+        if (bolt.View != null)
+        {
+            bolt.View.transform.position = bolt.Pos;
+            Vector3 aim = bolt.Target - bolt.Pos;
+            if (aim.sqrMagnitude < 0.0001f)
+            {
+                aim = bolt.Target - bolt.Origin;
+            }
+
+            bolt.View.AimHead(aim);
+        }
+
+        if (Sqr2(bolt.Pos, bolt.Target) > 0.0025f)
+        {
+            return;
+        }
+
+        bolt.Done = true;
+        PlankNode hit = bolt.TargetPlank;
+        if (hit == null || hit.Dead)
+        {
+            hit = NearestPlank(bolt.Target);
+        }
+
+        if (hit != null && !hit.Dead)
+        {
+            DamagePlank(hit, bolt.Damage);
+        }
+
+        if (bolt.View != null)
+        {
+            Destroy(bolt.View.gameObject);
         }
     }
 
@@ -2149,6 +3108,29 @@ public class BattleDirector : MonoBehaviour
         return pick;
     }
 
+    private PlankNode NearestPlank(Vector3 pos)
+    {
+        float best = float.PositiveInfinity;
+        PlankNode pick = null;
+        for (int i = 0; i < _planks.Count; i++)
+        {
+            PlankNode plank = _planks[i];
+            if (plank == null || plank.Dead)
+            {
+                continue;
+            }
+
+            float dist = Sqr2(plank.Logic, pos);
+            if (dist < best)
+            {
+                best = dist;
+                pick = plank;
+            }
+        }
+
+        return pick;
+    }
+
     private ResNode NearestResource(Vector3 pos, float range)
     {
         float best = range * range;
@@ -2156,7 +3138,7 @@ public class BattleDirector : MonoBehaviour
         for (int i = 0; i < _resources.Count; i++)
         {
             ResNode res = _resources[i];
-            if (res.Dead || res.Attracting)
+            if (res.Dead)
             {
                 continue;
             }
@@ -2179,15 +3161,11 @@ public class BattleDirector : MonoBehaviour
             return;
         }
 
-        if (kind == BattleResourceKind.Leaf)
+        if (kind == BattleResourceKind.Iron)
         {
-            _leaf += amount;
+            _iron += amount;
         }
-        else if (kind == BattleResourceKind.Meat)
-        {
-            _scrap += amount;
-        }
-        else
+        else if (kind == BattleResourceKind.Wood)
         {
             _wood += amount;
         }
@@ -2236,23 +3214,18 @@ public class BattleDirector : MonoBehaviour
     private void DrawLevelOffers()
     {
         _offerPool.Clear();
-        CollectExpansionCells(_expandCells);
-        bool canPlank = _expandCells.Count > 0;
-        bool canPlace = FindEmptyPlank() != null;
         bool hasCapture = HasBuilding(BattleBuildingKind.Capture);
         bool hasAttack = HasBuilding(BattleBuildingKind.Attack);
         bool hasAttractor = HasBuilding(BattleBuildingKind.Attractor);
-
-        if (canPlank) { _offerPool.Add(BattleUpgradeKind.Plank); }
-        if (canPlace) { _offerPool.Add(BattleUpgradeKind.PlaceCapture); }
-        if (canPlace) { _offerPool.Add(BattleUpgradeKind.PlaceAttack); }
-        if (canPlace) { _offerPool.Add(BattleUpgradeKind.PlaceAttractor); }
 
         _offerPool.Add(BattleUpgradeKind.HeroRange);
         _offerPool.Add(BattleUpgradeKind.HeroCapacity);
         _offerPool.Add(BattleUpgradeKind.HeroDamage);
         _offerPool.Add(BattleUpgradeKind.NetSize);
         _offerPool.Add(BattleUpgradeKind.NetSpeed);
+        _offerPool.Add(BattleUpgradeKind.GainIron);
+        _offerPool.Add(BattleUpgradeKind.GainWood);
+        _offerPool.Add(BattleUpgradeKind.RestoreHealth);
 
         if (hasCapture)
         {
@@ -2366,37 +3339,72 @@ public class BattleDirector : MonoBehaviour
                 break;
             case BattleUpgradeKind.CaptureRange:
                 _captureRangeBonus += _config.CaptureRangeStep;
-                RefreshTowerRanges();
+                RefreshTowerRanges(BattleBuildingKind.Capture);
                 break;
             case BattleUpgradeKind.CaptureCapacity:
                 _captureNetCapacity += _config.CaptureCapacityStep;
+                ShowTowerRanges(BattleBuildingKind.Capture);
                 break;
             case BattleUpgradeKind.CaptureSize:
                 _captureSizeBonus += _config.CaptureDiameterStep;
+                ShowTowerRanges(BattleBuildingKind.Capture);
                 break;
             case BattleUpgradeKind.CaptureSpeed:
                 _captureCooldownMul *= Mathf.Max(0.5f, 1f - (_config.CaptureCooldownStep / Mathf.Max(0.01f, _config.CaptureCooldown)));
+                ShowTowerRanges(BattleBuildingKind.Capture);
                 break;
             case BattleUpgradeKind.AttackRange:
                 _attackRangeBonus += _config.AttackRangeStep;
-                RefreshTowerRanges();
+                RefreshTowerRanges(BattleBuildingKind.Attack);
                 break;
             case BattleUpgradeKind.AttackDamage:
                 _attackDamageBonus += _config.AttackDamageStep;
+                ShowTowerRanges(BattleBuildingKind.Attack);
                 break;
             case BattleUpgradeKind.AttractorRange:
                 _attractorRangeBonus += _config.AttractorRangeStep;
-                RefreshTowerRanges();
+                RefreshTowerRanges(BattleBuildingKind.Attractor);
                 break;
             case BattleUpgradeKind.AttractorFrequency:
                 _attractorIntervalMul *= Mathf.Max(0.5f, 1f - (_config.AttractorIntervalStep / Mathf.Max(0.01f, _config.AttractorInterval)));
+                ShowTowerRanges(BattleBuildingKind.Attractor);
+                break;
+            case BattleUpgradeKind.GainIron:
+                AddCount(BattleResourceKind.Iron, BattleTuning.OfferIronAmount);
+                break;
+            case BattleUpgradeKind.GainWood:
+                AddCount(BattleResourceKind.Wood, BattleTuning.OfferWoodAmount);
+                break;
+            case BattleUpgradeKind.RestoreHealth:
+                _playerHp = _playerHpMax;
+                SyncPlankHpFromPlayer();
+                RefreshAllPlankHealth();
+                TouchHud();
                 break;
         }
 
         CommitLevelUp();
     }
 
-    private void RefreshTowerRanges()
+    private float ComputePlayerMaxHp()
+    {
+        LocalSaveManager save = LocalSaveManager.Instance;
+        int level = save != null ? save.CharacterLevel : CharacterUpgradeDefs.MinLevel;
+        float hp = CharacterUpgradeDefs.HpAtLevel(level);
+        if (save != null)
+        {
+            string armorId = save.GetEquippedItemId(EquipItemType.Armor);
+            GameItemDefs.Def armor = GameItemDefs.Get(armorId);
+            if (armor != null)
+            {
+                hp += Mathf.Max(0f, armor.statBonusValue);
+            }
+        }
+
+        return hp < 1f ? 1f : hp;
+    }
+
+    private void RefreshTowerRanges(BattleBuildingKind flashKind)
     {
         for (int i = 0; i < _planks.Count; i++)
         {
@@ -2417,6 +3425,24 @@ public class BattleDirector : MonoBehaviour
             }
 
             plank.Tower.SetRangeRadius(radius);
+            if (plank.Building == flashKind)
+            {
+                plank.Tower.ShowRangeBriefly();
+            }
+        }
+    }
+
+    private void ShowTowerRanges(BattleBuildingKind kind)
+    {
+        for (int i = 0; i < _planks.Count; i++)
+        {
+            PlankNode plank = _planks[i];
+            if (plank == null || plank.Dead || plank.Tower == null || plank.Building != kind)
+            {
+                continue;
+            }
+
+            plank.Tower.ShowRangeBriefly();
         }
     }
 
@@ -2431,7 +3457,7 @@ public class BattleDirector : MonoBehaviour
         _level++;
         // 升级后水面多刷一些漂流木叶（随等级略增，肉仍只来自螃蟹）
         int burst = _config.DriftLevelUpBurstCount + Mathf.Min(_level - 1, 3);
-        SpawnDriftBurst(burst);
+        SpawnDriftBurst(ScaledDriftCount(burst));
         _phase = Phase.Fight;
         hud.HideLevelUp();
         _modalArm = 0;
@@ -2564,6 +3590,7 @@ public class BattleDirector : MonoBehaviour
 
         StageSelection.Set(chapter, stage);
         _leaving = true;
+        BattleTime.Reset();
         SceneManager.LoadScene(MainUIController.BattleSceneName);
     }
 
@@ -2581,7 +3608,47 @@ public class BattleDirector : MonoBehaviour
         }
 
         _leaving = true;
+        BattleTime.Reset();
         SceneManager.LoadScene(sceneName);
+    }
+
+    private void BeginCameraShake()
+    {
+        if (_cam == null)
+        {
+            return;
+        }
+
+        // Keep rest pose if a prior shake is still mid-offset.
+        if (_shakeTimer <= 0f)
+        {
+            _camRestPos = _cam.transform.position;
+        }
+
+        _shakeTimer = ShakeDuration;
+    }
+
+    private void TickCameraShake()
+    {
+        if (_cam == null || _shakeTimer <= 0f)
+        {
+            return;
+        }
+
+        _shakeTimer -= Time.deltaTime;
+        if (_shakeTimer <= 0f)
+        {
+            _shakeTimer = 0f;
+            _cam.transform.position = _camRestPos;
+            return;
+        }
+
+        float t = _shakeTimer / ShakeDuration;
+        float mag = ShakeStrength * t;
+        _cam.transform.position = _camRestPos + new Vector3(
+            Random.Range(-mag, mag),
+            Random.Range(-mag, mag),
+            0f);
     }
 
     private void TouchHud()

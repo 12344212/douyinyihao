@@ -1,0 +1,284 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b2d8f4a1c9e4d7b8a0e5c3f2d1b9a47, type: 3}
+  m_Name: StageRosterConfig
+  m_EditorClassIdentifier: 
+  statMulPerCycle: 0.2
+  hpMulPerWave: 1.2
+  sets:
+  - label: Set 1
+    waveGap: 22
+    startWood: 16
+    startIron: 8
+    enemy1:
+      hp: 12
+      damage: 3
+      speed: 0.65
+    enemy2:
+      hp: 12
+      damage: 3
+      speed: 0.65
+    enemy3:
+      hp: 12
+      damage: 3
+      speed: 0.65
+    waves:
+    - spawnInterval: 1.5
+      groups:
+      - kind: 0
+        count: 4
+    - spawnInterval: 1.5
+      groups:
+      - kind: 0
+        count: 4
+    - spawnInterval: 1.5
+      groups:
+      - kind: 0
+        count: 4
+    - spawnInterval: 1.5
+      groups:
+      - kind: 0
+        count: 4
+  - label: Set 2
+    waveGap: 18
+    startWood: 0
+    startIron: 0
+    enemy1:
+      hp: 18
+      damage: 4
+      speed: 0.65
+    enemy2:
+      hp: 34
+      damage: 6
+      speed: 0.5
+    enemy3:
+      hp: 18
+      damage: 4
+      speed: 0.55
+    waves:
+    - spawnInterval: 1.5
+      groups:
+      - kind: 0
+        count: 4
+      - kind: 1
+        count: 2
+    - spawnInterval: 1.5
+      groups:
+      - kind: 0
+        count: 4
+      - kind: 1
+        count: 2
+    - spawnInterval: 1.5
+      groups:
+      - kind: 0
+        count: 4
+      - kind: 1
+        count: 2
+    - spawnInterval: 1.5
+      groups:
+      - kind: 0
+        count: 4
+      - kind: 1
+        count: 2
+    - spawnInterval: 1.5
+      groups:
+      - kind: 0
+        count: 4
+      - kind: 1
+        count: 2
+  - label: Set 3
+    waveGap: 18
+    startWood: 0
+    startIron: 0
+    enemy1:
+      hp: 18
+      damage: 4
+      speed: 0.7
+    enemy2:
+      hp: 30
+      damage: 5
+      speed: 0.5
+    enemy3:
+      hp: 16
+      damage: 5
+      speed: 0.55
+    waves:
+    - spawnInterval: 1.5
+      groups:
+      - kind: 0
+        count: 2
+      - kind: 1
+        count: 2
+      - kind: 2
+        count: 2
+    - spawnInterval: 1.5
+      groups:
+      - kind: 0
+        count: 2
+      - kind: 1
+        count: 2
+      - kind: 2
+        count: 2
+    - spawnInterval: 1.5
+      groups:
+      - kind: 0
+        count: 2
+      - kind: 1
+        count: 2
+      - kind: 2
+        count: 2
+    - spawnInterval: 1.5
+      groups:
+      - kind: 0
+        count: 2
+      - kind: 1
+        count: 2
+      - kind: 2
+        count: 2
+    - spawnInterval: 1.5
+      groups:
+      - kind: 0
+        count: 2
+      - kind: 1
+        count: 2
+      - kind: 2
+        count: 2
+  - label: Set 4
+    waveGap: 16
+    startWood: 0
+    startIron: 0
+    enemy1:
+      hp: 20
+      damage: 4
+      speed: 0.65
+    enemy2:
+      hp: 42
+      damage: 8
+      speed: 0.45
+    enemy3:
+      hp: 16
+      damage: 5
+      speed: 0.55
+    waves:
+    - spawnInterval: 1.5
+      groups:
+      - kind: 0
+        count: 1
+      - kind: 1
+        count: 4
+      - kind: 2
+        count: 1
+    - spawnInterval: 1.5
+      groups:
+      - kind: 0
+        count: 1
+      - kind: 1
+        count: 4
+      - kind: 2
+        count: 1
+    - spawnInterval: 1.5
+      groups:
+      - kind: 0
+        count: 1
+      - kind: 1
+        count: 4
+      - kind: 2
+        count: 1
+    - spawnInterval: 1.5
+      groups:
+      - kind: 0
+        count: 1
+      - kind: 1
+        count: 4
+      - kind: 2
+        count: 1
+    - spawnInterval: 1.5
+      groups:
+      - kind: 0
+        count: 1
+      - kind: 1
+        count: 4
+      - kind: 2
+        count: 1
+    - spawnInterval: 1.5
+      groups:
+      - kind: 0
+        count: 1
+      - kind: 1
+        count: 4
+      - kind: 2
+        count: 1
+  - label: Set 5
+    waveGap: 12
+    startWood: 0
+    startIron: 0
+    enemy1:
+      hp: 22
+      damage: 5
+      speed: 0.75
+    enemy2:
+      hp: 40
+      damage: 7
+      speed: 0.5
+    enemy3:
+      hp: 18
+      damage: 6
+      speed: 0.6
+    waves:
+    - spawnInterval: 1.2
+      groups:
+      - kind: 0
+        count: 3
+      - kind: 1
+        count: 3
+      - kind: 2
+        count: 2
+    - spawnInterval: 1.2
+      groups:
+      - kind: 0
+        count: 3
+      - kind: 1
+        count: 3
+      - kind: 2
+        count: 2
+    - spawnInterval: 1.2
+      groups:
+      - kind: 0
+        count: 3
+      - kind: 1
+        count: 3
+      - kind: 2
+        count: 2
+    - spawnInterval: 1.2
+      groups:
+      - kind: 0
+        count: 3
+      - kind: 1
+        count: 3
+      - kind: 2
+        count: 2
+    - spawnInterval: 1.2
+      groups:
+      - kind: 0
+        count: 3
+      - kind: 1
+        count: 3
+      - kind: 2
+        count: 2
+    - spawnInterval: 1.2
+      groups:
+      - kind: 0
+        count: 3
+      - kind: 1
+        count: 3
+      - kind: 2
+        count: 2

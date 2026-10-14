@@ -78,7 +78,7 @@ public class CollectionPanelController : MonoBehaviour
         }
     }
 
-    // ---------- 调试：战斗捕捉未接入前，用这些标记拥有 ----------
+    // ---------- 调试：正式获得走战斗打捞 SetCollectibleOwned ----------
 
     [ContextMenu("Debug/Own All Collectibles")]
     public void DebugOwnAll()

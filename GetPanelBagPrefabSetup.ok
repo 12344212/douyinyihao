@@ -1,0 +1,4 @@
+﻿ok=1
+time=2026-10-13 Asia/Shanghai
+backup=_backup_getpanel_bagprefab_20261013_154823
+changes=GetPanelController uses BagItemSlot bagPrefab under Rows; icon+count like bag; equipment SetNativeSize via itemId/GameItemDefs; MainScene wired; ToastRewardUISetup Build/Test updated; no push

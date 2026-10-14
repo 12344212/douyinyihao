@@ -225,8 +225,10 @@ public static class TemplateSceneSetup
         planks.GetArrayElementAtIndex(2).objectReferenceValue = plank01;
         planks.GetArrayElementAtIndex(3).objectReferenceValue = plank11;
         so.FindProperty("plankPrefab").objectReferenceValue = LoadPrefabComponent<PlankView>("Assets/Prefab/Battle/BattlePlank.prefab");
-        so.FindProperty("resourcePrefab").objectReferenceValue = LoadPrefabComponent<BattleResource>("Assets/Prefab/Battle/BattleResource.prefab");
-        so.FindProperty("crabPrefab").objectReferenceValue = LoadPrefabComponent<BattleCrab>("Assets/Prefab/Battle/BattleCrab.prefab");
+        so.FindProperty("woodPrefab").objectReferenceValue = LoadPrefabComponent<BattleResource>("Assets/Prefab/Battle/ZD-MTP.prefab");
+        so.FindProperty("ironPrefab").objectReferenceValue = LoadPrefabComponent<BattleResource>("Assets/Prefab/Battle/ZD-STP.prefab");
+        so.FindProperty("meatPrefab").objectReferenceValue = LoadPrefabComponent<BattleResource>("Assets/Prefab/Battle/ZD-SRP.prefab");
+        so.FindProperty("crabPrefab").objectReferenceValue = LoadPrefabComponent<BattleEnemy>("Assets/Prefab/Battle/Enemy1.prefab");
         so.FindProperty("netPrefab").objectReferenceValue = LoadPrefabComponent<BattleNet>("Assets/Prefab/Battle/BattleNet.prefab");
         so.FindProperty("spearPrefab").objectReferenceValue = LoadPrefabComponent<BattleSpear>("Assets/Prefab/Battle/BattleSpear.prefab");
         so.FindProperty("captureTowerPrefab").objectReferenceValue = LoadPrefabComponent<BattleTower>("Assets/Prefab/Battle/BattleCaptureTower.prefab");

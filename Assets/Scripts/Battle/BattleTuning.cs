@@ -17,6 +17,23 @@ public static class BattleTuning
     // 可调
     public const float PlankHp = 30f;
 
+    // 升级卡：直接获得资源
+    public const int OfferIronAmount = 20;
+    public const int OfferWoodAmount = 30;
+
+    // 商店放置：首次价格，之后每次加价
+    public const int ShopPlankWood = 8;
+    public const int ShopPlankWoodStep = 6;
+    public const int ShopAttackIron = 6;
+    public const int ShopAttackIronStep = 4;
+    public const int ShopAttractorIron = 12;
+    public const int ShopAttractorIronStep = 6;
+    public const int ShopCaptureWood = 8;
+    public const int ShopCaptureWoodStep = 4;
+    public const int ShopHealWood = 8;
+    public const int ShopHealWoodStep = 4;
+    public const int ShopHealAmount = 20;
+
     // 可调
     public const float EnemyHp = 20f;
 
@@ -38,11 +55,14 @@ public static class BattleTuning
     // 可调
     public const float SpearSpeed = 12f;
 
+    // Player spear fire cooldown (seconds)
+    public const float PlayerSpearInterval = 1f;
+
     // 可调
     public const float TowerDamage = 8f;
 
     // 可调
-    public const float TowerAttackInterval = 0.8f;
+    public const float TowerAttackInterval = 1.2f;
 
     // 可调
     public const float TowerRange = 3f;
@@ -71,12 +91,15 @@ public static class BattleTuning
     public const float AttackRangeStep = 0.75f;
     public const float AttackDamageStep = 3f;
 
+    // 可调：高于攻击塔的 8 点伤害
+    public const float AttractorDamage = 12f;
+
+    // 可调：快于攻击塔的 1.2 秒间隔
     public const float AttractorRange = 3f;
-    public const float AttractorInterval = 5f;
+    public const float AttractorInterval = 0.75f;
     public const float AttractorRangeStep = 0.75f;
-    public const float AttractorIntervalStep = 0.5f;
-    public const float AttractorIntervalMin = 2f;
-    public const float AttractorPullDuration = 0.35f;
+    public const float AttractorIntervalStep = 0.05f;
+    public const float AttractorIntervalMin = 0.25f;
 
     // 可调：捕获台两次撒网的间隔
     public const float CaptureCooldown = 2f;
@@ -161,14 +184,23 @@ public static class BattleTuning
         }
     }
 
-    // 可调
-    public const float DriftInterval = 0.6f;
+    // 木头漂流刷新间隔（秒，绝对值）
+    public const float WoodDriftInterval = 0.2f;
 
-    // 可调：资源从右上往左下漂的速度
+    // 铁漂流刷新间隔（秒，绝对值）
+    public const float IronDriftInterval = 0.4f;
+
+    // 仅用于升级爆发的漂移数量倍率；间隔与预填用绝对值
+    public const float DriftCountMul = 1.5f;
+
+    // 木头并排份数（1=取消并排双刷）
+    public const int WoodDriftCopies = 1;
+
+    // 飘流资源在走廊上的漂移速度
     public const float DriftSpeed = 2.4f;
 
-    // 开战时水面预填的漂流木叶数量
-    public const int DriftPrefillCount = 10;
+    // 开战时水面预填的漂移资源总数（绝对值）
+    public const int DriftPrefillCount = 30;
 
     // 每次升级成功后额外刷出的漂流木叶数量（基础值）
     public const int DriftLevelUpBurstCount = 4;
@@ -182,13 +214,25 @@ public static class BattleTuning
     // 可调：波数上限
     public const int WaveCap = 6;
 
-    // 可调：每收一个资源给的经验
-    public const int XpPerResource = 1;
+    // 收集经验：木头1 / 生铁2 / 肉类3
+    public const int XpWood = 1;
+    public const int XpIron = 2;
+    public const int XpMeat = 3;
+
+    public static int XpFor(BattleResourceKind kind)
+    {
+        switch (kind)
+        {
+            case BattleResourceKind.Iron: return XpIron;
+            case BattleResourceKind.Meat: return XpMeat;
+            default: return XpWood;
+        }
+    }
 
     public static readonly Color WaterColor = new Color(0.10f, 0.42f, 0.72f, 1f);
     public static readonly Color WoodPlankColor = new Color(0.62f, 0.42f, 0.22f, 1f);
     public static readonly Color WoodColor = new Color(0.55f, 0.32f, 0.12f, 1f);
-    public static readonly Color LeafColor = new Color(0.20f, 0.72f, 0.28f, 1f);
+    public static readonly Color IronColor = new Color(0.72f, 0.78f, 0.86f, 1f);
     public static readonly Color MeatColor = new Color(0.95f, 0.45f, 0.58f, 1f);
     public static readonly Color CharacterColor = new Color(0.25f, 0.55f, 0.95f, 1f);
     public static readonly Color FaceColor = new Color(1f, 0.86f, 0.45f, 1f);
@@ -206,7 +250,7 @@ public static class BattleTuning
         return (chapter - 1) * StageDefs.StagesPerChapter + (stage - 1);
     }
 
-    /// <summary>可调：波数 = 2 + 关卡序号，最多 WaveCap。</summary>
+    /// <summary>旧公式：2 + 关卡序号，最多 WaveCap。战斗波数走 StageBattleDefs。</summary>
     public static int WaveCountFor(int stageIndex)
     {
         if (stageIndex < 0)
@@ -223,27 +267,27 @@ public static class BattleTuning
         return count;
     }
 
-    /// <summary>可调：5，然后 8，然后 12，之后每级 +4。</summary>
+    // 升级所需经验（已*2）：10，然后16，然后24，之后每级+8
     public static int XpToNext(int level)
     {
         if (level <= 1)
         {
-            return 5;
+            return 10;
         }
 
         if (level == 2)
         {
-            return 8;
+            return 16;
         }
 
-        return 12 + (level - 3) * 4;
+        return 24 + (level - 3) * 8;
     }
 }
 
 public enum BattleResourceKind
 {
     Wood,
-    Leaf,
+    Iron,
     Meat
 }
 
@@ -279,5 +323,8 @@ public enum BattleUpgradeKind
     AttackDamage,
     PlaceAttractor,
     AttractorRange,
-    AttractorFrequency
+    AttractorFrequency,
+    GainIron,
+    GainWood,
+    RestoreHealth
 }

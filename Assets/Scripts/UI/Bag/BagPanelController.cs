@@ -81,12 +81,15 @@ public class BagPanelController : MonoBehaviour
             GameItemDefs.Def def = GameItemDefs.Get(stack.itemId);
             BagItemSlot slot = Instantiate(slotPrefab, listRoot);
             slot.gameObject.SetActive(true);
+            bool setNativeSize = def != null && def.IsEquipment;
             slot.Bind(
                 stack.itemId,
                 def != null ? def.displayName : stack.itemId,
                 stack.count,
                 def != null ? def.iconLocation : null,
-                OnSlotClicked);
+                OnSlotClicked,
+                showCount: true,
+                setNativeSize: setNativeSize);
             _slots.Add(slot);
             shown++;
         }

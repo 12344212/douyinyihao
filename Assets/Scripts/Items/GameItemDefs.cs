@@ -193,10 +193,10 @@ public static class GameItemDefs
         return null;
     }
 
-    /// <summary>Currency icon address. Not an item-table entry.</summary>
+    /// <summary>Currency icon YooAsset address (ZJM-ZS gems / ZJM-JB gold). Not an item-table entry.</summary>
     public static string CurrencyIconLocation(CurrencyType currency)
     {
-        return currency == CurrencyType.Gems ? "Icon_Gems" : "Icon_Gold";
+        return currency == CurrencyType.Gems ? "ZJM-ZS" : "ZJM-JB";
     }
 
     private static ItemConfig.ItemEntry[] Entries()

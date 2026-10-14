@@ -8,6 +8,8 @@ public static class StageDefs
     public const int StagesPerChapter = 10;
     public const int SlotsPerPage = 5;
     public const int PagesPerChapter = StagesPerChapter / SlotsPerPage;
+    /// <summary>L/R pages across all chapters: ch1 p0, ch1 p1, ch2 p0, ... ch3 p1.</summary>
+    public const int TotalPages = ChapterCount * PagesPerChapter;
 
     public struct Info
     {

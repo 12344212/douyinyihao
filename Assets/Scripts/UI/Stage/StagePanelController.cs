@@ -5,8 +5,9 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
-/// Stage select: one chapter, 5 slots per page. L/Next page by -5/+5 within the chapter
-/// (e.g. 1-1 page -> 1-6). Only refreshes slot contents; does not recreate the panel.
+/// Stage select: 5 slots per page. L/R pages -5/+5 across chapters in order:
+/// 1-1..1-5, 1-6..1-10, 2-1..2-5, 2-6..2-10, 3-1..3-5, 3-6..3-10 (max ch3 st10).
+/// Only refreshes slot contents; does not recreate the panel.
 /// Unlock/clear from LocalSaveManager. TZ badge via StageSlot when stage is the current
 /// max challengeable and not cleared. StageWaterFloat for slots; StageCloudFly for yun.
 /// </summary>
@@ -118,23 +119,39 @@ public class StagePanelController : MonoBehaviour
 
     private void OnPrev()
     {
-        if (_page <= 0)
+        if (_page > 0)
+        {
+            _page--;
+            Refresh();
+            return;
+        }
+
+        if (_chapter <= 1)
         {
             return;
         }
 
-        _page--;
+        _chapter--;
+        _page = StageDefs.PagesPerChapter - 1;
         Refresh();
     }
 
     private void OnNext()
     {
-        if (_page >= StageDefs.PagesPerChapter - 1)
+        if (_page < StageDefs.PagesPerChapter - 1)
+        {
+            _page++;
+            Refresh();
+            return;
+        }
+
+        if (_chapter >= StageDefs.ChapterCount)
         {
             return;
         }
 
-        _page++;
+        _chapter++;
+        _page = 0;
         Refresh();
     }
 
@@ -234,17 +251,19 @@ public class StagePanelController : MonoBehaviour
 
         if (pageLabel != null)
         {
-            pageLabel.text = (_page + 1) + " / " + StageDefs.PagesPerChapter;
+            int globalPage = (_chapter - 1) * StageDefs.PagesPerChapter + _page;
+            pageLabel.text = (globalPage + 1) + " / " + StageDefs.TotalPages;
         }
 
         if (prevButton != null)
         {
-            prevButton.interactable = _page > 0;
+            prevButton.interactable = _page > 0 || _chapter > 1;
         }
 
         if (nextButton != null)
         {
-            nextButton.interactable = _page < StageDefs.PagesPerChapter - 1;
+            nextButton.interactable = _page < StageDefs.PagesPerChapter - 1
+                || _chapter < StageDefs.ChapterCount;
         }
     }
 }

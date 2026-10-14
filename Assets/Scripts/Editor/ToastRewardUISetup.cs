@@ -32,8 +32,6 @@ public static class ToastRewardUISetup
     private static readonly Color WindowColor = new Color(0.93f, 0.90f, 0.82f, 1f);
     private static readonly Color HeaderColor = new Color(0.40f, 0.28f, 0.18f, 1f);
     private static readonly Color ClaimColor = new Color(0.20f, 0.62f, 0.36f, 1f);
-    private static readonly Color RowColor = new Color(1f, 1f, 1f, 0.65f);
-    private static readonly Color IconColor = new Color(0.55f, 0.40f, 0.85f, 1f);
 
     private static string MarkerFilePath => Path.Combine(Directory.GetCurrentDirectory(), "ToastRewardUISetup.run");
 
@@ -108,17 +106,10 @@ public static class ToastRewardUISetup
             return;
         }
 
-        string equipIcon = null;
-        GameItemDefs.Def equip = GameItemDefs.Get(GameItemDefs.IronPikeId);
-        if (equip != null)
-        {
-            equipIcon = equip.iconLocation;
-        }
-
         GetPanelController.Show(
             new GetPanelController.Reward { useCurrency = true, currency = CurrencyType.Gold, displayName = "Gold", count = 200 },
             new GetPanelController.Reward { useCurrency = true, currency = CurrencyType.Gems, displayName = "Gems", count = 10 },
-            new GetPanelController.Reward { iconLocation = equipIcon, displayName = "Iron Pike", count = 1 });
+            new GetPanelController.Reward { itemId = GameItemDefs.IronPikeId, displayName = "Iron Pike", count = 1 });
     }
 
     /// <summary>生成 Toast 与奖励弹窗。mainCanvas 用来取 UI 相机。</summary>
@@ -353,7 +344,11 @@ public static class ToastRewardUISetup
         layout.childForceExpandWidth = false;
         layout.childForceExpandHeight = false;
 
-        RewardRowView template = CreateRowTemplate(panelGo.transform, font);
+        BagItemSlot bagPrefab = AssetDatabase.LoadAssetAtPath<BagItemSlot>("Assets/Prefab/UI/BagPrefab.prefab");
+        if (bagPrefab == null)
+        {
+            Debug.LogError($"{LogTag} BagPrefab missing at Assets/Prefab/UI/BagPrefab.prefab");
+        }
 
         SerializedObject panelSo = new SerializedObject(panel);
         SetRef(panelSo, "canvasGroup", group);
@@ -366,38 +361,13 @@ public static class ToastRewardUISetup
         SerializedObject ctrlSo = new SerializedObject(ctrl);
         SetRef(ctrlSo, "panel", panel);
         SetRef(ctrlSo, "rowRoot", rows);
-        SetRef(ctrlSo, "rowTemplate", template);
+        SetRef(ctrlSo, "bagPrefab", bagPrefab);
         ctrlSo.ApplyModifiedPropertiesWithoutUndo();
 
         // 保持激活（不要 SetActive(false)）：隐藏靠 CanvasGroup，Awake 才能登记单例。
         group.alpha = 0f;
         group.blocksRaycasts = false;
         group.interactable = false;
-    }
-
-    private static RewardRowView CreateRowTemplate(Transform parent, TMP_FontAsset font)
-    {
-        Image bg = CreateImage("RewardRowTemplate", parent, RowColor, false);
-        SetRect(bg.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(240f, 300f));
-
-        Image icon = CreateImage("Icon", bg.transform, IconColor, false);
-        SetRect(icon.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -110f), new Vector2(140f, 140f));
-
-        TMP_Text name = CreateText("Name", bg.transform, "Item", 30f, new Color(0.2f, 0.16f, 0.1f, 1f), font);
-        SetRect(name.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 78f), new Vector2(220f, 44f));
-
-        TMP_Text count = CreateText("Count", bg.transform, "x1", 36f, new Color(0.15f, 0.15f, 0.15f, 1f), font);
-        count.fontStyle = FontStyles.Bold;
-        SetRect(count.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 32f), new Vector2(220f, 44f));
-
-        RewardRowView view = bg.gameObject.AddComponent<RewardRowView>();
-        SerializedObject so = new SerializedObject(view);
-        SetRef(so, "icon", icon);
-        SetRef(so, "nameText", name);
-        SetRef(so, "countText", count);
-        so.ApplyModifiedPropertiesWithoutUndo();
-        bg.gameObject.SetActive(false);
-        return view;
     }
 
     // ---------- helpers ----------

@@ -62,7 +62,9 @@ MonoBehaviour:
   - {fileID: 988435}
   - {fileID: 1042747}
   plankPrefab: {fileID: 420003, guid: 11aa0000000000010000000000000002, type: 3}
-  resourcePrefab: {fileID: 430003, guid: 11aa0000000000010000000000000004, type: 3}
+  woodPrefab: {fileID: 430003, guid: a7c3e1b24d5f4a6e8b9c0d1e2f3a4b5c, type: 3}
+  ironPrefab: {fileID: 430003, guid: b8d4f2c35e604b7f9c0d1e2f3a4b5c6d, type: 3}
+  meatPrefab: {fileID: 430003, guid: c9e503d46f715c809d1e2f3a4b5c6d7e, type: 3}
   crabPrefab: {fileID: 440003, guid: 11aa0000000000010000000000000005, type: 3}
   netPrefab: {fileID: 450003, guid: 11aa0000000000010000000000000006, type: 3}
   spearPrefab: {fileID: 460003, guid: 11aa0000000000010000000000000007, type: 3}

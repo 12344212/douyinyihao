@@ -187,7 +187,7 @@ public class BattleResultPanel : MonoBehaviour
         }
 
         string icon = GameItemDefs.CurrencyIconLocation(CurrencyType.Gold);
-        slot.Bind("gold", "Gold", goldAmount, icon, null);
+        slot.Bind("gold", "Gold", goldAmount, icon, null, setNativeSize: true);
         slot.SetSelected(false);
     }
 

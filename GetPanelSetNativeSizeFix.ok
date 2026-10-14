@@ -1,0 +1,5 @@
+﻿ok=1
+time=2026-10-13 Asia/Shanghai
+backup=_backup_getpanel_setnativesize_20261013_155640
+root_cause=ShopPanelController OnBuyConfirm item path omitted itemId so GetPanel could not resolve IsEquipment; setNativeSize stayed false
+changes=ShopPanelController item Reward now passes itemId=_buyDef.id; GetPanelController resolves Def via itemId then iconLocation fallback; setNativeSize=def.IsEquipment passed to BagItemSlot.Bind which calls Image.SetNativeSize after sprite load; no push

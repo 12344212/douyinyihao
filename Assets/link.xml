@@ -1,0 +1,4 @@
+<linker>
+  <!-- YooAsset builds file systems with Activator.CreateInstance; IL2CPP strips those constructors without this. -->
+  <assembly fullname="YooAsset" preserve="all"/>
+</linker>

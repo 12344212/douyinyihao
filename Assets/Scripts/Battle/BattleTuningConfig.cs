@@ -21,7 +21,7 @@ public class BattleTuningConfig : ScriptableObject
     [SerializeField] private float spearRadius = 0.7f;
     [SerializeField] private float spearSpeed = 12f;
     [SerializeField] private float towerDamage = 8f;
-    [SerializeField] private float towerAttackInterval = 0.8f;
+    [SerializeField] private float towerAttackInterval = 1.2f;
     [SerializeField] private float towerRange = 3f;
     [SerializeField] private float captureRange = 3f;
     [SerializeField] private float characterRange = 4f;
@@ -43,9 +43,10 @@ public class BattleTuningConfig : ScriptableObject
     [SerializeField] private float reelHoldSpeedTier3 = 1.2f;
     [SerializeField] private float reelStepTier4 = 0.35f;
     [SerializeField] private float reelHoldSpeedTier4 = 0.7f;
-    [SerializeField] private float driftInterval = 0.6f;
+    [SerializeField] private float woodDriftInterval = 0.2f;
+    [SerializeField] private float ironDriftInterval = 0.4f;
     [SerializeField] private float driftSpeed = 2.4f;
-    [SerializeField] private int driftPrefillCount = 10;
+    [SerializeField] private int driftPrefillCount = 30;
     [SerializeField] private int driftLevelUpBurstCount = 4;
     [SerializeField] private float heroDamageStep = 3f;
     [SerializeField] private float netDiameterStep = 0.25f;
@@ -58,20 +59,22 @@ public class BattleTuningConfig : ScriptableObject
     [SerializeField] private float captureCooldownMin = 0.6f;
     [SerializeField] private float attackRangeStep = 0.75f;
     [SerializeField] private float attackDamageStep = 3f;
+    [SerializeField] private float attractorDamage = 12f;
     [SerializeField] private float attractorRange = 3f;
-    [SerializeField] private float attractorInterval = 5f;
+    [SerializeField] private float attractorInterval = 0.75f;
     [SerializeField] private float attractorRangeStep = 0.75f;
-    [SerializeField] private float attractorIntervalStep = 0.5f;
-    [SerializeField] private float attractorIntervalMin = 2f;
-    [SerializeField] private float attractorPullDuration = 0.35f;
+    [SerializeField] private float attractorIntervalStep = 0.05f;
+    [SerializeField] private float attractorIntervalMin = 0.25f;
     [SerializeField] private float crabInterval = 1.5f;
     [SerializeField] private float waveGap = 30f;
     [SerializeField] private int waveCap = 6;
-    [SerializeField] private int xpPerResource = 1;
-    [SerializeField] private int xpLevel1 = 5;
-    [SerializeField] private int xpLevel2 = 8;
-    [SerializeField] private int xpLevel3Base = 12;
-    [SerializeField] private int xpStepAfterLevel3 = 4;
+    [SerializeField] private int xpWood = 1;
+    [SerializeField] private int xpIron = 2;
+    [SerializeField] private int xpMeat = 3;
+    [SerializeField] private int xpLevel1 = 10;
+    [SerializeField] private int xpLevel2 = 16;
+    [SerializeField] private int xpLevel3Base = 24;
+    [SerializeField] private int xpStepAfterLevel3 = 8;
 
     [SerializeField] private Color waterColor = new Color(0.10f, 0.42f, 0.72f, 1f);
     [SerializeField] private Color woodPlankColor = new Color(0.62f, 0.42f, 0.22f, 1f);
@@ -143,7 +146,8 @@ public class BattleTuningConfig : ScriptableObject
             default: return reelHoldSpeed;
         }
     }
-    public float DriftInterval => driftInterval;
+    public float WoodDriftInterval => woodDriftInterval;
+    public float IronDriftInterval => ironDriftInterval;
     public float DriftSpeed => driftSpeed;
     public int DriftPrefillCount => driftPrefillCount;
     public int DriftLevelUpBurstCount => driftLevelUpBurstCount;
@@ -158,16 +162,28 @@ public class BattleTuningConfig : ScriptableObject
     public float CaptureCooldownMin => captureCooldownMin;
     public float AttackRangeStep => attackRangeStep;
     public float AttackDamageStep => attackDamageStep;
+    public float AttractorDamage => attractorDamage;
     public float AttractorRange => attractorRange;
     public float AttractorInterval => attractorInterval;
     public float AttractorRangeStep => attractorRangeStep;
     public float AttractorIntervalStep => attractorIntervalStep;
     public float AttractorIntervalMin => attractorIntervalMin;
-    public float AttractorPullDuration => attractorPullDuration;
     public float CrabInterval => crabInterval;
     public float WaveGap => waveGap;
     public int WaveCap => waveCap;
-    public int XpPerResource => xpPerResource;
+    public int XpWood => xpWood;
+    public int XpIron => xpIron;
+    public int XpMeat => xpMeat;
+
+    public int XpFor(BattleResourceKind kind)
+    {
+        switch (kind)
+        {
+            case BattleResourceKind.Iron: return xpIron;
+            case BattleResourceKind.Meat: return xpMeat;
+            default: return xpWood;
+        }
+    }
     public Color WaterColor => waterColor;
     public Color WoodPlankColor => woodPlankColor;
     public Color CaptureTowerColor => captureTowerColor;

@@ -1,0 +1,5 @@
+ok=1
+time=2026-10-13 Asia/Shanghai
+backup=_backup_getpanel_gemicon_20261013_161644
+root_cause=GameItemDefs.CurrencyIconLocation returned Icon_Gems/Icon_Gold which are not YooAsset addresses; GetPanel gem rewards showed placeholder
+changes=CurrencyIconLocation -> ZJM-ZS/ZJM-JB; GetPanel ResolveIcon forces ZJM-ZS for useCurrency gems and migrates legacy Icon_*; ShopPanel currency-pack gem grants use CurrencyIconLocation; PurchaseLoadingUI/TopBar/ToastReward pick up via CurrencyIconLocation; no push

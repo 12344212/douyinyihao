@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using DG.Tweening;
+using UnityEngine;
 
 /// <summary>
 /// 木板表现。血条与着色在预制体上配好，运行时创建亦可。
@@ -30,6 +31,10 @@ public class PlankView : MonoBehaviour
 
     private SpriteRenderer[] _sprites;
     private int[] _savedOrders;
+
+    private Tween _hitShakeTween;
+    private Vector3 _hitShakeBaseLocal;
+    private bool _hitShakeBaseCached;
 
     public int CellX => cellX;
     public int CellY => cellY;
@@ -107,13 +112,6 @@ public class PlankView : MonoBehaviour
     public void SetHealth01(float ratio)
     {
         ratio = Mathf.Clamp01(ratio);
-        if (body != null)
-        {
-            Color dark = _baseColor * 0.35f;
-            dark.a = 1f;
-            body.color = Color.Lerp(dark, _baseColor, ratio);
-        }
-
         if (barFill == null)
         {
             return;
@@ -141,7 +139,7 @@ public class PlankView : MonoBehaviour
 
             if (sr == body)
             {
-                Color c = _baseColor;
+                Color c = sr.color;
                 c.a = GhostAlpha;
                 sr.color = c;
                 sr.sortingOrder = 45;
@@ -229,6 +227,65 @@ public class PlankView : MonoBehaviour
         }
 
         _savedOrders = null;
+    }
+
+    /// <summary>Brief DOTween shake on body when any plank is hit (shared HP feedback).</summary>
+    public void PlayHitShake()
+    {
+        Transform target = bodyScale != null ? bodyScale : transform;
+        if (target == null)
+        {
+            return;
+        }
+
+        if (!_hitShakeBaseCached || _hitShakeTween == null || !_hitShakeTween.IsActive())
+        {
+            _hitShakeBaseLocal = target.localPosition;
+            _hitShakeBaseCached = true;
+        }
+
+        if (_hitShakeTween != null && _hitShakeTween.IsActive())
+        {
+            _hitShakeTween.Kill(false);
+        }
+
+        target.localPosition = _hitShakeBaseLocal;
+        _hitShakeTween = target
+            .DOShakePosition(0.22f, 0.14f, 18, 90f, false, true)
+            .SetLink(gameObject)
+            .SetUpdate(false)
+            .OnKill(() =>
+            {
+                if (target != null)
+                {
+                    target.localPosition = _hitShakeBaseLocal;
+                }
+            })
+            .OnComplete(() =>
+            {
+                if (target != null)
+                {
+                    target.localPosition = _hitShakeBaseLocal;
+                }
+            });
+    }
+
+    private void OnDisable()
+    {
+        if (_hitShakeTween != null && _hitShakeTween.IsActive())
+        {
+            _hitShakeTween.Kill(false);
+        }
+
+        _hitShakeTween = null;
+        if (_hitShakeBaseCached)
+        {
+            Transform target = bodyScale != null ? bodyScale : transform;
+            if (target != null)
+            {
+                target.localPosition = _hitShakeBaseLocal;
+            }
+        }
     }
 
     private void EnsureSprites()
