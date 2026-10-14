@@ -34,6 +34,9 @@ public class PlayerSaveData
     public bool tutorialCompleted;
     public int tutorialStep;
 
+    /// <summary>Keyed tutorial progress (main / upgrade). Completed keys skip on replay.</summary>
+    public List<TutorialProgressEntry> tutorialProgress = new List<TutorialProgressEntry>();
+
     /// <summary>藏品 CP1–CP15 是否已拥有（长度 15）。</summary>
     public bool[] collectibleOwned = new bool[15];
 
@@ -52,4 +55,13 @@ public class ItemStackEntry
 {
     public string itemId;
     public int count;
+}
+
+/// <summary>Per-key tutorial progress: current step index + done flag.</summary>
+[Serializable]
+public class TutorialProgressEntry
+{
+    public string key;
+    public int step;
+    public bool done;
 }

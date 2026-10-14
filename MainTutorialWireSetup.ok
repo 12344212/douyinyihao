@@ -1,0 +1,16 @@
+﻿2026-10-14T17:51:01.3240566+08:00
+font=RuiZiTaiKongLiXianXiangSuJian-Shan(REEJI-TaikoRiskGB-Flash)-2 SDF
+---- Assets/Scenes/MainScene.unity
+openedHere=True dirtyBefore=False
+TutorialPanel created=True
+MainTutorialTargets equitListRoot=True path=CanvasPanel/UpgradePanel/Window/Content/Equit/E
+TutorialManager key=main ok
+  step[0] Main 1: open Stages -> Canvas/Stage advance=Auto
+  step[1] Main 2: Stage 1-1 -> CanvasPanel/StagePanel/Window/Content/SlotRow/Slot1 advance=Auto
+TutorialManager key=upgrade ok
+  step[0] Upgrade 1: open UpgradePanel -> Canvas/Upgrade/T advance=Auto
+  step[1] Upgrade 2: upgrade character once -> CanvasPanel/UpgradePanel/Window/Content/Parchment/UpgradeButton advance=Auto skipWhen=upgrade.alreadyUpgraded
+  step[2] Upgrade 3: open spear slot -> CanvasPanel/UpgradePanel/Window/Content/EquipSlot3 advance=Auto skipWhen=upgrade.spearEquipped
+  step[3] Upgrade 4: select Iron Pike -> key:upgrade.spearItem advance=Auto skipWhen=upgrade.spearEquipped
+  step[4] Upgrade 5: equip spear -> CanvasPanel/UpgradePanel/Window/EquitInfo/kUANG/ZB advance=Auto skipWhen=upgrade.spearEquipped
+saved=True

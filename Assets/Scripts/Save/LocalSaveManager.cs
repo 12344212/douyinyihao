@@ -413,6 +413,87 @@ public class LocalSaveManager : MonoBehaviour
         Save();
     }
 
+    // ---------- Keyed tutorial progress (main / upgrade) ----------
+
+    public bool IsTutorialDone(string key)
+    {
+        TutorialProgressEntry e = FindTutorial(key, false);
+        return e != null && e.done;
+    }
+
+    public int GetTutorialStep(string key)
+    {
+        TutorialProgressEntry e = FindTutorial(key, false);
+        return e != null ? Mathf.Max(0, e.step) : 0;
+    }
+
+    public void SetTutorialStep(string key, int step)
+    {
+        TutorialProgressEntry e = FindTutorial(key, true);
+        if (e == null || e.done)
+        {
+            return;
+        }
+
+        e.step = Mathf.Max(0, step);
+        // Mirror legacy single-key fields for the active main flow when advancing main.
+        if (key == TutorialSession.MainKey)
+        {
+            _data.tutorialStep = e.step;
+        }
+
+        Save();
+    }
+
+    public void CompleteTutorial(string key)
+    {
+        TutorialProgressEntry e = FindTutorial(key, true);
+        if (e == null || e.done)
+        {
+            return;
+        }
+
+        e.done = true;
+        if (key == TutorialSession.FinalKey)
+        {
+            _data.tutorialCompleted = true;
+        }
+
+        Save();
+    }
+
+    private TutorialProgressEntry FindTutorial(string key, bool create)
+    {
+        if (string.IsNullOrEmpty(key))
+        {
+            return null;
+        }
+
+        EnsureData();
+        if (_data.tutorialProgress == null)
+        {
+            _data.tutorialProgress = new List<TutorialProgressEntry>();
+        }
+
+        for (int i = 0; i < _data.tutorialProgress.Count; i++)
+        {
+            TutorialProgressEntry e = _data.tutorialProgress[i];
+            if (e != null && e.key == key)
+            {
+                return e;
+            }
+        }
+
+        if (!create)
+        {
+            return null;
+        }
+
+        TutorialProgressEntry created = new TutorialProgressEntry { key = key };
+        _data.tutorialProgress.Add(created);
+        return created;
+    }
+
 
     // ---------- 角色升级 ----------
 
@@ -1132,6 +1213,7 @@ public class LocalSaveManager : MonoBehaviour
         if (_data.gold < 0) { _data.gold = 0; changed = true; }
         if (_data.gems < 0) { _data.gems = 0; changed = true; }
         if (_data.tutorialStep < 0) { _data.tutorialStep = 0; changed = true; }
+        if (_data.tutorialProgress == null) { _data.tutorialProgress = new List<TutorialProgressEntry>(); changed = true; }
 
         // 旧档缺少 characterLevel 时 JsonUtility 读成 0 → 升到 1；并钳到 MaxLevel
         if (_data.shopPurchaseCount < 0) { _data.shopPurchaseCount = 0; changed = true; }
@@ -1216,6 +1298,7 @@ public class LocalSaveManager : MonoBehaviour
             characterLevel = CharacterUpgradeDefs.MinLevel,
             tutorialCompleted = false,
             tutorialStep = 0,
+            tutorialProgress = new List<TutorialProgressEntry>(),
             collectibleOwned = new bool[CollectibleCount],
             collectibleRewardClaimed = new bool[CollectibleCount]
         };
