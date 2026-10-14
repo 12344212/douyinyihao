@@ -5,10 +5,10 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// 战斗流程。挂在 BattleRoot 上。水面、初始木板、角色、HUD 在场景里。运行时只实例化资源、螃蟹、网、矛和后加的木板/塔。
+/// 鎴樻枟娴佺▼銆傛寕鍦?BattleRoot 涓娿€傛按闈€佸垵濮嬫湪鏉裤€佽鑹层€丠UD 鍦ㄥ満鏅噷銆傝繍琛屾椂鍙疄渚嬪寲璧勬簮銆佽瀮锜广€佺綉銆佺煕鍜屽悗鍔犵殑鏈ㄦ澘/濉斻€?
 /// </summary>
 [DisallowMultipleComponent]
-public class BattleDirector : MonoBehaviour
+public partial class BattleDirector : MonoBehaviour
 {
     private enum Phase
     {
@@ -243,7 +243,7 @@ public class BattleDirector : MonoBehaviour
     private readonly List<Vector2Int> _expandCells = new List<Vector2Int>();
     private readonly List<PlankView> _ghostPlanks = new List<PlankView>();
     private readonly List<PlankNode> _raisedPlanks = new List<PlankNode>();
-    /// <summary>运行时才出现的预制体，由 YooAsset 按地址加载后塞进来。</summary>
+    /// <summary>杩愯鏃舵墠鍑虹幇鐨勯鍒朵綋锛岀敱 YooAsset 鎸夊湴鍧€鍔犺浇鍚庡杩涙潵銆?/summary>
     public void SetSpawnPrefabs(PlankView plank, BattleResource wood, BattleResource iron, BattleResource meat, BattleEnemy enemy1, BattleEnemy enemy2, BattleEnemy enemy3, BattleNet net, BattleSpear spear, BattleTower capture, BattleTower attack, BattleTower attractor)
     {
         plankPrefab = plank;
@@ -260,13 +260,13 @@ public class BattleDirector : MonoBehaviour
         attractorTowerPrefab = attractor;
     }
 
-    /// <summary>角色网绳，地址 ZB-SZ1。</summary>
+    /// <summary>瑙掕壊缃戠怀锛屽湴鍧€ ZB-SZ1銆?/summary>
     public void SetRopeSprite(Sprite sprite)
     {
         _ropeSprite = sprite;
     }
 
-    /// <summary>基础攻击塔 bulie1，第二个攻击塔 bulie2。</summary>
+    /// <summary>鍩虹鏀诲嚮濉?bulie1锛岀浜屼釜鏀诲嚮濉?bulie2銆?/summary>
     public void SetTowerBolts(BattleSpear attackBolt, BattleSpear attractorBolt)
     {
         _attackBoltPrefab = attackBolt;
@@ -285,7 +285,7 @@ public class BattleDirector : MonoBehaviour
         _damakePrefab = damake;
     }
 
-    /// <summary>五套基础关卡，地址 StageRosterConfig。</summary>
+    /// <summary>浜斿鍩虹鍏冲崱锛屽湴鍧€ StageRosterConfig銆?/summary>
     public void SetStageRoster(StageRosterConfig roster)
     {
         _stageRoster = roster;
@@ -336,6 +336,16 @@ public class BattleDirector : MonoBehaviour
         _shakeTimer = 0f;
 
         ResolveStage();
+        TutorialBattleHooks.BeginBattle(BattleTuning.StageIndex(_chapter, _stage));
+        if (TutorialBattleHooks.Active)
+        {
+            _waveCount = 0;
+            _wavesDone = true;
+            _waveTimer = 0f;
+            if (_wood < 24) { _wood = 24; }
+            if (_iron < 8) { _iron = 8; }
+        }
+
         _characterPos = CellCenter(0, 0);
         if (character != null)
         {
@@ -417,6 +427,12 @@ public class BattleDirector : MonoBehaviour
             return;
         }
 
+        // Tutorial Tap/Auto overlay: hard-stop Fight sim (do not rely on timeScale alone).
+        if (TutorialBattleHooks.Paused)
+        {
+            return;
+        }
+
         float dt = Time.deltaTime;
         HandleInput(dt);
         if (_phase != Phase.Fight) return;
@@ -492,9 +508,10 @@ public class BattleDirector : MonoBehaviour
         }
 
         hud.SetWeapon(_weapon);
+        TutorialBattleHooks.Raise(TutorialBattleHooks.EvWeaponSpear);
     }
 
-    /// <summary>HUD 三张卡槽回调（0/1/2）。</summary>
+    /// <summary>HUD 涓夊紶鍗℃Ы鍥炶皟锛?/1/2锛夈€?/summary>
     public void ChooseOfferSlot(int slot)
     {
         if (_phase != Phase.LevelUp || _modalArm > 0)
@@ -508,6 +525,7 @@ public class BattleDirector : MonoBehaviour
         }
 
         ApplyUpgrade(_levelOffers[slot]);
+        TutorialBattleHooks.Raise(TutorialBattleHooks.EvUpgradePicked);
     }
 
     public void ChoosePlank() { ChooseOfferSlot(0); }
@@ -653,6 +671,14 @@ public class BattleDirector : MonoBehaviour
 
     public void OnBack()
     {
+        // Ensure battle tutorial completes even if Home onClick loads Main before TutorialManager.Advance.
+        if (TutorialBattleHooks.Active && LocalSaveManager.Instance != null
+            && !LocalSaveManager.Instance.IsTutorialDone(TutorialSession.BattleKey))
+        {
+            LocalSaveManager.Instance.CompleteTutorial(TutorialSession.BattleKey);
+            Debug.Log("[Battle] CompleteTutorial(battle) on return home");
+        }
+
         LoadSceneSafe(LoadSceneController.MainSceneName);
     }
 
@@ -700,7 +726,7 @@ public class BattleDirector : MonoBehaviour
         _iron = _roster.startIron;
     }
 
-    /// <summary>开局长矛伤害、射程、收网速度吃角色等级和已穿装备。局内升级卡之后再加。</summary>
+    /// <summary>寮€灞€闀跨煕浼ゅ銆佸皠绋嬨€佹敹缃戦€熷害鍚冭鑹茬瓑绾у拰宸茬┛瑁呭銆傚眬鍐呭崌绾у崱涔嬪悗鍐嶅姞銆?/summary>
     private void ApplyMetaStats()
     {
         LocalSaveManager save = LocalSaveManager.Instance;
@@ -759,6 +785,7 @@ public class BattleDirector : MonoBehaviour
                     }
 
                     LaunchPlayerNet(land);
+                    TutorialBattleHooks.Raise(TutorialBattleHooks.EvNetLaunched);
                     _press = PressKind.Launch;
                 }
                 else if (_playerSpearCd <= 0f)
@@ -805,7 +832,21 @@ public class BattleDirector : MonoBehaviour
         data.position = Input.mousePosition;
         _hits.Clear();
         EventSystem.current.RaycastAll(data, _hits);
-        return _hits.Count > 0;
+        if (!TutorialBattleHooks.PassWorldInput || _hits.Count == 0)
+        {
+            return _hits.Count > 0;
+        }
+
+        for (int i = 0; i < _hits.Count; i++)
+        {
+            GameObject hit = _hits[i].gameObject;
+            if (hit != null && hit.GetComponentInParent<TutorialOverlay>() == null)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private bool InsideCharacterRange(Vector3 point)
@@ -838,6 +879,7 @@ public class BattleDirector : MonoBehaviour
     private void TickResources(float dt)
     {
         ViewBounds view = GetView();
+        bool freezeDrift = TutorialBattleHooks.FreezeDrift;
         for (int i = _resources.Count - 1; i >= 0; i--)
         {
             ResNode res = _resources[i];
@@ -847,7 +889,10 @@ public class BattleDirector : MonoBehaviour
                 continue;
             }
 
-            res.Pos += res.Velocity * dt;
+            if (!freezeDrift)
+            {
+                res.Pos += res.Velocity * dt;
+            }
             bool offLeft = res.Pos.x < view.Cx - view.HalfW - 1.5f;
             bool offBottom = res.Pos.y < view.Cy - view.HalfH - 1.5f;
             bool far = res.Pos.x < view.Cx - view.HalfW - 12f || res.Pos.y < view.Cy - view.HalfH - 12f;
@@ -866,6 +911,11 @@ public class BattleDirector : MonoBehaviour
 
     private void TickDriftSpawn(float dt)
     {
+        if (TutorialBattleHooks.FreezeDrift || TutorialBattleHooks.Paused)
+        {
+            return;
+        }
+
         _woodDriftTimer -= dt;
         if (_woodDriftTimer <= 0f)
         {
@@ -881,7 +931,7 @@ public class BattleDirector : MonoBehaviour
         }
     }
 
-    /// <summary>木头/铁各自绝对刷新间隔，不受 DriftCountMul 影响。</summary>
+    /// <summary>鏈ㄥご/閾佸悇鑷粷瀵瑰埛鏂伴棿闅旓紝涓嶅彈 DriftCountMul 褰卞搷銆?/summary>
     private float WoodDriftInterval()
     {
         return _config.WoodDriftInterval;
@@ -892,7 +942,7 @@ public class BattleDirector : MonoBehaviour
         return _config.IronDriftInterval;
     }
 
-    /// <summary>升级爆发数量倍率；预填与定时刷新用绝对值。</summary>
+    /// <summary>鍗囩骇鐖嗗彂鏁伴噺鍊嶇巼锛涢濉笌瀹氭椂鍒锋柊鐢ㄧ粷瀵瑰€笺€?/summary>
     private static int ScaledDriftCount(int count)
     {
         if (count <= 0)
@@ -905,11 +955,17 @@ public class BattleDirector : MonoBehaviour
 
     private void PrefillDriftResources()
     {
+        // Tutorial 1-1: skip ambient prefill; guide resource is spawned stationary.
+        if (TutorialBattleHooks.Active)
+        {
+            return;
+        }
+
         // 开局预填绝对值，不乘 DriftCountMul
         SpawnDriftBurst(_config.DriftPrefillCount);
     }
 
-    /// <summary>在漂流走廊上刷一批木/铁（开战预填、升级爆发共用）。</summary>
+    /// <summary>鍦ㄦ紓娴佽蛋寤婁笂鍒蜂竴鎵规湪/閾侊紙寮€鎴橀濉€佸崌绾х垎鍙戝叡鐢級銆?/summary>
     private void SpawnDriftBurst(int count)
     {
         if (count <= 0)
@@ -1009,7 +1065,7 @@ public class BattleDirector : MonoBehaviour
         _resources.Add(res);
     }
 
-    /// <summary>优先漂未收集的藏品；都有了就随机一件。</summary>
+    /// <summary>浼樺厛婕傛湭鏀堕泦鐨勮棌鍝侊紱閮芥湁浜嗗氨闅忔満涓€浠躲€?/summary>
     private int PickCollectibleIndex()
     {
         LocalSaveManager save = LocalSaveManager.Instance;
@@ -1215,6 +1271,10 @@ public class BattleDirector : MonoBehaviour
 
     private void TickWaves(float dt)
     {
+        if (TutorialBattleHooks.Scripted)
+        {
+            return;
+        }
         if (_wavesDone)
         {
             return;
@@ -1673,6 +1733,7 @@ public class BattleDirector : MonoBehaviour
         }
 
         _enemies.Remove(enemy);
+        TutorialBattleHooks.OnEnemyKilled();
     }
 
     private void AdoptPlank(PlankView view)
@@ -2013,6 +2074,7 @@ public class BattleDirector : MonoBehaviour
             }
 
             SpawnPlank(cell.x, cell.y);
+            TutorialBattleHooks.Raise(TutorialBattleHooks.EvPlankBuilt);
             FinishBuildMode();
             return;
         }
@@ -2036,6 +2098,14 @@ public class BattleDirector : MonoBehaviour
             }
 
             BuildTower(plank, towerKind);
+            if (towerKind == BattleBuildingKind.Capture)
+            {
+                TutorialBattleHooks.Raise(TutorialBattleHooks.EvCaptureBuilt);
+            }
+            else if (towerKind == BattleBuildingKind.Attack)
+            {
+                TutorialBattleHooks.Raise(TutorialBattleHooks.EvAttackBuilt);
+            }
             FinishBuildMode();
         }
     }
@@ -2132,7 +2202,7 @@ public class BattleDirector : MonoBehaviour
 
     private void ShowTowerBuildTargets()
     {
-        // 空木板抬高 sorting，压在遮罩上面，仍然可以点选
+        // 绌烘湪鏉挎姮楂?sorting锛屽帇鍦ㄩ伄缃╀笂闈紝浠嶇劧鍙互鐐归€?
         _raisedPlanks.Clear();
         for (int i = 0; i < _planks.Count; i++)
         {
@@ -2410,6 +2480,10 @@ public class BattleDirector : MonoBehaviour
                         {
                             CaptureAt(net);
                             net.DidCapture = true;
+                        if (net.Home == null && net.Held.Count > 0)
+                        {
+                            TutorialBattleHooks.OnPlayerCaptured();
+                        }
                         }
 
                         if (net.AutoReel || wantReel)
@@ -2636,6 +2710,18 @@ public class BattleDirector : MonoBehaviour
         }
 
         net.Dead = true;
+        bool fromCaptureTower = net.Home != null && net.Home.Building == BattleBuildingKind.Capture;
+        bool fromPlayer = net.Home == null;
+        int heldCount = net.Held.Count;
+        bool heldMeat = false;
+        for (int hi = 0; hi < net.Held.Count; hi++)
+        {
+            if (net.Held[hi] != null && net.Held[hi].Kind == BattleResourceKind.Meat)
+            {
+                heldMeat = true;
+                break;
+            }
+        }
         int xpGained = 0;
         for (int i = 0; i < net.Held.Count; i++)
         {
@@ -2687,6 +2773,22 @@ public class BattleDirector : MonoBehaviour
         if (xpGained > 0)
         {
             AddXp(xpGained);
+        }
+
+        if (TutorialBattleHooks.Active && heldCount > 0)
+        {
+            if (fromPlayer)
+            {
+                TutorialBattleHooks.OnPlayerDelivered();
+                if (heldMeat)
+                {
+                    TutorialBattleHooks.OnMeatCollected();
+                }
+            }
+            else if (fromCaptureTower)
+            {
+                TutorialBattleHooks.OnCaptureHarvested();
+            }
         }
     }
 
@@ -3247,7 +3349,7 @@ public class BattleDirector : MonoBehaviour
             _offerPool.Add(BattleUpgradeKind.AttractorFrequency);
         }
 
-        // 洗牌后取前 3
+        // 娲楃墝鍚庡彇鍓?3
         for (int i = _offerPool.Count - 1; i > 0; i--)
         {
             int j = Random.Range(0, i + 1);
@@ -3455,7 +3557,7 @@ public class BattleDirector : MonoBehaviour
         }
 
         _level++;
-        // 升级后水面多刷一些漂流木叶（随等级略增，肉仍只来自螃蟹）
+        // 鍗囩骇鍚庢按闈㈠鍒蜂竴浜涙紓娴佹湪鍙讹紙闅忕瓑绾х暐澧烇紝鑲変粛鍙潵鑷瀮锜癸級
         int burst = _config.DriftLevelUpBurstCount + Mathf.Min(_level - 1, 3);
         SpawnDriftBurst(ScaledDriftCount(burst));
         _phase = Phase.Fight;
@@ -3473,6 +3575,14 @@ public class BattleDirector : MonoBehaviour
     private void TryVictory()
     {
         if (_phase != Phase.Fight || !_wavesDone || _enemies.Count > 0)
+        {
+            return;
+        }
+
+        // Scripted newbie tutorial owns victory timing via TutorialRequestVictory.
+        // Begin() marks _wavesDone so roster waves stay suppressed; without this
+        // guard an empty field would Win()/ShowResult on the first Fight tick.
+        if (TutorialBattleHooks.Scripted && !TutorialBattleHooks.VictoryForced)
         {
             return;
         }
@@ -3500,6 +3610,7 @@ public class BattleDirector : MonoBehaviour
         }
 
         ShowResult(true);
+        TutorialBattleHooks.OnVictory();
     }
 
     private void Lose()
@@ -3511,6 +3622,7 @@ public class BattleDirector : MonoBehaviour
 
         _phase = Phase.Defeat;
         ShowResult(false);
+        TutorialBattleHooks.OnDefeat();
     }
 
     private void ShowResult(bool victory)

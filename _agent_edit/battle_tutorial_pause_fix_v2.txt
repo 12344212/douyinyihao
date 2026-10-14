@@ -1,0 +1,29 @@
+Battle tutorial pause fix v2 (2026-10-14 Asia/Shanghai)
+
+WHY BattleTime.Hold FAILED
+1) Most stuck steps are Event (B1 resourceCaptured, build, spear...): ShouldHoldBattle
+   intentionally skipped Hold so nets/input keep ticking. Drift still used Time.deltaTime,
+   so resources slid out of the spotlight — looked like "pause failed".
+2) Hold only sets Time.timeScale=0. BattleDirector never checked an explicit pause flag;
+   _battleHeld could desync if BattleTime.Reset cleared holds (edge-only Sync never re-Hold).
+3) PrefillDriftResources still spawned a screenful of moving wood/iron at Begin, before
+   any overlay Hold could apply.
+
+FIX
+- TutorialBattleHooks: Paused (full Fight freeze) + FreezeDrift (spawn/motion only).
+- TutorialManager.SyncBattlePause:
+  - Tap/Auto overlay -> Paused + BattleTime.Hold (+ re-assert timeScale / recover desync)
+  - Event overlay -> FreezeDrift only (nets/input still run)
+  - freePlay / hidden waits / end -> clear both
+- BattleDirector.Update: if Paused, return before fight ticks (reliable vs timeScale).
+- TickDriftSpawn / TickResources: honor FreezeDrift.
+- PrefillDriftResources: skip when TutorialBattleHooks.Active (guide resource is stationary).
+
+BACKUP
+_backup_tutorial_pause_20261014_184000/
+
+VERIFY
+1) Reset battle tutorial; play 1-1.
+2) B1 Event overlay: guide resource stays put; can still throw net.
+3) B2/B8 Tap overlays: Fight fully frozen (Paused).
+4) freePlay reel/harvest/kill: sim runs again.

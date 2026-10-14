@@ -1,0 +1,63 @@
+﻿Battle tutorial implementation (raft combat, NOT dice)
+
+SNAPSHOT: fcfc189 snapshot before battle tutorial (no push)
+
+FLOW KEYS: main -> battle -> role (FinalKey)
+- CompleteTutorial("battle") on TutorialManager Finish (last Home step)
+- Role tutorial requiredDoneKeys: main, battle
+
+NEW FILES:
+- Assets/Scripts/Tutorial/TutorialBattleHooks.cs
+- Assets/Scripts/Tutorial/BattleTutorialTargets.cs
+- Assets/Scripts/Battle/BattleContext.cs
+- Assets/Scripts/Battle/BattleDirector.Tutorial.cs
+- Assets/Scripts/Editor/TutorialBattleSceneWire.cs
+
+UPDATED:
+- TutorialSession.cs (main/battle/role)
+- TutorialManager.cs (battleTutorialOnly, Raised events, waitFor before freePlay)
+- BattleDirector.cs (partial + hooks: waves suppress, capture/deliver/kill/build/win)
+- TutorialSceneWire.cs (role key + requiredDoneKeys main+battle)
+- MainTutorialTargets.cs (RoleKey)
+
+EDITOR STEPS:
+1. Open Unity project 26-10-8; wait compile.
+2. Tools/Template/Wire Battle Tutorial  OR leave BattleTutorialWireSetup.run and refocus Editor.
+   - Backs up to Temp/BattleScene.unity.bak before YAML save.
+3. Tools/Template/Wire Main Tutorial (refresh role key / requiredDoneKeys) if Main not yet role-wired.
+4. Check Temp/BattleTutorialWireReport.txt
+5. Reset save; Play LoadScene -> Main tutorial -> Stage 1-1 -> battle tutorial -> Home -> role tutorial.
+
+BATTLE STEPS (English):
+1 click resource (Event resourceCaptured, wait guideResourceReady)
+2 tap after captured
+3 freePlay reel (EvResourceDelivered)
+4 build plank (Event EvPlankBuilt)
+5 build capture (Event EvCaptureBuilt)
+6 freePlay harvest (EvCaptureHarvested)
+7 force level-up + pick card0 (Event EvUpgradePicked)
+8 showcase HP / wood / XP (Tap)
+9 spawn enemy1 + switch spear (Event EvWeaponSpear)
+10 freePlay kill (EvEnemyKilled)
+11 freePlay meat (EvMeatCollected)
+12 build attack tower (Event EvAttackBuilt)
+13 spawn enemy2 + freePlay kill
+14 forceVictory + tap
+15 Home -> CompleteTutorial(battle) -> Main role tutorial
+
+ACTIVE GATE: stageIndex==0 (1-1) && !IsTutorialDone("battle") && main done (requiredDoneKeys)
+
+BLOCKERS / INSPECTOR IF WIRE WARNS:
+- BattleTutorialTargets refs: director, shop buttons, SpearButton, Hp, WoodText, LeafText, XpLabel, levelCard0/buff, Reslut/Win/Home
+- UpSeletPanel must open via EnsureShopOpen (Toggle)
+- Portrait sprites optional
+- Scene YAML: never hand-edit header; use editor wire + backup
+
+NOTIFY: CompleteTutorial battle + return home works when step B15 Home click finishes manager and BattleResultPanel Home loads MainScene.
+
+COMPLETE TUTORIAL BATTLE + RETURN HOME:
+- Step B15 guides Win/Home click.
+- BattleDirector.OnBack also CompleteTutorial(battle) if still active (race-safe vs scene load).
+- Then MainScene role TutorialManager runs (requiredDoneKeys: main, battle).
+
+Unity Editor: BattleTutorialWireSetup.run + MainTutorialWireSetup.run placed at project root for auto-wire on focus/compile.

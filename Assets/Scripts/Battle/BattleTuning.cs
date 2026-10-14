@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 /// <summary>
 /// 战斗占位数值。标注「可调」的都是临时手感，不是正式配表。

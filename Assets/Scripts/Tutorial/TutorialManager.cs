@@ -27,6 +27,8 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] private bool autoStart = true;
     [Tooltip("这些教程段全部完成后才开始（例如 role 需要 main、battle 完成）")]
     [SerializeField] private List<string> requiredDoneKeys = new List<string>();
+    [Tooltip("Only run during tutorial battle (TutorialBattleHooks.Active)")]
+    [SerializeField] private bool battleTutorialOnly;
     [Tooltip("中途退出后从存档步骤继续；关闭则每次从第 0 步开始（战斗状态无法恢复）")]
     [SerializeField] private bool resumeFromSavedStep = true;
 
@@ -56,6 +58,7 @@ public class TutorialManager : MonoBehaviour
     private readonly List<GameObject> _hidden = new List<GameObject>(2);
     private bool _freePlay;
     private string[] _freePlayKeys;
+    private bool _battleHeld;
 
     // NotifyCondition 广播用：当前场景里所有 TutorialManager；已通知的 key 在本场景内锁存（防止先通知后进入步骤）
     private static readonly List<TutorialManager> Instances = new List<TutorialManager>(4);
@@ -63,6 +66,7 @@ public class TutorialManager : MonoBehaviour
 
     public bool IsRunning => _index >= 0;
     public string TutorialKey => tutorialKey;
+    public int CurrentIndex => _index;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStatics()
@@ -122,6 +126,8 @@ public class TutorialManager : MonoBehaviour
             overlay.MaskTapped += OnMaskTapped;
         }
 
+        TutorialBattleHooks.Raised += OnBattleEvent;
+
         if (autoStart)
         {
             StartTutorial();
@@ -135,9 +141,12 @@ public class TutorialManager : MonoBehaviour
             overlay.MaskTapped -= OnMaskTapped;
         }
 
+        TutorialBattleHooks.Raised -= OnBattleEvent;
+
         StopListening();
         Instances.Remove(this);
         SetBlock(false);
+        SyncBattlePause(true);
     }
 
     /// <summary>若未完成且满足条件则开始 / 继续教程。</summary>
@@ -206,6 +215,7 @@ public class TutorialManager : MonoBehaviour
     {
         StopListening();
         ClearMode();
+        HideOverlay();
         TutorialStep step = steps[_index];
 
         if (_index == releaseAtStep)
@@ -221,6 +231,22 @@ public class TutorialManager : MonoBehaviour
         }
 
         // 自由操作：关掉拦截和遮罩，等 NotifyCondition(conditionKey)
+        // freePlay still honors waitFor (e.g. spawn guide enemy before releasing control)
+        if (!string.IsNullOrEmpty(step.waitFor))
+        {
+            while (!CheckCondition(step.waitFor))
+            {
+                if (ShouldSkipNow(step))
+                {
+                    SkipFromRoutine("skipWhen");
+                    yield break;
+                }
+
+                HideOverlay();
+                yield return null;
+            }
+        }
+
         if (step.freePlay)
         {
             HideOverlay();
@@ -316,6 +342,7 @@ public class TutorialManager : MonoBehaviour
             overlay.Show(target, step.holePadding, step.text, step.portrait, _tapMode);
         }
 
+        SyncBattlePause();
         _flow = null;
     }
 
@@ -371,6 +398,7 @@ public class TutorialManager : MonoBehaviour
 
         _freePlay = true;
         SetBlock(false);
+        SyncBattlePause();
         Debug.Log("[TutorialManager] free play step " + _index + " waiting for [" + step.conditionKey + "] key=" + tutorialKey);
         for (int i = 0; i < _freePlayKeys.Length; i++)
         {
@@ -406,6 +434,7 @@ public class TutorialManager : MonoBehaviour
         _freePlayKeys = null;
         // 先恢复拦截，下一步（例如等结算面板出现）期间不留空档
         SetBlock(true);
+        SyncBattlePause();
         Advance();
     }
 
@@ -447,6 +476,10 @@ public class TutorialManager : MonoBehaviour
         }
 
 
+        if (battleTutorialOnly)
+        {
+            return early ? TutorialBattleHooks.ShouldBeActive(BattleContext.CurrentStage) : TutorialBattleHooks.Active;
+        }
         return true;
     }
 
@@ -469,6 +502,13 @@ public class TutorialManager : MonoBehaviour
         }
     }
 
+    private void OnBattleEvent(string key)
+    {
+        if (_showing && !string.IsNullOrEmpty(_eventKey) && key == _eventKey)
+        {
+            Advance();
+        }
+    }
 
     private void Advance()
     {
@@ -533,6 +573,8 @@ public class TutorialManager : MonoBehaviour
             overlay.Hide();
         }
 
+        SyncBattlePause(true);
+
         // 最后一步会切场景（Stage1 → 战斗，Main → 主界面）：保持拦截直到场景切走；超时兜底解除
         if (keepBlockingAfterFinish && wasRunning && isActiveAndEnabled)
         {
@@ -584,6 +626,10 @@ public class TutorialManager : MonoBehaviour
         }
 
         _hidden.Clear();
+        if (battleTutorialOnly)
+        {
+            TutorialBattleHooks.EndScripted();
+        }
     }
 
     private void HideOverlay()
@@ -596,6 +642,8 @@ public class TutorialManager : MonoBehaviour
                 overlay.Hide();
             }
         }
+
+        SyncBattlePause();
     }
 
     private void ClearMode()
@@ -608,6 +656,7 @@ public class TutorialManager : MonoBehaviour
         _showing = false;
         _current = null;
         _currentRequired = false;
+        SyncBattlePause();
     }
 
     private void StopListening()
@@ -617,6 +666,83 @@ public class TutorialManager : MonoBehaviour
             _listening.onClick.RemoveListener(OnTargetClicked);
             _listening = null;
         }
+    }
+
+
+
+    /// <summary>
+    /// Battle tutorial only: freeze fight while overlay steps show.
+    /// - Tap/Auto: TutorialBattleHooks.Paused + BattleTime.Hold (full Fight tick stop).
+    /// - Event: FreezeDrift only (spawn/motion stop; nets/input still tick).
+    /// - freePlay / hidden waits / end: clear both.
+    /// </summary>
+    private void SyncBattlePause(bool forceRelease = false)
+    {
+        bool wantHold = !forceRelease && ShouldHoldBattle();
+        bool wantFreezeDrift = !forceRelease && ShouldFreezeDrift();
+
+        TutorialBattleHooks.SetPaused(wantHold);
+        TutorialBattleHooks.SetFreezeDrift(wantFreezeDrift);
+        TutorialBattleHooks.SetPassWorldInput(!forceRelease && _showing && PassesWorldInput(_eventKey));
+
+        if (wantHold)
+        {
+            if (!_battleHeld)
+            {
+                BattleTime.Hold();
+                _battleHeld = true;
+            }
+            else if (!BattleTime.IsHeld)
+            {
+                // Recover if BattleTime.Reset cleared holds while we still expect pause.
+                BattleTime.Hold();
+            }
+            else
+            {
+                // Re-assert timeScale in case something set it back to 1.
+                Time.timeScale = 0f;
+            }
+        }
+        else if (_battleHeld)
+        {
+            BattleTime.Release();
+            _battleHeld = false;
+        }
+    }
+
+    /// <summary>这些事件步骤要点世界：收网、放置木板/炮塔、丢矛、收肉。</summary>
+    private static bool PassesWorldInput(string eventKey)
+    {
+        return eventKey == TutorialBattleHooks.EvResourceDelivered
+            || eventKey == TutorialBattleHooks.EvPlankBuilt
+            || eventKey == TutorialBattleHooks.EvCaptureBuilt
+            || eventKey == TutorialBattleHooks.EvAttackBuilt
+            || eventKey == TutorialBattleHooks.EvEnemyKilled
+            || eventKey == TutorialBattleHooks.EvMeatCollected;
+    }
+
+    private bool ShouldHoldBattle()
+    {
+        if (!battleTutorialOnly || _index < 0 || _freePlay)
+        {
+            return false;
+        }
+
+        // Event steps need nets/enemies/towers to tick (and player world input).
+        if (!string.IsNullOrEmpty(_eventKey))
+        {
+            return false;
+        }
+
+        return _showing;
+    }
+
+    /// <summary>
+    /// Any battle-tutorial overlay (including Event): freeze drift so spotlight targets stay put.
+    /// </summary>
+    private bool ShouldFreezeDrift()
+    {
+        return battleTutorialOnly && _index >= 0 && !_freePlay && _showing;
     }
 
     private Transform ResolveTarget(TutorialStep step)

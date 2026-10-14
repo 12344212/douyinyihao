@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 /// <summary>
 /// 藏品 CP1–CP15 常量（地址与 YooAsset AddressByFileName 一致）。

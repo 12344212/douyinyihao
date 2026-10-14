@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 /// <summary>
 /// 预制体上的范围圈。外径跟随半径；厚度/颜色/透明度/排序在 Inspector 调，不随半径变粗。

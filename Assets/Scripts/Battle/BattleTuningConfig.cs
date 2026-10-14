@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 /// <summary>
 /// 战斗数值。地址 BattleTuningConfig（YooAsset AddressByFileName）。

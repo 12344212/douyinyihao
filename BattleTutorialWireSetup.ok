@@ -1,0 +1,9 @@
+﻿2026-10-14T18:02:24.8638505+08:00
+font=RuiZiTaiKongLiXianXiangSuJian-Shan(REEJI-TaikoRiskGB-Flash)-2 SDF
+---- Assets/Scenes/BattleScene.unity
+backup=D:\UnitProject\26-10-8\Temp\BattleScene.unity.bak
+TutorialPanel created=False
+BattleTutorialTargets director=True shop=True spear=True home=True
+  steps already at version 1 count=17 (skip rewrite)
+  battle steps skipped (already wired)
+saved=True

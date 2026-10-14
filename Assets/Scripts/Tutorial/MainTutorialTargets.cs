@@ -20,7 +20,7 @@ public class MainTutorialTargets : TutorialTargetProvider
     {
         // main 完成后、upgrade 未完成时发放第一把矛，保证打开 Equit 时列表里有 ZB-BQ1
         LocalSaveManager save = LocalSaveManager.Instance;
-        if (save != null && save.IsTutorialDone(TutorialSession.MainKey) && !save.IsTutorialDone(TutorialSession.UpgradeKey))
+        if (save != null && save.IsTutorialDone(TutorialSession.MainKey) && !save.IsTutorialDone(TutorialSession.RoleKey))
         {
             EnsureStarterSpear();
         }
@@ -65,6 +65,11 @@ public class MainTutorialTargets : TutorialTargetProvider
         {
             string id = string.IsNullOrEmpty(starterSpearId) ? GameItemDefs.IronPikeId : starterSpearId;
             return save.IsItemEquipped(id);
+        }
+
+        if (key == "upgrade.equitClosed")
+        {
+            return equitListRoot == null || !equitListRoot.gameObject.activeInHierarchy;
         }
 
         return true;

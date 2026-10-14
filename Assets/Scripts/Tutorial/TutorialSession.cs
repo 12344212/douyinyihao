@@ -1,20 +1,23 @@
-using System;
+﻿using System;
 using UnityEngine;
 
 /// <summary>
-/// 教程会话：主场景新手教程（main → upgrade）。无战斗教程。
-/// 每次进入 Play 且尚未全部完成时，清掉流程进度并从 main 第 0 步重开。
-/// 同一次会话内跨场景（进战斗再回 Main）不重复清进度。
+/// Tutorial session flow: main -> battle -> role.
+/// Incomplete runs clear progress once per Play session and restart from main step 0.
+/// Role complete = whole newbie tutorial done.
 /// </summary>
 public static class TutorialSession
 {
-    /// <summary>最后一段：升级角色 + 装备长矛完成后标记整套新手完成。</summary>
-    public const string FinalKey = "upgrade";
+    public const string FinalKey = "role";
 
     public const string MainKey = "main";
-    public const string UpgradeKey = "upgrade";
+    public const string BattleKey = "battle";
+    public const string RoleKey = "role";
 
-    private static readonly string[] FlowKeys = { MainKey, UpgradeKey };
+    /// <summary>Legacy alias used by earlier main-scene wire; same as RoleKey.</summary>
+    public const string UpgradeKey = RoleKey;
+
+    private static readonly string[] FlowKeys = { MainKey, BattleKey, RoleKey };
 
     private static bool _checked;
 
@@ -24,13 +27,11 @@ public static class TutorialSession
         _checked = false;
     }
 
-    /// <summary>整套教程是否已完成。</summary>
     public static bool AllDone
     {
         get { return LocalSaveManager.Instance != null && LocalSaveManager.Instance.IsTutorialDone(FinalKey); }
     }
 
-    /// <summary>本会话只执行一次：未全完成则清流程进度，从 main 第 0 步重新开始。</summary>
     public static void EnsureSessionStart()
     {
         if (_checked)
@@ -57,6 +58,8 @@ public static class TutorialSession
         }
 
         int removed = data.tutorialProgress.RemoveAll(e => e != null && Array.IndexOf(FlowKeys, e.key) >= 0);
+        // Also clear legacy "upgrade" key if present from earlier wire.
+        removed += data.tutorialProgress.RemoveAll(e => e != null && e.key == "upgrade");
         if (removed > 0)
         {
             save.Save();

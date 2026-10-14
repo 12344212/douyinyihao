@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 /// <summary>
 /// 一种漂流资源。外观和缩放写在各自预制体上：ZD-MTP 木头、ZD-STP 生铁、ZD-SRP 生肉。图片地址仍是 ZD-MT、ZD-ST、ZD-SR。

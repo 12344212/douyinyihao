@@ -24,6 +24,8 @@ public class UpgradeEquipController : MonoBehaviour
 
     [Header("Panel")]
     [SerializeField] private UIPanel panel;
+    [Tooltip("角色立绘。点击后关闭装备列表和详情。")]
+    [SerializeField] private Button characterButton;
 
     [Header("Equip slots (1=Shoes, 2=Armor, 3=Spear, 4=Hood)")]
     [SerializeField] private SlotRefs slot1;
@@ -53,6 +55,8 @@ public class UpgradeEquipController : MonoBehaviour
     private readonly List<BagItemSlot> _slots = new List<BagItemSlot>(8);
     private string _infoItemId;
     private Coroutine _infoIconRoutine;
+    private Transform _characterHome;
+    private int _characterSibling = -1;
 
     private void Awake()
     {
@@ -87,6 +91,16 @@ public class UpgradeEquipController : MonoBehaviour
             infoCloseButton.onClick.AddListener(HideEquitInfo);
         }
 
+        if (characterButton != null)
+        {
+            characterButton.onClick.AddListener(OnCharacterClicked);
+            if (_characterHome == null)
+            {
+                _characterHome = characterButton.transform.parent;
+                _characterSibling = characterButton.transform.GetSiblingIndex();
+            }
+        }
+
         LocalSaveManager.OnItemsChanged += OnItemsOrEquipChanged;
         LocalSaveManager.OnEquipmentChanged += OnItemsOrEquipChanged;
         if (panel != null)
@@ -118,6 +132,13 @@ public class UpgradeEquipController : MonoBehaviour
         {
             infoCloseButton.onClick.RemoveListener(HideEquitInfo);
         }
+
+        if (characterButton != null)
+        {
+            characterButton.onClick.RemoveListener(OnCharacterClicked);
+        }
+
+        RestoreCharacterLayer();
 
         LocalSaveManager.OnItemsChanged -= OnItemsOrEquipChanged;
         LocalSaveManager.OnEquipmentChanged -= OnItemsOrEquipChanged;
@@ -186,6 +207,13 @@ public class UpgradeEquipController : MonoBehaviour
         OpenEquit();
     }
 
+    /// <summary>点角色立绘：关掉装备列表和详情，回到角色页。</summary>
+    private void OnCharacterClicked()
+    {
+        HideEquitInfo();
+        HideEquit();
+    }
+
     private void OpenEquit()
     {
         if (equitRoot != null)
@@ -193,6 +221,7 @@ public class UpgradeEquipController : MonoBehaviour
             equitRoot.SetActive(true);
         }
 
+        RaiseCharacterLayer();
         RebuildEquitList();
     }
 
@@ -202,6 +231,11 @@ public class UpgradeEquipController : MonoBehaviour
         if (equitRoot != null)
         {
             equitRoot.SetActive(false);
+        }
+
+        if (!IsEquitInfoOpen())
+        {
+            RestoreCharacterLayer();
         }
     }
 
@@ -300,6 +334,8 @@ public class UpgradeEquipController : MonoBehaviour
             equitInfoRoot.SetActive(true);
         }
 
+        RaiseCharacterLayer();
+
         if (infoName != null)
         {
             infoName.text = string.IsNullOrEmpty(def.displayName) ? itemId : def.displayName;
@@ -348,6 +384,57 @@ public class UpgradeEquipController : MonoBehaviour
         {
             equitInfoRoot.SetActive(false);
         }
+
+        if (!IsEquitOpen())
+        {
+            RestoreCharacterLayer();
+        }
+    }
+
+    private bool IsEquitInfoOpen()
+    {
+        return equitInfoRoot != null && equitInfoRoot.activeSelf;
+    }
+
+    /// <summary>装备层盖住立绘时，把角色提到最前，点击才能关掉 Equit。</summary>
+    private void RaiseCharacterLayer()
+    {
+        if (characterButton == null)
+        {
+            return;
+        }
+
+        Transform overlayParent = equitInfoRoot != null ? equitInfoRoot.transform.parent : null;
+        if (overlayParent == null)
+        {
+            return;
+        }
+
+        if (_characterHome == null)
+        {
+            _characterHome = characterButton.transform.parent;
+            _characterSibling = characterButton.transform.GetSiblingIndex();
+        }
+
+        characterButton.transform.SetParent(overlayParent, true);
+        characterButton.transform.SetAsLastSibling();
+    }
+
+    private void RestoreCharacterLayer()
+    {
+        if (characterButton == null || _characterHome == null)
+        {
+            return;
+        }
+
+        if (characterButton.transform.parent == _characterHome)
+        {
+            return;
+        }
+
+        characterButton.transform.SetParent(_characterHome, true);
+        int index = Mathf.Clamp(_characterSibling, 0, _characterHome.childCount - 1);
+        characterButton.transform.SetSiblingIndex(index);
     }
 
     private void OnEquipClicked()

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 /// <summary>
 /// 塔。捕获塔和攻击塔是两个预制体，种类用序列化枚举区分。

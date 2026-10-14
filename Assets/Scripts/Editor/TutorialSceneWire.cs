@@ -9,17 +9,20 @@ using UnityEngine.UI;
 
 /// <summary>
 /// 编辑器工具：在 MainScene 预置新手教程节点（TutorialPanel + Overlay + Manager），
-/// 适配 StagePanel / UpgradePanel / Equit，不含战斗教程。
+/// 适配 StagePanel / UpgradePanel / Equit，含 BattleScene 战斗教程。
 /// 菜单：Tools/Template/Wire Main Tutorial
 /// 一键：项目根目录放 MainTutorialWireSetup.run，进编辑器自动跑一次。
 /// </summary>
 public static class TutorialSceneWire
 {
     const string MainScenePath = "Assets/Scenes/MainScene.unity";
+    const string BattleScenePath = "Assets/Scenes/BattleScene.unity";
     const string FontPath = "Assets/TextMesh Pro/Fonts/RuiZiTaiKongLiXianXiangSuJian-Shan(REEJI-TaikoRiskGB-Flash)-2 SDF.asset";
     const string RequestFlagPath = "Temp/REQUEST_TUTORIAL_WIRE";
     const string ReportPath = "Temp/TutorialWireReport.txt";
     const string MarkerPath = "MainTutorialWireSetup.run";
+    const string BattleMarkerPath = "BattleTutorialWireSetup.run";
+    const string BattleOkPath = "BattleTutorialWireSetup.ok";
     const string OkPath = "MainTutorialWireSetup.ok";
 
     static readonly Color ColMask = new Color(0f, 0f, 0f, 0.72f);
@@ -222,8 +225,20 @@ public static class TutorialSceneWire
             EndSteps(mso, main);
         }
 
-        // --- upgrade：回 Main 后升级角色一次 + 装备 Iron Pike ---
-        TutorialManager upgrade = EnsureManager(panel, TutorialSession.UpgradeKey, overlay, provider, out SerializedObject uso);
+        // --- role：回 Main 后升级角色一次 + 装备 Iron Pike ---
+        TutorialManager upgrade = EnsureManager(panel, TutorialSession.RoleKey, overlay, provider, out SerializedObject uso);
+        // Remove legacy "upgrade"-keyed managers from earlier wire.
+        TutorialManager[] allMgr = panel.GetComponents<TutorialManager>();
+        for (int mi = 0; mi < allMgr.Length; mi++)
+        {
+            SerializedObject probe = new SerializedObject(allMgr[mi]);
+            SerializedProperty kp = probe.FindProperty("tutorialKey");
+            if (kp != null && kp.stringValue == "upgrade" && allMgr[mi] != upgrade)
+            {
+                Object.DestroyImmediate(allMgr[mi]);
+                Log.AppendLine("removed legacy TutorialManager key=upgrade");
+            }
+        }
         StepsAction upAction = GetStepsAction(uso);
         if (upAction == StepsAction.Patch)
         {
@@ -244,21 +259,25 @@ public static class TutorialSceneWire
                 zb = FindDeepUnder(equitInfo, "ZB");
             }
 
-            AddStep(steps, "Upgrade 1: open UpgradePanel", upgradeBtn, null,
+            AddStep(steps, "Role 1: open UpgradePanel", upgradeBtn, null,
                 "Tap Upgrade to strengthen your hero.", TutorialAdvance.Auto, null, null, 0.3f, false);
-            AddStep(steps, "Upgrade 2: upgrade character once", charUpgrade, null,
+            AddStep(steps, "Role 2: upgrade character once", charUpgrade, null,
                 "Tap Upgrade once to raise your stats.", TutorialAdvance.Auto, null, null, 0.2f, true,
                 "upgrade.alreadyUpgraded");
-            AddStep(steps, "Upgrade 3: open spear slot", spearSlot, null,
+            AddStep(steps, "Role 3: open spear slot", spearSlot, null,
                 "Tap the spear slot to open your equipment.", TutorialAdvance.Auto, null, null, 0.2f, false,
                 "upgrade.spearEquipped");
-            AddStep(steps, "Upgrade 4: select Iron Pike", null, "upgrade.spearItem",
+            AddStep(steps, "Role 4: select Iron Pike", null, "upgrade.spearItem",
                 "Tap your Iron Pike.", TutorialAdvance.Auto, null, null, 0.2f, false,
                 "upgrade.spearEquipped");
-            AddStep(steps, "Upgrade 5: equip spear", zb, null,
+            AddStep(steps, "Role 5: equip spear", zb, null,
                 "Tap Equip to arm your spear. You're ready!", TutorialAdvance.Auto, null, null, 0.2f, false,
                 "upgrade.spearEquipped");
-            ConfigureManager(uso, 0.8f, new[] { TutorialSession.MainKey }, true, new GameObject[0], -1, false);
+            Transform character = upgradePanel != null ? FindDeepUnder(upgradePanel, "Character") : FindDeep(scene, "Character");
+            AddStep(steps, "Role 6: close Equit", character, null,
+                "Tap your character to close the equipment list.", TutorialAdvance.Auto, null, null, 0.2f, false,
+                "upgrade.equitClosed");
+            ConfigureManager(uso, 0.8f, new[] { TutorialSession.MainKey, TutorialSession.BattleKey }, true, new GameObject[0], -1, false);
             EndSteps(uso, upgrade);
         }
 

@@ -1,0 +1,28 @@
+--- !u!114 &2069278283
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2069278279}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0008c5b6b51a81941ab79bb392548e42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  director: {fileID: 2100000104}
+  buildShop: {fileID: 603074420}
+  hud: {fileID: 223845}
+  resultPanel: {fileID: 2105688042}
+  shopOpenButton: {fileID: 1987754148}
+  plankBuyButton: {fileID: 556563682}
+  captureBuyButton: {fileID: 823039534}
+  attackBuyButton: {fileID: 1941412211}
+  spearButton: {fileID: 225541}
+  netButton: {fileID: 225441}
+  hpRoot: {fileID: 1858475691}
+  woodText: {fileID: 226889}
+  leafText: {fileID: 2073566096}
+  xpLabel: {fileID: 225341}
+  levelCard0: {fileID: 226041}
+  winHomeButton: {fileID: 319757775}
