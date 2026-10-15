@@ -5,7 +5,7 @@ using UnityEngine;
 /// Reward popup on MainScene CanvasReward (above feature panels, below top bar).
 /// Display only — caller grants gold / gems / items via LocalSaveManager before Show.
 /// Not gated by MainUIController single-panel rule; can overlay other panels.
-/// Reward slots reuse bag BagPrefab (BagItemSlot): icon, count; equipment SetNativeSize.
+/// Reward slots reuse bag BagPrefab (BagItemSlot): icon, count; equipment/gems/gold SetNativeSize.
 /// </summary>
 public class GetPanelController : MonoBehaviour
 {
@@ -113,7 +113,11 @@ public class GetPanelController : MonoBehaviour
             }
 
             string iconLocation = ResolveIcon(reward, def);
-            bool setNativeSize = def != null && def.IsEquipment;
+            // Equipment / gems / gold use native icon size on BagPrefab slots.
+            bool isCurrencyNative = reward.useCurrency
+                || iconLocation == GameItemDefs.CurrencyIconLocation(CurrencyType.Gems)
+                || iconLocation == GameItemDefs.CurrencyIconLocation(CurrencyType.Gold);
+            bool setNativeSize = (def != null && def.IsEquipment) || isCurrencyNative;
             string bindId = !string.IsNullOrEmpty(reward.itemId)
                 ? reward.itemId
                 : (def != null && !string.IsNullOrEmpty(def.id)
