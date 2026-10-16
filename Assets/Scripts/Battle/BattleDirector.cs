@@ -1042,7 +1042,7 @@ public partial class BattleDirector : MonoBehaviour
         res.Velocity = velocity;
         res.View = Instantiate(PrefabFor(kind), spawnRoot);
         res.View.SetKind(kind);
-        res.View.SetSortingOrder(1);
+        res.View.SetSortingOrder(4);
         res.View.transform.position = res.Pos;
         res.View.transform.rotation = Quaternion.Euler(0f, 0f, Random.Range(0f, 360f));
         _resources.Add(res);
@@ -1059,7 +1059,7 @@ public partial class BattleDirector : MonoBehaviour
         res.Velocity = dir * (_config.DriftSpeed / 6f);
         res.View = Instantiate(meatPrefab, spawnRoot);
         res.View.SetKind(res.Kind);
-        res.View.SetSortingOrder(1);
+        res.View.SetSortingOrder(4);
         res.View.transform.position = res.Pos;
         res.View.transform.rotation = Quaternion.Euler(0f, 0f, Random.Range(0f, 360f));
         _resources.Add(res);
@@ -2808,7 +2808,7 @@ public partial class BattleDirector : MonoBehaviour
                 continue;
             }
 
-            SetResOrder(res, 1);
+            SetResOrder(res, 4);
 
             _resources.Add(res);
         }

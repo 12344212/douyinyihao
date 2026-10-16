@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: c9f5e13a4d6f508c0e2f3a4b5c6d7e8f
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - backgroundSprite: {fileID: 21300000, guid: 6d64a82bcf8098d488f1e94a48e7eb02, type: 3}
+  - rippleSprite: {fileID: 21300000, guid: 916fee1ddf4da5445a2678bfca1a73c7, type: 3}
+  - highlightSprite: {fileID: 21300000, guid: a1ad73a662002344495bbd843e5af014, type: 3}
+  executionOrder: -20
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

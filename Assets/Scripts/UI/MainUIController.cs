@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 /// <summary>
 /// MainScene main UI controller (on Canvas).
-/// Opens feature panels one at a time; TopBar avatar/gold+/gems+; Collection opens CollectionPanel.
+/// Opens feature panels one at a time; TopBar avatar/gold+; Collection opens CollectionPanel.
 /// Main menu buttons except Stage use child T as click hit (Button + Image alpha 0, raycastable);
 /// on T click play DOPunchScale on parent then open the panel.
 /// </summary>
@@ -22,16 +22,14 @@ public class MainUIController : MonoBehaviour
     [SerializeField] private Button shopButton;
     [SerializeField] private Button bagButton;
     [SerializeField] private Button upgradeButton;
-    [SerializeField] private Button topUpButton;
 
-    [Header("Top Bar (avatar / gold + / gems +)")]
+    [Header("Top Bar (avatar / gold +)")]
     [SerializeField] private TopBarUI topBar;
 
     [Header("Panels")]
     [SerializeField] private UIPanel stagePanel;
     [SerializeField] private UIPanel shopPanel;
     [SerializeField] private UIPanel bagPanel;
-    [SerializeField] private UIPanel topUpPanel;
     [SerializeField] private UIPanel upgradePanel;
     [SerializeField] private UIPanel profilePanel;
     [SerializeField] private UIPanel collectionPanel;
@@ -54,21 +52,19 @@ public class MainUIController : MonoBehaviour
     private Button _shopClick;
     private Button _bagClick;
     private Button _upgradeClick;
-    private Button _topUpClick;
 
     private UnityAction _playAction;
     private UnityAction _stagesAction;
     private UnityAction _shopAction;
     private UnityAction _bagAction;
     private UnityAction _upgradeAction;
-    private UnityAction _topUpAction;
 
     public UIPanel CurrentPanel => _currentPanel;
     public bool IsPanelOpen => _currentPanel != null;
 
     private void Awake()
     {
-        _panels = new[] { stagePanel, shopPanel, bagPanel, topUpPanel, upgradePanel, profilePanel, collectionPanel };
+        _panels = new[] { stagePanel, shopPanel, bagPanel, upgradePanel, profilePanel, collectionPanel };
         for (int i = 0; i < _panels.Length; i++)
         {
             if (_panels[i] != null)
@@ -83,27 +79,23 @@ public class MainUIController : MonoBehaviour
         _shopClick = ResolveMenuClick(shopButton, useTouchChild: true);
         _bagClick = ResolveMenuClick(bagButton, useTouchChild: true);
         _upgradeClick = ResolveMenuClick(upgradeButton, useTouchChild: true);
-        _topUpClick = ResolveMenuClick(topUpButton, useTouchChild: true);
 
         _playAction = () => OnMenuClicked(playButton, OpenCollection);
         _stagesAction = OpenStages;
         _shopAction = () => OnMenuClicked(shopButton, OpenShop);
         _bagAction = () => OnMenuClicked(bagButton, OpenBag);
         _upgradeAction = () => OnMenuClicked(upgradeButton, OpenUpgrade);
-        _topUpAction = () => OnMenuClicked(topUpButton, OpenTopUp);
 
         Bind(_playClick, _playAction);
         Bind(_stagesClick, _stagesAction);
         Bind(_shopClick, _shopAction);
         Bind(_bagClick, _bagAction);
         Bind(_upgradeClick, _upgradeAction);
-        Bind(_topUpClick, _topUpAction);
 
         if (topBar != null)
         {
             topBar.AvatarClicked += OpenProfile;
             topBar.GoldPlusClicked += OpenShop;
-            topBar.GemsPlusClicked += OpenTopUp;
         }
     }
 
@@ -133,13 +125,11 @@ public class MainUIController : MonoBehaviour
         Unbind(_shopClick, _shopAction);
         Unbind(_bagClick, _bagAction);
         Unbind(_upgradeClick, _upgradeAction);
-        Unbind(_topUpClick, _topUpAction);
 
         if (topBar != null)
         {
             topBar.AvatarClicked -= OpenProfile;
             topBar.GoldPlusClicked -= OpenShop;
-            topBar.GemsPlusClicked -= OpenTopUp;
         }
     }
 
@@ -154,7 +144,6 @@ public class MainUIController : MonoBehaviour
     public void OpenStages() => OpenPanel(stagePanel);
     public void OpenShop() => OpenPanel(shopPanel);
     public void OpenBag() => OpenPanel(bagPanel);
-    public void OpenTopUp() => OpenPanel(topUpPanel);
     public void OpenUpgrade() => OpenPanel(upgradePanel);
     public void OpenProfile() => OpenPanel(profilePanel);
     public void OpenCollection() => OpenPanel(collectionPanel);

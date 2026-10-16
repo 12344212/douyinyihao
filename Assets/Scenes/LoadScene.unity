@@ -641,50 +641,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 1190, y: 130}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!1 &851067378
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 851067380}
-  - component: {fileID: 851067379}
-  m_Layer: 0
-  m_Name: IapRuntime
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &851067379
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 851067378}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e23794e4426d0224da2e904eec530f00, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!4 &851067380
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 851067378}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &910180260
 GameObject:
   m_ObjectHideFlags: 0
@@ -880,9 +836,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   yooAssetManager: {fileID: 636846680}
   localSaveManager: {fileID: 783882625}
-  iapPurchaseManager: {fileID: 851067379}
   itemConfig: {fileID: 11400000, guid: 14dd171ecc29298429ded2f62fc1a87f, type: 2}
-  gemPackConfig: {fileID: 11400000, guid: 5eb898f70a56bbe47a6887b9b3f50a62, type: 2}
   progressBarRoot: {fileID: 1195522107}
   progressFillImage: {fileID: 825152320}
   progressText: {fileID: 1790538112}
@@ -1646,4 +1600,3 @@ SceneRoots:
   - {fileID: 636846681}
   - {fileID: 702934611}
   - {fileID: 783882626}
-  - {fileID: 851067380}

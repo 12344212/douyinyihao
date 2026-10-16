@@ -45,6 +45,8 @@ public class TopBarUI : MonoBehaviour
         if (avatarButton != null) avatarButton.onClick.AddListener(OnAvatarClicked);
         if (goldPlusButton != null) goldPlusButton.onClick.AddListener(OnGoldPlusClicked);
         if (gemsPlusButton != null) gemsPlusButton.onClick.AddListener(OnGemsPlusClicked);
+        // Buy-gem / TopUp entry removed (ads-only). Hide the gems '+' button.
+        if (gemsPlusButton != null) gemsPlusButton.gameObject.SetActive(false);
     }
 
     private void OnEnable()

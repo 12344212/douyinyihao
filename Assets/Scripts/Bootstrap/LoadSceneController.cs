@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 /// <summary>
 /// LoadScene 控制器（与参考项目一致，挂在 LoadScene 的 Canvas 上）。
-/// 流程：YooAsset 初始化 → 本地存档就绪 → 分段预加载（图片 / 预制体 / 配置）→ IAP 初始化 → 进度补满
+/// 流程：YooAsset 初始化 → 本地存档就绪 → 分段预加载（图片 / 预制体 / 配置）→ 进度补满
 ///       → DOTween 进度条补满（至少 minLoadSeconds）→ Start 按钮淡入 + 循环呼吸 → 点击后异步加载 MainScene。
 /// YooAsset 初始化失败时显示英文错误面板 + Retry 按钮（重新走一遍流程）。
 /// 所有引用都通过 Inspector 序列化字段赋值（由编辑器脚本 LoadSceneUISetup 生成并绑定），不使用 Find / GetComponent 查找其它物体。
@@ -29,9 +29,7 @@ public class LoadSceneController : MonoBehaviour
     [Header("Managers")]
     [SerializeField] private YooAssetManager yooAssetManager;
     [SerializeField] private LocalSaveManager localSaveManager;
-    [SerializeField] private IapPurchaseManager iapPurchaseManager;
     [SerializeField] private ItemConfig itemConfig;
-    [SerializeField] private GemPackConfig gemPackConfig;
 
     [Header("Progress")]
     [SerializeField] private RectTransform progressBarRoot; // JDTBG
@@ -177,10 +175,7 @@ public class LoadSceneController : MonoBehaviour
         yield return RunPhase(ResolveLocations(configLocations, typeof(TextAsset), typeof(ScriptableObject)), null, PrefabsEnd, ConfigsEnd);
         yield return BindGameConfigs();
 
-        // 4. IAP 初始化（商品 id 来自 GemPackConfig）
-        yield return InitializeIap();
-
-        // 5. 收尾：补满进度，保证至少显示 minLoadSeconds
+        // 4. 收尾：补满进度，保证至少显示 minLoadSeconds
         SetStatus("Almost ready...");
         float remain = minLoadSeconds - (Time.realtimeSinceStartup - startTime);
         float tail = Mathf.Max(fillTweenDuration, remain);
@@ -193,22 +188,13 @@ public class LoadSceneController : MonoBehaviour
     }
 
     /// <summary>
-    /// 初始化 Unity IAP。优先用 Inspector 上的 IapPurchaseManager，没有再退回单例。
-    /// 失败或超时不阻止进入游戏。
-    /// </summary>
-    /// <summary>
-    /// 按文件名地址加载 ItemConfig / GemPackConfig。YooAsset 成功就用加载结果，否则用 Inspector 上的引用。
+    /// 优先从地址加载 ItemConfig；YooAsset 成功则用加载结果，否则保留 Inspector 上的配置。
     /// </summary>
     private IEnumerator BindGameConfigs()
     {
         if (itemConfig != null)
         {
             GameItemDefs.Bind(itemConfig);
-        }
-
-        if (gemPackConfig != null)
-        {
-            GemPackDefs.Bind(gemPackConfig);
         }
 
         if (_yoo != null && _yoo.IsReady)
@@ -219,37 +205,12 @@ public class LoadSceneController : MonoBehaviour
             {
                 GameItemDefs.Bind(loadedItems);
             }
-
-            GemPackConfig loadedPacks = null;
-            yield return _yoo.LoadConfigAsync<GemPackConfig>(GemPackDefs.ConfigAddress, c => loadedPacks = c);
-            if (loadedPacks != null)
-            {
-                GemPackDefs.Bind(loadedPacks);
-            }
         }
 
         if (GameItemDefs.Current == null)
         {
             Debug.LogWarning("[LoadSceneController] ItemConfig is not loaded.");
         }
-
-        if (GemPackDefs.Current == null)
-        {
-            Debug.LogWarning("[LoadSceneController] GemPackConfig is not loaded.");
-        }
-    }
-
-    private IEnumerator InitializeIap()
-    {
-        SetStatus("Initializing store...");
-        IapPurchaseManager iap = iapPurchaseManager != null ? iapPurchaseManager : IapPurchaseManager.Instance;
-        if (iap == null)
-        {
-            Debug.LogWarning("[LoadSceneController] IapPurchaseManager is not assigned.");
-            yield break;
-        }
-
-        yield return iap.InitializeAsync();
     }
 
     private IEnumerator RunPhase(List<string> locations, Type assetType, float sliceStart, float sliceEnd)
